@@ -235,28 +235,28 @@ const parseReference = (
     query: string,
 ): { surahNumber: number; ayahNumber: number } | null => {
     const trimmed = query.trim();
-    console.log('[parseRef] input:', JSON.stringify(trimmed), 'len:', trimmed.length);
+
     if (trimmed.length < 3) return null;
 
     // Sondaki sayıyı bul  (ör: "sebe 50" → "50",  "34:50" → "50")
     const tailDigits = trimmed.match(/(\d{1,3})$/);
-    console.log('[parseRef] tailDigits:', tailDigits);
+
     if (!tailDigits) return null;
 
     const ayahNumber = parseInt(tailDigits[1], 10);
-    console.log('[parseRef] ayahNumber:', ayahNumber, 'index:', tailDigits.index);
+
 
     // Sayıdan önceki kısmı al ve separator'ları temizle
     let before = trimmed.substring(0, tailDigits.index!).trim();
     // Sondaki : . - gibi ayırıcıları sil
     before = before.replace(/[:\.\-]+$/, '').trim();
-    console.log('[parseRef] before:', JSON.stringify(before));
+
 
     if (!before) return null;
 
     // Eğer öndeki kısım da saf sayı ise → sure numarası + ayet numarası
     if (/^\d{1,3}$/.test(before)) {
-        console.log('[parseRef] numeric match → surah:', before);
+
         return {
             surahNumber: parseInt(before, 10),
             ayahNumber,
@@ -266,13 +266,13 @@ const parseReference = (
     // ── İlk önce alias haritasından ara (Türkçe isimler) ──
     const aliasMatch = findSurahByAlias(before);
     if (aliasMatch) {
-        console.log('[parseRef] ALIAS match → surah:', aliasMatch, 'for:', before);
+
         return { surahNumber: aliasMatch, ayahNumber };
     }
 
     // ── Sonra normalize tabanlı eşleştirme (data.json isimleri) ──
     const ni = normalize(before);
-    console.log('[parseRef] normalized:', JSON.stringify(ni));
+
     if (!ni) return null;
 
     for (const surah of quranData) {
@@ -286,7 +286,7 @@ const parseReference = (
         // a) Tam eşleşme
         for (const c of candidates) {
             if (normalize(c) === ni) {
-                console.log('[MATCH-A] surah:', surah.number, 'candidate:', c, 'norm:', normalize(c));
+
                 return { surahNumber: surah.number, ayahNumber };
             }
         }
@@ -301,7 +301,7 @@ const parseReference = (
                     ni.startsWith(nc) ||
                     nc.includes(ni)
                 ) {
-                    console.log('[MATCH-B] surah:', surah.number, 'candidate:', c, 'norm:', nc, 'ni:', ni);
+
                     return { surahNumber: surah.number, ayahNumber };
                 }
             }
@@ -320,7 +320,7 @@ const parseReference = (
                         cc.startsWith(ic) ||
                         ic.startsWith(cc)
                     )) {
-                        console.log('[MATCH-C] surah:', surah.number, 'candidate:', c, 'cc:', cc, 'ic:', ic);
+
                         return { surahNumber: surah.number, ayahNumber };
                     }
                 }
@@ -338,7 +338,7 @@ export const searchAyahs = (query: string, language: AppLanguage) => {
 
     // 1) Referans tabanlı arama  (34:50, sebe 50 …)
     const ref = parseReference(query);
-    console.log('[searchAyahs] query:', JSON.stringify(query), 'ref:', ref);
+
     if (ref) {
         const surah = getSurah(ref.surahNumber);
         if (surah) {

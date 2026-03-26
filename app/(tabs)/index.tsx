@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Heart } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
 import { useProgress } from '../../hooks/useProgress';
 import { useAchievements } from '../../hooks/useAchievements';
 import { HatimCelebration } from '../../components/HatimCelebration';
+import { useNavigation } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function MainFeedScreen() {
+    const navigation = useNavigation();
     const { currentSurah, currentAyah, setProgress } = useProgress();
     const surah = getSurah(currentSurah || 1);
     const theme = Colors.light;
@@ -22,6 +25,8 @@ export default function MainFeedScreen() {
     const [uiAyah, setUiAyah] = useState(currentAyah);
     const [barHeight, setBarHeight] = useState(0);
     const [isScrubbing, setIsScrubbing] = useState(false);
+    const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
     const flatListRef = useRef<FlatList>(null);
     const scrubTimer = useRef<NodeJS.Timeout | null>(null);
     const currentIndexRef = useRef(Math.max(0, (currentAyah || 1) - 1));
@@ -85,13 +90,47 @@ export default function MainFeedScreen() {
         const newIndex = Math.max(0, (currentAyah || 1) - 1);
         currentIndexRef.current = newIndex;
         setUiAyah(currentAyah);
-    }, [currentSurah]);
+        // Arama sonucundan gelince doğru ayete scroll et
+        setTimeout(() => {
+            flatListRef.current?.scrollToIndex({ index: newIndex, animated: false });
+        }, 50);
+    }, [currentSurah, currentAyah]);
 
     useEffect(() => {
         AsyncStorage.getItem('hasSeenSwipeHint').then(val => {
             if (val !== 'true') setShowSwipeHint(true);
         });
     }, []);
+
+    const favoriteId = surah ? `${surah.number}:${uiAyah}` : null;
+    const isFavorited = favoriteId ? favorites.has(favoriteId) : false;
+
+    const toggleFavorite = React.useCallback(() => {
+        if (!favoriteId) return;
+        setFavorites(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(favoriteId)) {
+                newSet.delete(favoriteId);
+            } else {
+                newSet.add(favoriteId);
+            }
+            return newSet;
+        });
+    }, [favoriteId]);
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 16, padding: 4 }}>
+                    <Heart 
+                        size={24} 
+                        color={theme.primary} 
+                        fill={isFavorited ? theme.primary : 'transparent'} 
+                    />
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation, isFavorited, toggleFavorite, theme.primary]);
 
     if (!surah) return null;
 
