@@ -39,6 +39,8 @@ services:
       - DATABASE_URL=postgresql://kuran_admin:secure_password_123@kuran_postgres:5432/kuran_db?schema=public
       - JWT_SECRET=your_jwt_secret
       - GEMINI_API_KEY=your_gemini_key
+    volumes:
+      - ./kuran-ne-diyor-web/data:/app/kuran-ne-diyor-web/data
     networks:
       - emektra_emektra-network
 
