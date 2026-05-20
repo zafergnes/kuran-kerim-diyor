@@ -182,6 +182,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (canUseStorage()) {
       window.localStorage.removeItem("userToken");
       window.localStorage.removeItem("refreshToken");
+      window.localStorage.removeItem(FAVORITES_KEY);
+      window.localStorage.removeItem(COLLECTIONS_KEY);
     }
     set({ user: null, favorites: {}, collections: {} });
   },

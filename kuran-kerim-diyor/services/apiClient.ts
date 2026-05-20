@@ -1,7 +1,18 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://192.168.1.106:3000/api';
+import Constants from 'expo-constants';
+
+const getBaseUrl = () => {
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  if (debuggerHost) {
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:3001/api`;
+  }
+  return 'http://localhost:3001/api';
+};
+
+const API_URL = getBaseUrl();
 
 const apiClient = axios.create({
   baseURL: API_URL,

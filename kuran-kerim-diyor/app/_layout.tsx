@@ -5,8 +5,21 @@ import { useEffect } from 'react';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
 import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
 
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
+import * as Notifications from 'expo-notifications';
+import { NotificationService } from '../services/notificationService';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -42,7 +55,47 @@ export default function RootLayout() {
             SplashScreen.hideAsync();
         };
 
+        const handleDeepLink = (url: string | null) => {
+            if (!url) return;
+            const parsed = Linking.parse(url);
+            if (parsed.path === 'ayet' && parsed.queryParams?.id) {
+                const id = parsed.queryParams.id as string;
+                const [surah, ayah] = id.split(':');
+                if (surah && ayah) {
+                    // Store'u dogrudan guncelle
+                    import('../store/userStore').then(({ useUserStore }) => {
+                        useUserStore.getState().setProgress(Number(surah), Number(ayah));
+                        router.replace('/(tabs)');
+                    });
+                }
+            }
+        };
+
         checkFirstLaunch();
+
+        // Uygulama acikken gelen linkler
+        const subscription = Linking.addEventListener('url', (event) => handleDeepLink(event.url));
+        
+        // Uygulama kapaliyken acilan link
+        Linking.getInitialURL().then(handleDeepLink);
+
+        // Bildirim Kaydi ve Dinleyiciler
+        NotificationService.registerForPushNotifications();
+
+        const notificationListener = Notifications.addNotificationResponseReceivedListener(response => {
+            const data = response.notification.request.content.data;
+            if (data?.surah && data?.ayah) {
+                import('../store/userStore').then(({ useUserStore }) => {
+                    useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
+                    router.replace('/(tabs)');
+                });
+            }
+        });
+
+        return () => {
+            subscription.remove();
+            notificationListener.remove();
+        };
 
         checkFirstLaunch();
 

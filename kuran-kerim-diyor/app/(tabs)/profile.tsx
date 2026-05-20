@@ -48,18 +48,22 @@ export default function ProfileScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    /* Google Login şimdilik pasif (ID'ler tanımlanana kadar)
     const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
         clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
         iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
         androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     });
+    */
 
+    /*
     useEffect(() => {
         if (response?.type === 'success') {
             // Google Login will be implemented in backend later
             setError("Google Login is currently unavailable with the new backend.");
         }
     }, [response]);
+    */
 
     const handleLogin = async () => {
         setLoading(true);
@@ -127,9 +131,26 @@ export default function ProfileScreen() {
     };
 
     const handleLogout = async () => {
-        await SecureStore.deleteItemAsync('userToken');
-        await SecureStore.deleteItemAsync('refreshToken');
-        setAuth(null, false, null, null);
+        setLoading(true);
+        try {
+            await SecureStore.deleteItemAsync('userToken');
+            await SecureStore.deleteItemAsync('refreshToken');
+            
+            // Yerel verileri (AsyncStorage) temizle
+            await AsyncStorage.removeItem('userFavorites');
+            await AsyncStorage.removeItem('userCollections');
+            
+            // Store'u sifirla
+            const { useUserStore } = await import('../../store/userStore');
+            useUserStore.getState().setFavorites({});
+            useUserStore.getState().setCollections({});
+            setAuth(null, false, null, null);
+            
+            Alert.alert(t('common.success'), t('profile.logout_success') || "Çıkış yapıldı.");
+        } catch (e) {
+            console.error("Logout error:", e);
+        }
+        setLoading(false);
     };
 
     const handleDeleteAccount = async () => {
@@ -311,6 +332,7 @@ export default function ProfileScreen() {
                             <View style={[styles.line, { backgroundColor: theme.border }]} />
                         </View>
 
+                        {/* Sosyal girişler şimdilik gizli (Henüz hazır değil)
                         <TouchableOpacity 
                             style={[styles.outlineButton, { borderColor: theme.primary, backgroundColor: 'transparent', marginBottom: 12 }]} 
                             onPress={() => promptAsync()}
@@ -327,6 +349,7 @@ export default function ProfileScreen() {
                                 <Text style={[styles.outlineButtonText, { color: theme.text }]}>{t('profile.apple_login')}</Text>
                             </TouchableOpacity>
                         )}
+                        */}
 
                         <TouchableOpacity style={[styles.outlineButton, { borderColor: theme.primary }]} onPress={handleGuestLogin}>
                             <Text style={[styles.outlineButtonText, { color: theme.primary }]}>{t('profile.guest_continue')}</Text>

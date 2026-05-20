@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: secure_password_123
       POSTGRES_DB: kuran_db
     ports:
-      - "5432:5432"
+      - "5455:5432"
     volumes:
       - kuran_pgdata:/var/lib/postgresql/data
 
