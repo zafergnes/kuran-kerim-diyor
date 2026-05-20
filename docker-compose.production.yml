@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  kuran_postgres:
+    image: postgres:15-alpine
+    container_name: kuran_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: kuran_admin
+      POSTGRES_PASSWORD: secure_password_123
+      POSTGRES_DB: kuran_db
+    volumes:
+      - kuran_postgres_data:/var/lib/postgresql/data
+    networks:
+      - emektra_emektra-network
+
   kuran-web:
     build:
       context: ./kuran-ne-diyor-web
@@ -30,3 +43,6 @@ services:
 networks:
   emektra_emektra-network:
     external: true
+
+volumes:
+  kuran_postgres_data:
