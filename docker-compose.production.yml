@@ -18,6 +18,8 @@ services:
     build:
       context: ./kuran-ne-diyor-web
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://api.kurannediyor.com.tr/api
     container_name: kuran-web
     restart: always
     environment:
