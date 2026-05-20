@@ -24,6 +24,7 @@ model User {
   favorites          Favorite[]
   reports            Report[]
   likes              CommentLike[]
+  pushDevices        PushDevice[]
 }
 
 model Report {
@@ -106,4 +107,26 @@ model AyahStat {
   favoriteCount Int    @default(0)
   commentCount  Int    @default(0)
   likeCount     Int    @default(0)
+}
+
+model VerseTheme {
+  id           Int      @id @default(autoincrement())
+  surahNumber  Int
+  startAyah    Int
+  endAyah      Int
+  categoryKey  String   // e.g., "MOTIVATION", "PEACE", "WISDOM", "PATIENCE", "MORALITY", "PRAYER", "GRATITUDE"
+  createdAt    DateTime @default(now())
+
+  @@unique([surahNumber, startAyah, endAyah])
+}
+
+model PushDevice {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  timezone  String
+  language  String   @default("tr")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

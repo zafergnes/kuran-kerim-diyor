@@ -18,6 +18,7 @@
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "com.kurankerimdiyor",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -33,7 +34,15 @@
     "plugins": [
       "expo-router",
       "expo-asset",
-      "expo-localization"
-    ]
+      "expo-localization",
+      "expo-notifications"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cc7bed36-1460-4f3c-84ff-3d98b7c27429"
+      }
+    },
+    "owner": "enesakca04"
   }
 }

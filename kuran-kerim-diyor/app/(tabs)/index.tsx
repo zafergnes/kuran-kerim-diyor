@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronLeft, Heart } from 'lucide-react-native';
+import { ChevronLeft, Heart, Sparkles } from 'lucide-react-native';
+import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService';
+import { VerseShareCard } from '../../components/VerseShareCard';
+import { Modal, ScrollView } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
@@ -32,6 +35,12 @@ export default function MainFeedScreen() {
     const [isScrubbing, setIsScrubbing] = useState(false);
     const { favorites, toggleFavorite, hideFavoriteDeleteWarning, setHideFavoriteDeleteWarning } = useUserStore();
     const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+    const [dailyVerse, setDailyVerse] = useState<DailyVerse | null>(null);
+    const [showDailyModal, setShowDailyModal] = useState(false);
+
+    useEffect(() => {
+        DailyVerseService.getDailyVerse().then(setDailyVerse).catch(() => {});
+    }, []);
 
     const flatListRef = useRef<FlatList>(null);
     const scrubTimer = useRef<NodeJS.Timeout | null>(null);
@@ -176,7 +185,12 @@ export default function MainFeedScreen() {
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <View style={{ alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {dailyVerse && (
+                        <TouchableOpacity onPress={() => setShowDailyModal(true)} style={{ marginRight: 8, padding: 4 }}>
+                            <Sparkles size={24} color={theme.primary} />
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity onPress={handleToggleFavorite} style={{ marginRight: 16, padding: 4 }}>
                         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                             <Heart 
@@ -292,6 +306,33 @@ export default function MainFeedScreen() {
                 onCancel={() => setShowDeleteWarning(false)}
                 onConfirm={handleConfirmDelete}
             />
+
+            {/* Günün Ayeti Modalı */}
+            <Modal
+                visible={showDailyModal}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowDailyModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Günün Ayeti</Text>
+                            <TouchableOpacity onPress={() => setShowDailyModal(false)}>
+                                <Text style={{ color: theme.primary, fontWeight: 'bold' }}>Kapat</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                            {dailyVerse && (
+                                <VerseShareCard 
+                                    text={dailyVerse.text} 
+                                    reference={dailyVerse.reference} 
+                                />
+                            )}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -350,5 +391,26 @@ const styles = StyleSheet.create({
         width: 16,
         height: 1,
         marginVertical: 4,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        height: '80%',
+        padding: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
     },
 });

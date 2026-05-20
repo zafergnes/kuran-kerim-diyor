@@ -13,12 +13,20 @@ import commentRoutes from './routes/comments.routes';
 import reportRoutes from './routes/reports.routes';
 import statsRoutes from './routes/stats.routes';
 import userRoutes from './routes/user.routes';
+import notificationRoutes from './routes/notification.routes';
 import { startModerationWorker } from './services/worker.service';
+import { NotificationService } from './services/notification.service';
+
+import dailyRoutes from './routes/daily.routes';
 
 const app = express();
 
 // Start the background worker
 startModerationWorker();
+
+// Start the notification scheduler
+NotificationService.initCron();
+
 const port = process.env.PORT || 3000;
 
 // Security Middlewares
@@ -42,6 +50,8 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/daily-context', dailyRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Kuran Backend is secure and running' });

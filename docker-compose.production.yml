@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  kuran-web:
+    build:
+      context: ./kuran-ne-diyor-web
+      dockerfile: Dockerfile
+    container_name: kuran-web
+    restart: always
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=https://api.kurannediyor.com.tr
+    networks:
+      - emektra_emektra-network
+
+  kuran-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kuran-backend
+    restart: always
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://kuran_admin:secure_password_123@kuran_postgres:5432/kuran_db?schema=public
+      - JWT_SECRET=your_jwt_secret
+      - GEMINI_API_KEY=your_gemini_key
+    networks:
+      - emektra_emektra-network
+
+networks:
+  emektra_emektra-network:
+    external: true
