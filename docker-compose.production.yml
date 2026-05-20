@@ -22,7 +22,7 @@ services:
     restart: always
     environment:
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=https://api.kurannediyor.com.tr
+      - NEXT_PUBLIC_API_URL=https://api.kurannediyor.com.tr/api
     networks:
       - emektra_emektra-network
 
