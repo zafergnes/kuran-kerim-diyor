@@ -31,8 +31,14 @@ export function AudioPlayer({ globalAyahNumber }: { globalAyahNumber: number }) 
   const toggle = async () => {
     if (isLoading) return;
 
+    const expectedUrl = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`;
+    if (audioRef.current && audioRef.current.src !== expectedUrl) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
     if (!audioRef.current) {
-      audioRef.current = new Audio(`https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`);
+      audioRef.current = new Audio(expectedUrl);
       audioRef.current.addEventListener("ended", () => setIsPlaying(false));
     }
 
