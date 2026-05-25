@@ -1,19 +1,29 @@
-import { DailyVerseService } from "@/services/dailyVerseService";
+import { getSurah, getAyah } from "@/services/quranData";
 import { AppShell } from "@/components/AppShell";
 import { Sparkles, Download, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const [surah, ayah] = (await params).id.split(':');
-  const verse = await DailyVerseService.getVerseByRef(surah, ayah);
+  const [surahNum, ayahNum] = (await params).id.split(':');
+  const surah = getSurah(Number(surahNum));
+  const ayah = getAyah(Number(surahNum), Number(ayahNum));
+  
+  if (!surah || !ayah) {
+    return {
+      title: "Ayet Bulunamadı - Kuran Kerim Diyor",
+    };
+  }
+
+  const reference = `${surah.name.tr} ${ayah.number}`;
+  const text = ayah.translations.tr || "";
   
   return {
-    title: `${verse.reference} - Kuran Kerim Diyor`,
-    description: verse.text,
+    title: `${reference} - Kuran Kerim Diyor`,
+    description: text,
     openGraph: {
-      title: verse.reference,
-      description: verse.text,
+      title: reference,
+      description: text,
       type: 'article',
     }
   };
@@ -23,10 +33,10 @@ export default async function VerseDetailPage({ params }: { params: { id: string
   const { id } = await params;
   const [surahNum, ayahNum] = id.split(':');
   
-  let verse;
-  try {
-    verse = await DailyVerseService.getVerseByRef(surahNum, ayahNum);
-  } catch (error) {
+  const surah = getSurah(Number(surahNum));
+  const ayah = getAyah(Number(surahNum), Number(ayahNum));
+  
+  if (!surah || !ayah) {
     return (
       <AppShell>
         <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
@@ -36,6 +46,13 @@ export default async function VerseDetailPage({ params }: { params: { id: string
       </AppShell>
     );
   }
+
+  const verse = {
+    text: ayah.translations.tr || "",
+    reference: `${surah.name.tr} ${ayah.number}`,
+    arabic: ayah.arabic
+  };
+
 
   return (
     <AppShell>

@@ -9,18 +9,7 @@ import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
 import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
-import * as Notifications from 'expo-notifications';
-import { NotificationService } from '../services/notificationService';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -90,23 +79,50 @@ export default function RootLayout() {
         // Uygulama kapaliyken acilan link
         Linking.getInitialURL().then(handleDeepLink);
 
-        // Bildirim Kaydi ve Dinleyiciler
-        NotificationService.registerForPushNotifications();
+        // Bildirim Kaydi ve Dinleyiciler (Sadece Expo Go disindaki ortamlarda)
+        const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+        let notificationListener: any = null;
 
-        const notificationListener = Notifications.addNotificationResponseReceivedListener(response => {
-            const data = response.notification.request.content.data;
-            if (data?.surah && data?.ayah) {
-                import('../store/userStore').then(({ useUserStore }) => {
-                    useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
-                    router.replace('/(tabs)');
+        if (!isExpoGo) {
+            try {
+                const Notifications = require('expo-notifications');
+                const { NotificationService } = require('../services/notificationService');
+
+                Notifications.setNotificationHandler({
+                    handleNotification: async () => ({
+                        shouldShowAlert: true,
+                        shouldPlaySound: true,
+                        shouldSetBadge: false,
+                        shouldShowBanner: true,
+                        shouldShowList: true,
+                    }),
                 });
+
+                NotificationService.registerForPushNotifications();
+
+                notificationListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
+                    const data = response.notification.request.content.data;
+                    if (data?.surah && data?.ayah) {
+                        import('../store/userStore').then(({ useUserStore }) => {
+                            useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
+                            router.replace('/(tabs)');
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to initialize dynamic notifications:', e);
             }
-        });
+        } else {
+            console.log('[RootLayout] Running inside Expo Go. Skipping push notification service.');
+        }
 
         return () => {
             subscription.remove();
-            notificationListener.remove();
+            if (notificationListener) {
+                notificationListener.remove();
+            }
         };
+
 
         checkFirstLaunch();
 

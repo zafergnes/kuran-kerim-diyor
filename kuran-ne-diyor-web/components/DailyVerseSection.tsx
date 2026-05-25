@@ -1,20 +1,23 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Share2, BookOpen, Search } from "lucide-react";
 import { DailyVerseService, DailyVerse } from "@/services/dailyVerseService";
+import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
 
 export function DailyVerseSection() {
   const [verse, setVerse] = useState<DailyVerse | null>(null);
   const [loading, setLoading] = useState(true);
+  const language = useUserStore((state) => state.language);
 
   useEffect(() => {
-    DailyVerseService.getDailyVerse()
+    setLoading(true);
+    DailyVerseService.getDailyVerse(language)
       .then(setVerse)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (

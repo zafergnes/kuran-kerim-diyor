@@ -1,4 +1,3 @@
-import * as Notifications from 'expo-notifications';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Localization from 'expo-localization';
 import { Platform } from 'react-native';
@@ -10,7 +9,17 @@ export class NotificationService {
    * Bildirim izinlerini ister ve token'ı sunucuya kaydeder
    */
   static async registerForPushNotifications() {
+    // Expo Go SDK 53+ does not support push notifications on Android and crashes on import/call
+    const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (isExpoGo) {
+      console.warn('[NotificationService] Push notifications are not supported in Expo Go. Skipping registration.');
+      return null;
+    }
+
     let token;
+
+    // Dynamically load expo-notifications to avoid side-effect crash in Expo Go
+    const Notifications = require('expo-notifications');
 
     const isDevice = Constants.executionEnvironment !== ExecutionEnvironment.Bare && 
                     Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
@@ -74,3 +83,4 @@ export class NotificationService {
     return token;
   }
 }
+

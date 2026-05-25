@@ -8,7 +8,7 @@ export function AudioPlayer({ globalAyahNumber }: { globalAyahNumber: number }) 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { selectedReciter } = useUserStore();
+  const selectedReciter = useUserStore((state) => state.selectedReciter);
 
   // Reset audio element if reciter changes
   useEffect(() => {
