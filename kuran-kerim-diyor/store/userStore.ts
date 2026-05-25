@@ -25,6 +25,7 @@ interface UserState {
     // Okuma düzeni ve font ayarları
     readingLayout: 'single' | 'page';
     arabicFontFamily: 'noto-naskh' | 'amiri';
+    selectedArabicScript: 'uthmani' | 'diyanet';
 
     // Auth state
     userId: string | null;
@@ -49,6 +50,7 @@ interface UserState {
     setSelectedReciter: (reciter: string) => void;
     setReadingLayout: (layout: 'single' | 'page') => void;
     setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => void;
+    setSelectedArabicScript: (script: 'uthmani' | 'diyanet') => void;
     addCollection: (name: string, initialAyahId?: string) => void;
     deleteCollection: (colId: string) => void;
     addAyahToCollection: (ayahId: string, colId: string) => void;
@@ -77,6 +79,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     selectedReciter: 'ar.alafasy',
     readingLayout: 'single',
     arabicFontFamily: 'noto-naskh',
+    selectedArabicScript: 'diyanet',
 
     userId: null,
     isAnonymous: false,
@@ -186,6 +189,14 @@ export const useUserStore = create<UserState>((set, get) => ({
             const storedFont = await AsyncStorage.getItem('@app_arabic_font');
             if (storedFont) set({ arabicFontFamily: storedFont as 'noto-naskh' | 'amiri' });
 
+            const storedScript = await AsyncStorage.getItem('@app_arabic_script');
+            if (storedScript) {
+                set({ selectedArabicScript: storedScript as 'uthmani' | 'diyanet' });
+            } else {
+                const currentLang = await AsyncStorage.getItem('@app_language') || 'tr';
+                set({ selectedArabicScript: currentLang === 'tr' ? 'diyanet' : 'uthmani' });
+            }
+
         } catch (e) {
             console.error('Failed to load favorites/collections', e);
         }
@@ -228,6 +239,13 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ arabicFontFamily: font });
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@app_arabic_font', font);
+        });
+    },
+
+    setSelectedArabicScript: (script: 'uthmani' | 'diyanet') => {
+        set({ selectedArabicScript: script });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_arabic_script', script);
         });
     },
 

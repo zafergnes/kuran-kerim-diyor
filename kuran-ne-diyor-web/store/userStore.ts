@@ -42,6 +42,7 @@ type UserState = {
   selectedReciter: string;
   readingLayout: "single" | "page";
   arabicFontFamily: "noto-naskh" | "amiri";
+  selectedArabicScript: "uthmani" | "diyanet";
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -56,6 +57,7 @@ type UserState = {
   setSelectedReciter: (reciter: string) => void;
   setReadingLayout: (layout: "single" | "page") => void;
   setArabicFontFamily: (font: "noto-naskh" | "amiri") => void;
+  setSelectedArabicScript: (script: "uthmani" | "diyanet") => void;
   loadRemoteData: () => Promise<void>;
   toggleFavorite: (ayahId: string, surahNumber: number, ayahNumber: number) => Promise<void>;
   createCollection: (name: string, initialAyah?: { ayahId: string; surahNumber: number; ayahNumber: number }) => Promise<void>;
@@ -125,6 +127,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   selectedReciter: "ar.alafasy",
   readingLayout: "single",
   arabicFontFamily: "noto-naskh",
+  selectedArabicScript: "diyanet",
 
   initialize: async () => {
     if (!canUseStorage() || get().initialized) return;
@@ -144,6 +147,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       hideFavoriteDeleteWarning: window.localStorage.getItem("hideFavWarning") === "true",
       readingLayout: (window.localStorage.getItem("@app_reading_layout") as "single" | "page" | null) ?? "single",
       arabicFontFamily: (window.localStorage.getItem("@app_arabic_font") as "noto-naskh" | "amiri" | null) ?? "noto-naskh",
+      selectedArabicScript: (window.localStorage.getItem("@app_arabic_script") as "uthmani" | "diyanet" | null) ?? 
+        (((window.localStorage.getItem(LANGUAGE_KEY) as AppLanguage | null) ?? "tr") === "tr" ? "diyanet" : "uthmani"),
     });
 
     if (window.localStorage.getItem("userToken")) {
@@ -380,5 +385,10 @@ export const useUserStore = create<UserState>((set, get) => ({
   setArabicFontFamily: (font) => {
     set({ arabicFontFamily: font });
     if (canUseStorage()) window.localStorage.setItem("@app_arabic_font", font);
+  },
+
+  setSelectedArabicScript: (script) => {
+    set({ selectedArabicScript: script });
+    if (canUseStorage()) window.localStorage.setItem("@app_arabic_script", script);
   },
 }));

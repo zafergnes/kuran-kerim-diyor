@@ -24,6 +24,7 @@ import {
     Play,
     Pause,
     Type,
+    FileText,
 } from 'lucide-react-native';
 import { Audio } from 'expo-av';
 import { Colors } from '../constants/colors';
@@ -51,6 +52,8 @@ export default function SettingsScreen() {
         setReadingLayout,
         arabicFontFamily,
         setArabicFontFamily,
+        selectedArabicScript,
+        setSelectedArabicScript,
     } = useUserStore();
 
     const isArabicUser = language === 'ar';
@@ -58,6 +61,7 @@ export default function SettingsScreen() {
     const [showReciterPicker, setShowReciterPicker] = useState(false);
     const [showLayoutPicker, setShowLayoutPicker] = useState(false);
     const [showFontPicker, setShowFontPicker] = useState(false);
+    const [showScriptPicker, setShowScriptPicker] = useState(false);
 
     const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
     const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
@@ -257,7 +261,7 @@ export default function SettingsScreen() {
 
                     {/* Arapça Font Seçimi */}
                     <TouchableOpacity
-                        style={styles.row}
+                        style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}
                         onPress={() => setShowFontPicker(true)}
                     >
                         <View style={styles.rowLeft}>
@@ -270,6 +274,27 @@ export default function SettingsScreen() {
                                 </Text>
                                 <Text style={[styles.rowSub, { color: theme.muted }]}>
                                     {arabicFontFamily === 'noto-naskh' ? t('settings.font_noto_naskh') : t('settings.font_amiri')}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+
+                    {/* Arapça Yazım Stili Seçimi */}
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={() => setShowScriptPicker(true)}
+                    >
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 149, 0, 0.12)' }]}>
+                                <FileText size={20} color="#FF9500" />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    Arapça Yazım Stili (İmla)
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {selectedArabicScript === 'diyanet' ? 'Diyanet İmlası' : 'Medine İmlası'}
                                 </Text>
                             </View>
                         </View>
@@ -527,6 +552,62 @@ export default function SettingsScreen() {
                                 </Text>
                             </View>
                             {arabicFontFamily === 'amiri' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Arapça Yazım Stili Seçici Modal ── */}
+            <Modal
+                visible={showScriptPicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowScriptPicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowScriptPicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            Arapça Yazım Stili
+                        </Text>
+                        
+                        {/* Diyanet İmlası */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomColor: theme.border }]}
+                            onPress={() => {
+                                setSelectedArabicScript('diyanet');
+                                setShowScriptPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    Diyanet İmlası (Açık Elif)
+                                </Text>
+                            </View>
+                            {selectedArabicScript === 'diyanet' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Medine İmlası */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomWidth: 0 }]}
+                            onPress={() => {
+                                setSelectedArabicScript('uthmani');
+                                setShowScriptPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    Medine İmlası (Uthmani)
+                                </Text>
+                            </View>
+                            {selectedArabicScript === 'uthmani' && (
                                 <Check size={20} color={theme.primary} />
                             )}
                         </TouchableOpacity>

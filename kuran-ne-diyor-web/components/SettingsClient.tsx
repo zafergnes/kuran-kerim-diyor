@@ -36,6 +36,8 @@ export function SettingsClient() {
   const setReadingLayout = useUserStore((state) => state.setReadingLayout);
   const arabicFontFamily = useUserStore((state) => state.arabicFontFamily);
   const setArabicFontFamily = useUserStore((state) => state.setArabicFontFamily);
+  const selectedArabicScript = useUserStore((state) => state.selectedArabicScript);
+  const setSelectedArabicScript = useUserStore((state) => state.setSelectedArabicScript);
 
   const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
@@ -189,9 +191,9 @@ export function SettingsClient() {
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-text">Okuma Tercihleri</h2>
-        <p className="text-xs font-semibold text-muted mb-4">Okuma düzeni ve Arapça yazı stili tercihlerinizi güncelleyin.</p>
+        <p className="text-xs font-semibold text-muted mb-4">Okuma düzeni, yazı tipi ve imla (yazım stili) tercihlerinizi güncelleyin.</p>
         
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-3">
           {/* Okuma Düzeni */}
           <div>
             <label className="block text-sm font-bold text-text mb-2">Okuma Düzeni</label>
@@ -231,7 +233,7 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Diyanet Hat Stili (Nesih)
+                Diyanet Hat (Nesih)
               </button>
               <button
                 onClick={() => setArabicFontFamily("amiri")}
@@ -241,7 +243,34 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Klasik Hat Stili (Amiri)
+                Klasik Hat (Amiri)
+              </button>
+            </div>
+          </div>
+
+          {/* Arapça Yazım Stili (İmla) */}
+          <div>
+            <label className="block text-sm font-bold text-text mb-2">Arapça Yazım Stili (İmla)</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedArabicScript("diyanet")}
+                className={`flex-1 h-11 rounded-md border text-sm font-bold transition ${
+                  selectedArabicScript === "diyanet"
+                    ? "border-primary bg-primary text-white"
+                    : "border-border text-secondary hover:bg-background"
+                }`}
+              >
+                Diyanet İmlası
+              </button>
+              <button
+                onClick={() => setSelectedArabicScript("uthmani")}
+                className={`flex-1 h-11 rounded-md border text-sm font-bold transition ${
+                  selectedArabicScript === "uthmani"
+                    ? "border-primary bg-primary text-white"
+                    : "border-border text-secondary hover:bg-background"
+                }`}
+              >
+                Medine İmlası
               </button>
             </div>
           </div>

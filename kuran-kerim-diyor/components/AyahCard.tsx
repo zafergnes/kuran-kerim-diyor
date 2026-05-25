@@ -16,7 +16,7 @@ interface AyahCardProps {
 }
 
 export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
-    const { language, showArabicTranslation, arabicTranslationLang } = useUserStore();
+    const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
     const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
     const theme = Colors.light;
     const [showComments, setShowComments] = useState(false);
@@ -28,6 +28,8 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
     const translationText = ayah.translations[displayLang];
     const shouldShowTranslation = !isArabicUser || showArabicTranslation;
 
+    const arabicText = (selectedArabicScript === 'diyanet' && ayah.arabicDiyanet) ? ayah.arabicDiyanet : ayah.arabic;
+
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <ScrollView
@@ -36,7 +38,7 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                 showsVerticalScrollIndicator={false}
             >
                 <Text style={[styles.arabicText, { color: theme.text }]}>
-                    {ayah.arabic}
+                    {arabicText}
                 </Text>
                 {shouldShowTranslation && translationText ? (
                     <Text style={[styles.translationText, { color: theme.secondary }]}>

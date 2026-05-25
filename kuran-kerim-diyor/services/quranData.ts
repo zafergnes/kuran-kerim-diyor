@@ -10,6 +10,7 @@ export interface Ayah {
     number: number;
     globalNumber: number;
     arabic: string;
+    arabicDiyanet?: string;
     translations: Record<AppLanguage, string>;
 }
 
