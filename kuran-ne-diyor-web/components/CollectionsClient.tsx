@@ -26,7 +26,7 @@ export function CollectionsClient() {
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="h-11 flex-1 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text"
+          className="h-11 flex-1 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text placeholder:text-muted"
           placeholder="Yeni koleksiyon adı"
           maxLength={50}
         />

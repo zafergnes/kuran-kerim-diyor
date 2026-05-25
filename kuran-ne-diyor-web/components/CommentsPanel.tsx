@@ -149,7 +149,7 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
             <textarea
               value={text}
               onChange={(event) => setText(event.target.value)}
-              className="min-h-20 flex-1 resize-none rounded-md border border-border bg-background p-3 text-sm text-text"
+              className="min-h-20 flex-1 resize-none rounded-md border border-border bg-background p-3 text-sm text-text placeholder:text-muted"
               maxLength={1000}
               placeholder="Yorum yaz..."
             />

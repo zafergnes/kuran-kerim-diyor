@@ -45,7 +45,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold"
+              className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text"
               autoComplete="name"
             />
           </label>
@@ -55,7 +55,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           <input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold"
+            className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text"
             type="email"
             autoComplete="email"
             required
@@ -66,7 +66,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold"
+            className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text"
             type="password"
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             minLength={6}
