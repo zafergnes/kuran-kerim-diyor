@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Amiri, Geist, Geist_Mono } from "next/font/google";
+import { Amiri, Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import AppInitializer from "@/components/AppInitializer";
 
@@ -19,6 +19,12 @@ const amiri = Amiri({
   weight: ["400", "700"],
 });
 
+const notoNaskh = Noto_Naskh_Arabic({
+  variable: "--font-noto-naskh",
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Kuran Ne Diyor",
   description: "Kur'an ayetlerini okuyun, arayın ve kaldığınız yerden devam edin.",
@@ -32,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} ${notoNaskh.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AppInitializer>{children}</AppInitializer>

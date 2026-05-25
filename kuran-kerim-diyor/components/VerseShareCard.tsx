@@ -4,6 +4,7 @@ import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { Share2, Download } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
+import { searchAyahs } from '../services/quranData';
 
 interface VerseShareCardProps {
   text: string;
@@ -14,17 +15,39 @@ export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference 
   const viewShotRef = useRef<any>(null);
   const theme = Colors.light;
 
+  const getRefIds = (ref: string) => {
+    try {
+      const trimmed = ref.trim();
+      const tailDigits = trimmed.match(/(\d{1,3})(-\d{1,3})?$/);
+      if (!tailDigits) return { surahNum: 1, ayahNum: 1 };
+
+      const startAyah = parseInt(tailDigits[1], 10);
+      let namePart = trimmed.substring(0, tailDigits.index!).trim();
+      namePart = namePart.replace(/[:.\-\s]+$/, '').trim();
+
+      const searchResults = searchAyahs(namePart);
+      const surahNum = searchResults[0]?.surahNumber || 1;
+
+      return { surahNum, ayahNum: startAyah };
+    } catch (e) {
+      console.error("Error parsing reference to numbers:", e);
+      return { surahNum: 1, ayahNum: 1 };
+    }
+  };
+
+  const { surahNum, ayahNum } = getRefIds(reference);
+  const webUrl = `https://kurannediyor.com.tr/ayet/${surahNum}:${ayahNum}`;
+
   const captureAndShare = async () => {
     try {
       const uri = await viewShotRef.current.capture();
-      const webUrl = `https://kuran-diyor.app/ayet/${reference.replace(' ', ':')}`;
       
       // Platforma gore en iyi paylasim yontemi
       if (Platform.OS === 'ios') {
         const { Share } = await import('react-native');
         await Share.share({
           url: uri, // iOS resim paylasimini url uzerinden yapabilir
-          message: `Kur'an Kerim Diyor: ${reference}\n\nOkumak için: ${webUrl}`,
+          message: `Kur'an-ı Kerim Diyor: ${reference}\n\nOkumak için: ${webUrl}`,
         });
       } else {
         await Sharing.shareAsync(uri, {
@@ -59,7 +82,7 @@ export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference 
 
         <View style={styles.footer}>
           <Text style={styles.appName}>Kuran Kerim Diyor</Text>
-          <Text style={styles.appUrl}>kuran-diyor.app/ayet/{reference.replace(' ', ':')}</Text>
+          <Text style={styles.appUrl}>kurannediyor.com.tr/ayet/{surahNum}:{ayahNum}</Text>
         </View>
       </ViewShot>
 

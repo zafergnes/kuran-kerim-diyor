@@ -19,6 +19,13 @@ interface UserState {
     showArabicTranslation: boolean;
     arabicTranslationLang: AppLanguage;
 
+    // Okuyucu ayari
+    selectedReciter: string;
+
+    // Okuma düzeni ve font ayarları
+    readingLayout: 'single' | 'page';
+    arabicFontFamily: 'noto-naskh' | 'amiri';
+
     // Auth state
     userId: string | null;
     isAnonymous: boolean;
@@ -39,6 +46,9 @@ interface UserState {
     setHideFavoriteDeleteWarning: (hide: boolean) => void;
     setShowArabicTranslation: (show: boolean) => void;
     setArabicTranslationLang: (lang: AppLanguage) => void;
+    setSelectedReciter: (reciter: string) => void;
+    setReadingLayout: (layout: 'single' | 'page') => void;
+    setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => void;
     addCollection: (name: string, initialAyahId?: string) => void;
     deleteCollection: (colId: string) => void;
     addAyahToCollection: (ayahId: string, colId: string) => void;
@@ -64,6 +74,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     hideFavoriteDeleteWarning: false,
     showArabicTranslation: false,
     arabicTranslationLang: 'en',
+    selectedReciter: 'ar.alafasy',
+    readingLayout: 'single',
+    arabicFontFamily: 'noto-naskh',
 
     userId: null,
     isAnonymous: false,
@@ -164,6 +177,15 @@ export const useUserStore = create<UserState>((set, get) => ({
             const storedArabicLang = await AsyncStorage.getItem('@arabic_translation_lang');
             if (storedArabicLang) set({ arabicTranslationLang: storedArabicLang as AppLanguage });
 
+            const storedReciter = await AsyncStorage.getItem('@app_selected_reciter');
+            if (storedReciter) set({ selectedReciter: storedReciter });
+
+            const storedLayout = await AsyncStorage.getItem('@app_reading_layout');
+            if (storedLayout) set({ readingLayout: storedLayout as 'single' | 'page' });
+
+            const storedFont = await AsyncStorage.getItem('@app_arabic_font');
+            if (storedFont) set({ arabicFontFamily: storedFont as 'noto-naskh' | 'amiri' });
+
         } catch (e) {
             console.error('Failed to load favorites/collections', e);
         }
@@ -185,6 +207,27 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ arabicTranslationLang: lang });
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@arabic_translation_lang', lang);
+        });
+    },
+
+    setSelectedReciter: (reciter: string) => {
+        set({ selectedReciter: reciter });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_selected_reciter', reciter);
+        });
+    },
+
+    setReadingLayout: (layout: 'single' | 'page') => {
+        set({ readingLayout: layout });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_reading_layout', layout);
+        });
+    },
+
+    setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => {
+        set({ arabicFontFamily: font });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_arabic_font', font);
         });
     },
 

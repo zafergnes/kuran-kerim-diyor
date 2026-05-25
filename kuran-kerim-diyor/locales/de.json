@@ -138,6 +138,21 @@
     "show_translation_sub": "Koranübersetzung beim Lesen anzeigen",
     "translation_lang": "Übersetzungssprache",
     "reading_no_extra": "Die Übersetzung wird immer in der gewählten Sprache angezeigt.",
-    "coming_soon": "Demnächst!"
+    "coming_soon": "Demnächst!",
+    "audio_section": "Audio- & Rezitator-Einstellungen",
+    "selected_reciter": "Aktiver Rezitator",
+    "select_reciter_title": "Rezitator auswählen",
+    "preview_play": "Anhören",
+    "preview_stop": "Stoppen"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Melodische & klare Rezitation (Globaler Favorit)",
+    "ar_sudais_name": "Abdul Rahman Al-Sudais",
+    "ar_sudais_style": "Kaaba Imam - Kraftvolle & majestätische Rezitation",
+    "ar_ghamadi_name": "Saad Al-Ghamdi",
+    "ar_ghamadi_style": "Sanfte & friedliche Rezitation",
+    "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
+    "ar_abdulbasitmurattal_style": "Klassischer & legendärer ägyptischer Stil"
   }
 }

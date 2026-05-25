@@ -138,6 +138,21 @@
     "show_translation_sub": "عرض ترجمة القرآن أثناء القراءة",
     "translation_lang": "لغة الترجمة",
     "reading_no_extra": "تظهر الترجمة دائمًا باللغة المختارة.",
-    "coming_soon": "قريباً!"
+    "coming_soon": "قريباً!",
+    "audio_section": "إعدادات الصوت والقارئ",
+    "selected_reciter": "القارئ الحالي",
+    "select_reciter_title": "اختر القارئ",
+    "preview_play": "استمع",
+    "preview_stop": "إيقاف"
+  },
+  "reciters": {
+    "ar_alafasy_name": "مشاري راشد العفاسي",
+    "ar_alafasy_style": "تلاوة عذبة وواضحة (الأكثر شعبية)",
+    "ar_sudais_name": "عبد الرحمن السديس",
+    "ar_sudais_style": "إمام الكعبة - تلاوة خاشعة وقوية",
+    "ar_ghamadi_name": "سعد الغامدي",
+    "ar_ghamadi_style": "تلاوة هادئة ومطمئنة",
+    "ar_abdulbasitmurattal_name": "عبد الباسط عبد الصمد",
+    "ar_abdulbasitmurattal_style": "الأسلوب المصري الكلاسيكي والأسطوري"
   }
 }

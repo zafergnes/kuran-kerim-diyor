@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { useFonts, Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
+import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
@@ -28,6 +29,8 @@ export default function RootLayout() {
     const [loaded, error] = useFonts({
         Amiri_400Regular,
         Amiri_700Bold,
+        NotoNaskhArabic_400Regular,
+        NotoNaskhArabic_700Bold,
     });
     const router = useRouter();
 
@@ -58,16 +61,24 @@ export default function RootLayout() {
         const handleDeepLink = (url: string | null) => {
             if (!url) return;
             const parsed = Linking.parse(url);
+            
+            let surah: string | null = null;
+            let ayah: string | null = null;
+
             if (parsed.path === 'ayet' && parsed.queryParams?.id) {
                 const id = parsed.queryParams.id as string;
-                const [surah, ayah] = id.split(':');
-                if (surah && ayah) {
-                    // Store'u dogrudan guncelle
-                    import('../store/userStore').then(({ useUserStore }) => {
-                        useUserStore.getState().setProgress(Number(surah), Number(ayah));
-                        router.replace('/(tabs)');
-                    });
-                }
+                [surah, ayah] = id.split(':');
+            } else if (parsed.path && parsed.path.startsWith('ayet/')) {
+                const id = parsed.path.substring(5); // e.g. "36:9"
+                [surah, ayah] = id.split(':');
+            }
+
+            if (surah && ayah) {
+                // Store'u dogrudan guncelle
+                import('../store/userStore').then(({ useUserStore }) => {
+                    useUserStore.getState().setProgress(Number(surah), Number(ayah));
+                    router.replace('/(tabs)');
+                });
             }
         };
 

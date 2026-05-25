@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { Audio } from 'expo-av';
 import { Play, Pause } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
+import { useUserStore } from '../store/userStore';
+import { useTranslation } from 'react-i18next';
 
 interface AudioPlayerProps {
     globalAyahNumber: number;
@@ -12,8 +14,13 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const { selectedReciter } = useUserStore();
+    const { t } = useTranslation();
 
     const theme = Colors.light;
+
+    const reciterKey = selectedReciter.replace('.', '_');
+    const reciterName = t(`reciters.${reciterKey}_name`);
 
     useEffect(() => {
         return sound
@@ -22,6 +29,15 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
             }
             : undefined;
     }, [sound]);
+
+    // Force unload sound if reciter changes
+    useEffect(() => {
+        if (sound) {
+            sound.unloadAsync();
+            setSound(null);
+            setIsPlaying(false);
+        }
+    }, [selectedReciter]);
 
     const handlePlayPause = async () => {
         if (isLoading) return;
@@ -44,7 +60,7 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
                 staysActiveInBackground: true,
             });
 
-            const url = `https://cdn.islamic.network/quran/audio/64/ar.alafasy/${globalAyahNumber}.mp3`;
+            const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`;
 
             const { sound: newSound } = await Audio.Sound.createAsync(
                 { uri: url },
@@ -67,20 +83,37 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
     };
 
     return (
-        <TouchableOpacity style={styles.button} onPress={handlePlayPause}>
-            {isLoading ? (
-                <ActivityIndicator color={theme.primary} />
-            ) : isPlaying ? (
-                <Pause size={28} color={theme.primary} />
-            ) : (
-                <Play size={28} color={theme.primary} />
+        <View style={styles.container}>
+            <TouchableOpacity style={styles.button} onPress={handlePlayPause}>
+                {isLoading ? (
+                    <ActivityIndicator color={theme.primary} />
+                ) : isPlaying ? (
+                    <Pause size={28} color={theme.primary} />
+                ) : (
+                    <Play size={28} color={theme.primary} />
+                )}
+            </TouchableOpacity>
+            {isPlaying && (
+                <Text style={[styles.reciterText, { color: theme.muted }]} numberOfLines={1}>
+                    🎙️ {reciterName.split(' ').pop()}
+                </Text>
             )}
-        </TouchableOpacity>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 50,
+    },
     button: {
-        padding: 12,
+        padding: 8,
+    },
+    reciterText: {
+        fontSize: 10,
+        fontWeight: '500',
+        marginTop: -2,
     }
 });

@@ -29,6 +29,8 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
   const toggleFavorite = useUserStore((state) => state.toggleFavorite);
   const setHideFavoriteDeleteWarning = useUserStore((state) => state.setHideFavoriteDeleteWarning);
   const setProgress = useUserStore((state) => state.setProgress);
+  const arabicFontFamily = useUserStore((state) => state.arabicFontFamily);
+  const arabicFontClass = arabicFontFamily === "amiri" ? "arabic-font-amiri" : "arabic-font-noto";
   const ayahId = ayahIdOf(surahNumber, ayah.number);
   const { stats, setStats, refresh } = useAyahStats(ayahId);
   const displayLanguage = language === "ar" ? arabicTranslationLang : language;
@@ -92,7 +94,7 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
       onMouseEnter={() => setProgress(surahNumber, ayah.number)}
       onFocus={() => setProgress(surahNumber, ayah.number)}
     >
-      <p className="arabic-text text-center text-4xl leading-[2.1] text-text sm:text-[42px]" dir="rtl">
+      <p className={`${arabicFontClass} text-center text-4xl leading-[2.1] text-text sm:text-[42px]`} dir="rtl">
         {ayah.arabic}
       </p>
       {shouldShowTranslation && (

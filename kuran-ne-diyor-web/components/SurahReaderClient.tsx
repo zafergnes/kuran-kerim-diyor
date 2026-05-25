@@ -19,6 +19,8 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [listMode, setListMode] = useState(false);
   const setProgress = useUserStore((state) => state.setProgress);
+  const arabicFontFamily = useUserStore((state) => state.arabicFontFamily);
+  const arabicFontClass = arabicFontFamily === "amiri" ? "arabic-font-amiri" : "arabic-font-noto";
   const progressPercent = useMemo(() => ((activeIndex + 1) / surah.ayahs.length) * 100, [activeIndex, surah.ayahs.length]);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
               {surah.englishNameTranslation} · {surah.ayahs.length} ayet · {surah.revelationType}
             </p>
           </div>
-          <p className="arabic-text text-5xl font-normal text-primary" dir="rtl">
+          <p className={`${arabicFontClass} text-5xl font-normal text-primary`} dir="rtl">
             {surah.name.ar}
           </p>
         </div>

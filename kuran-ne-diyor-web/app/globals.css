@@ -24,6 +24,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-arabic: var(--font-amiri);
+  --font-noto-naskh: var(--font-noto-naskh);
 }
 
 /* Dark Theme */
@@ -54,6 +55,18 @@ body {
 }
 
 .arabic-text {
+  font-family: var(--font-noto-naskh), var(--font-amiri), serif;
+  font-weight: 400;
+  line-height: 2.1;
+}
+
+.arabic-font-noto {
+  font-family: var(--font-noto-naskh), serif;
+  font-weight: 400;
+  line-height: 2.1;
+}
+
+.arabic-font-amiri {
   font-family: var(--font-amiri), serif;
   font-weight: 700;
   line-height: 1.9;

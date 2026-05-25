@@ -12,6 +12,8 @@
     "slide2_desc": "Hesap oluşturduğunuzda ilerlemeniz buluta kaydedilir. Cihaz değiştirseniz bile kaldığınız yeri kaybetmezsiniz.",
     "slide3_title": "Toplulukla Paylaşın",
     "slide3_desc": "Ayetleri dinleyin, hislerinizi isimsiz (anonim) bir şekilde diğer okurlarla anında paylaşın.",
+    "slide4_title": "Okuma Düzeni",
+    "slide4_desc": "Kur'an-ı Kerim'i nasıl okumak istersiniz? Daha sonra ayarlardan değiştirebilirsiniz.",
     "btn_continue": "Devam Et",
     "btn_start": "Bismillahirrahmanirrahim",
     "skip": "Atla"
@@ -138,6 +140,31 @@
     "show_translation_sub": "Okurken Kur'an mealini de görüntüler",
     "translation_lang": "Meal Dili",
     "reading_no_extra": "Seçili dilinizde meal her zaman görüntülenir.",
-    "coming_soon": "Yakında aktif olacak!"
+    "coming_soon": "Yakında aktif olacak!",
+    "audio_section": "Ses ve Okuyucu Ayarları",
+    "selected_reciter": "Sesli Okuyan İmam",
+    "select_reciter_title": "Okuyucu Seçin",
+    "preview_play": "Dinle",
+    "preview_stop": "Durdur",
+    "reading_layout": "Okuma Düzeni",
+    "reading_layout_sub": "Kur'an sayfalarını nasıl okumak istersiniz?",
+    "arabic_font": "Arapça Yazı Tipi",
+    "arabic_font_sub": "Arapça metinlerin hat stilini seçin",
+    "layout_single": "Ayet Ayet",
+    "layout_page": "Sayfa Sayfa",
+    "font_noto_naskh": "Diyanet Hat Stili (Nesih)",
+    "font_amiri": "Klasik Hat Stili (Amiri)",
+    "select_layout_title": "Okuma Düzeni Seçin",
+    "select_font_title": "Arapça Yazı Tipi Seçin"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Melodik ve net tilavet (Dünya favorisi)",
+    "ar_sudais_name": "Abdurrahman Al-Sudais",
+    "ar_sudais_style": "Kabe İmamı - Coşkulu ve hızlı tilavet",
+    "ar_ghamadi_name": "Saad Al-Ghamdi",
+    "ar_ghamadi_style": "Yumuşak ve huzurlu tilavet",
+    "ar_abdulbasitmurattal_name": "Abdulbasit Abdussamed",
+    "ar_abdulbasitmurattal_style": "Klasik ve efsanevi Mısır tilaveti"
   }
 }

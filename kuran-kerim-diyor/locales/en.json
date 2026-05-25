@@ -12,6 +12,8 @@
     "slide2_desc": "When you create an account, your progress is saved to the cloud. Never lose your place even if you change devices.",
     "slide3_title": "Share with the Community",
     "slide3_desc": "Listen to verses and share your feelings anonymously with other readers instantly.",
+    "slide4_title": "Reading Layout",
+    "slide4_desc": "How would you like to read the Quran? You can change this later in settings.",
     "btn_continue": "Continue",
     "btn_start": "Bismillah",
     "skip": "Skip"
@@ -138,6 +140,31 @@
     "show_translation_sub": "Display Quran translation while reading",
     "translation_lang": "Translation Language",
     "reading_no_extra": "Translation is always displayed in your selected language.",
-    "coming_soon": "Coming soon!"
+    "coming_soon": "Coming soon!",
+    "audio_section": "Audio & Reciter Settings",
+    "selected_reciter": "Active Reciter",
+    "select_reciter_title": "Select Reciter",
+    "preview_play": "Listen",
+    "preview_stop": "Stop",
+    "reading_layout": "Reading Layout",
+    "reading_layout_sub": "How would you like to read the Quran pages?",
+    "arabic_font": "Arabic Font",
+    "arabic_font_sub": "Select the calligraphy style for Arabic text",
+    "layout_single": "Verse by Verse",
+    "layout_page": "Page by Page",
+    "font_noto_naskh": "Diyanet Calligraphy (Naskh)",
+    "font_amiri": "Classical Calligraphy (Amiri)",
+    "select_layout_title": "Select Reading Layout",
+    "select_font_title": "Select Arabic Font"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Melodic & clear recitation (Global favorite)",
+    "ar_sudais_name": "Abdul Rahman Al-Sudais",
+    "ar_sudais_style": "Kaaba Imam - Powerful & majestic recitation",
+    "ar_ghamadi_name": "Saad Al-Ghamdi",
+    "ar_ghamadi_style": "Soft & peaceful recitation",
+    "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
+    "ar_abdulbasitmurattal_style": "Classic & legendary Egyptian style"
   }
 }
