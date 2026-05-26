@@ -148,10 +148,10 @@
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
     "ar_alafasy_style": "Melodische & klare Rezitation (Globaler Favorit)",
-    "ar_sudais_name": "Abdul Rahman Al-Sudais",
-    "ar_sudais_style": "Kaaba Imam - Kraftvolle & majestätische Rezitation",
-    "ar_ghamadi_name": "Saad Al-Ghamdi",
-    "ar_ghamadi_style": "Sanfte & friedliche Rezitation",
+    "ar_abdurrahmaansudais_name": "Abdul Rahman Al-Sudais",
+    "ar_abdurrahmaansudais_style": "Kaaba Imam - Kraftvolle & majestätische Rezitation",
+    "ar_mahermuaiqly_name": "Maher Al-Muaiqly",
+    "ar_mahermuaiqly_style": "Kaaba Imam - Klare & inspirierende Rezitation",
     "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
     "ar_abdulbasitmurattal_style": "Klassischer & legendärer ägyptischer Stil"
   }

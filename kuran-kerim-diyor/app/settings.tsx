@@ -135,8 +135,8 @@ export default function SettingsScreen() {
 
     const RECITERS = [
         { id: 'ar.alafasy', initials: 'MA' },
-        { id: 'ar.sudais', initials: 'AS' },
-        { id: 'ar.ghamadi', initials: 'SG' },
+        { id: 'ar.abdurrahmaansudais', initials: 'AS' },
+        { id: 'ar.mahermuaiqly', initials: 'MM' },
         { id: 'ar.abdulbasitmurattal', initials: 'AB' }
     ];
 

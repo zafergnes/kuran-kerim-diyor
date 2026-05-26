@@ -17,8 +17,8 @@ const languages: { value: AppLanguage; label: string }[] = [
 
 const reciters = [
   { id: "ar.alafasy", name: "Mishary Rashid Al-Afasy", initials: "MA", style: "Melodik ve net tilavet (Dünya favorisi)" },
-  { id: "ar.sudais", name: "Abdurrahman Al-Sudais", initials: "AS", style: "Kabe İmamı - Coşkulu ve hızlı tilavet" },
-  { id: "ar.ghamadi", name: "Saad Al-Ghamdi", initials: "SG", style: "Yumuşak ve huzurlu tilavet" },
+  { id: "ar.abdurrahmaansudais", name: "Abdurrahman Al-Sudais", initials: "AS", style: "Kabe İmamı - Coşkulu ve hızlı tilavet" },
+  { id: "ar.mahermuaiqly", name: "Maher Al-Muaiqly", initials: "MM", style: "Kabe İmamı - Net ve etkileyici tilavet" },
   { id: "ar.abdulbasitmurattal", name: "Abdulbasit Abdussamed", initials: "AB", style: "Klasik ve efsanevi Mısır tilaveti" },
 ];
 

@@ -160,10 +160,10 @@
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
     "ar_alafasy_style": "Melodik ve net tilavet (Dünya favorisi)",
-    "ar_sudais_name": "Abdurrahman Al-Sudais",
-    "ar_sudais_style": "Kabe İmamı - Coşkulu ve hızlı tilavet",
-    "ar_ghamadi_name": "Saad Al-Ghamdi",
-    "ar_ghamadi_style": "Yumuşak ve huzurlu tilavet",
+    "ar_abdurrahmaansudais_name": "Abdurrahman Al-Sudais",
+    "ar_abdurrahmaansudais_style": "Kabe İmamı - Coşkulu ve hızlı tilavet",
+    "ar_mahermuaiqly_name": "Maher Al-Muaiqly",
+    "ar_mahermuaiqly_style": "Kabe İmamı - Net ve etkileyici tilavet",
     "ar_abdulbasitmurattal_name": "Abdulbasit Abdussamed",
     "ar_abdulbasitmurattal_style": "Klasik ve efsanevi Mısır tilaveti"
   }
