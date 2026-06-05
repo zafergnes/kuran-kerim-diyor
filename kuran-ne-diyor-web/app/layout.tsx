@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Amiri, Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import AppInitializer from "@/components/AppInitializer";
@@ -29,7 +29,6 @@ export const metadata: Metadata = {
   title: "Kuran Ne Diyor",
   description: "Kur'an ayetlerini okuyun, arayın ve kaldığınız yerden devam edin.",
   manifest: "/manifest.json",
-  themeColor: "#b69a73",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -40,6 +39,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#b69a73",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,6 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} ${notoNaskh.variable} h-full antialiased bg-background text-text`}
     >
       <body className="min-h-full flex flex-col">
