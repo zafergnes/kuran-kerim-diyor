@@ -70,57 +70,58 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
         
-        {/* Mobile Sidebar Menu */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-              onClick={() => setIsMobileMenuOpen(false)} 
-            />
-            
-            {/* Sidebar */}
-            <div className="absolute top-0 bottom-0 left-0 w-[75%] max-w-[320px] bg-card p-6 shadow-2xl flex flex-col h-full border-r border-border overflow-y-auto transform transition-transform">
-              <div className="mb-8 flex items-center justify-between">
-                <span className="text-lg font-bold text-text">{t("web.install_title", "Kuran Ne Diyor")}</span>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="grid h-10 w-10 place-items-center rounded-md border border-border bg-background text-primary transition hover:bg-muted"
-                  aria-label="Close Menu"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <nav className="grid gap-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex h-12 items-center gap-4 rounded-md px-4 text-[15px] font-bold text-text transition hover:bg-background"
-                    >
-                      <Icon size={22} className="text-primary" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-                {!user && (
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="mt-6 flex h-12 items-center justify-center gap-3 rounded-md bg-primary px-4 text-[15px] font-bold text-white transition hover:opacity-90"
-                  >
-                    <LogIn size={20} />
-                    {t("profile.login", "Giriş yap")}
-                  </Link>
-                )}
-              </nav>
-            </div>
-          </div>
-        )}
       </header>
+
+      {/* Mobile Sidebar Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/40" 
+            onClick={() => setIsMobileMenuOpen(false)} 
+          />
+          
+          {/* Sidebar */}
+          <div className="absolute top-0 bottom-0 right-0 w-1/2 bg-card p-4 shadow-2xl flex flex-col border-l border-border overflow-y-auto">
+            <div className="mb-6 flex justify-end">
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-primary transition hover:bg-muted"
+                aria-label="Menüyü Kapat"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-12 items-center gap-3 rounded-md px-3 text-sm font-bold text-text transition hover:bg-background"
+                  >
+                    <Icon size={20} className="text-primary shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+              {!user && (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="mt-4 flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-white transition hover:opacity-90"
+                >
+                  <LogIn size={20} className="shrink-0" />
+                  <span className="truncate">{t("profile.login", "Giriş yap")}</span>
+                </Link>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
         <aside className="hidden lg:block">
