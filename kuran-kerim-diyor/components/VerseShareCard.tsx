@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import { Share2, Download } from 'lucide-react-native';
+import { Share2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '../constants/colors';
 import { searchAyahs } from '../services/quranData';
 
@@ -12,6 +13,7 @@ interface VerseShareCardProps {
 }
 
 export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference }) => {
+  const { t } = useTranslation();
   const viewShotRef = useRef<any>(null);
   const theme = Colors.light;
 
@@ -47,12 +49,12 @@ export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference 
         const { Share } = await import('react-native');
         await Share.share({
           url: uri, // iOS resim paylasimini url uzerinden yapabilir
-          message: `Kur'an-ı Kerim Diyor: ${reference}\n\nOkumak için: ${webUrl}`,
+          message: t('common.share_message', { reference, url: webUrl }),
         });
       } else {
         await Sharing.shareAsync(uri, {
           mimeType: 'image/png',
-          dialogTitle: 'Ayeti Paylaş',
+          dialogTitle: t('common.share_verse'),
           UTI: 'public.png',
         });
         // Android'de bazi uygulamalar hem resim hem texti ayni anda almaz.
@@ -88,7 +90,7 @@ export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference 
 
       <TouchableOpacity style={styles.shareButton} onPress={captureAndShare}>
         <Share2 size={20} color="#fff" />
-        <Text style={styles.shareButtonText}>Paylaş</Text>
+        <Text style={styles.shareButtonText}>{t('common.share')}</Text>
       </TouchableOpacity>
     </View>
   );

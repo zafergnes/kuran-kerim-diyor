@@ -106,7 +106,16 @@ export const useUserStore = create<UserState>((set, get) => ({
         return state;
     }),
     setCompletedSurahs: (surahs) => set({ completedSurahs: surahs }),
-    setAuth: (userId, isAnonymous, displayName, email) => set({ userId, isAnonymous, displayName, email }),
+    setAuth: (userId, isAnonymous, displayName, email) => {
+        set({ userId, isAnonymous, displayName, email });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            if (userId) {
+                AsyncStorage.setItem('@user_profile', JSON.stringify({ userId, isAnonymous, displayName, email }));
+            } else {
+                AsyncStorage.removeItem('@user_profile');
+            }
+        }).catch(err => console.error("Failed to save auth to AsyncStorage:", err));
+    },
     
     toggleFavorite: (id: string) => {
         set((state) => {
@@ -170,6 +179,21 @@ export const useUserStore = create<UserState>((set, get) => ({
             
             const storedCols = await AsyncStorage.getItem('userCollections');
             if (storedCols) set({ collections: JSON.parse(storedCols) });
+
+            const storedProfile = await AsyncStorage.getItem('@user_profile');
+            if (storedProfile) {
+                try {
+                    const parsed = JSON.parse(storedProfile);
+                    set({ 
+                        userId: parsed.userId, 
+                        isAnonymous: parsed.isAnonymous, 
+                        displayName: parsed.displayName, 
+                        email: parsed.email 
+                    });
+                } catch (pe) {
+                    console.error('Failed to parse user profile', pe);
+                }
+            }
 
             const storedWarn = await AsyncStorage.getItem('hideFavWarning');
             if (storedWarn) set({ hideFavoriteDeleteWarning: storedWarn === 'true' });

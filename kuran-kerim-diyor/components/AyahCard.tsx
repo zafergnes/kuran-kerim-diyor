@@ -38,7 +38,7 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                 showsVerticalScrollIndicator={false}
             >
                 <Text style={[styles.arabicText, { color: theme.text }]}>
-                    {arabicText}
+                    {arabicText.replace(/\s+/g, '\u2002')}
                 </Text>
                 {shouldShowTranslation && translationText ? (
                     <Text style={[styles.translationText, { color: theme.secondary }]}>
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
     },
     arabicText: {
         fontFamily: 'Amiri_700Bold',
-        fontSize: 42,
-        lineHeight: 80,
+        fontSize: 34,
+        lineHeight: 78,
         textAlign: 'center',
         writingDirection: 'rtl',
         marginBottom: 40,

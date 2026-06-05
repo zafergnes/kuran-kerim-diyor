@@ -133,8 +133,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (!canUseStorage() || get().initialized) return;
 
     const progress = readJson<Progress>(PROGRESS_KEY, { surah: 1, ayah: 1 });
+    const cachedUser = readJson<ApiUser | null>("@user_profile", null);
     set({
       initialized: true,
+      user: cachedUser,
       language: (window.localStorage.getItem(LANGUAGE_KEY) as AppLanguage | null) ?? "tr",
       currentSurah: progress.surah,
       currentAyah: progress.ayah,
@@ -162,6 +164,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/login", { email, password });
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
@@ -175,6 +178,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/register", { name, email, password });
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
@@ -188,6 +192,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/guest");
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
@@ -202,6 +207,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       window.localStorage.removeItem("refreshToken");
       window.localStorage.removeItem(FAVORITES_KEY);
       window.localStorage.removeItem(COLLECTIONS_KEY);
+      window.localStorage.removeItem("@user_profile");
     }
     set({ user: null, favorites: {}, collections: {} });
   },
@@ -209,9 +215,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   refreshMe: async () => {
     try {
       const response = await apiClient.get<{ user: ApiUser }>("/auth/me");
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user });
-    } catch {
-      get().logout();
+    } catch (error: any) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        get().logout();
+      }
     }
   },
 

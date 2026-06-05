@@ -24,6 +24,30 @@ export class NotificationController {
     }
   }
 
+  static async registerWeb(req: Request, res: Response) {
+    try {
+      const { endpoint, p256dh, auth, timezone, language, userId } = req.body;
+
+      if (!endpoint || !p256dh || !auth || !timezone) {
+        return res.status(400).json({ error: 'Endpoint, p256dh, auth and timezone are required' });
+      }
+
+      await NotificationService.registerWebSubscription({
+        endpoint,
+        p256dh,
+        auth,
+        timezone,
+        language: language || 'tr',
+        userId
+      });
+
+      res.status(200).json({ message: 'Web subscription registered successfully' });
+    } catch (error: any) {
+      console.error('Web registration error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   // Test amaçlı manuel tetikleme
   static async testPush(req: Request, res: Response) {
     try {

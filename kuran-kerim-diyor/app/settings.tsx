@@ -30,12 +30,15 @@ import { Audio } from 'expo-av';
 import { Colors } from '../constants/colors';
 import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NotificationService } from '../services/notificationService';
 
 // Arapca kullanicilar icin meal dilinden hariclenenler
 const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => l !== 'ar');
 
 export default function SettingsScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const { t } = useTranslation();
@@ -140,15 +143,31 @@ export default function SettingsScreen() {
         { id: 'ar.abdulbasitmurattal', initials: 'AB' }
     ];
 
-    const handleNotificationPress = () => {
-        // Bildirim izni isteme - ilerleyen sureclerde implement edilecek
-        Alert.alert('', t('settings.coming_soon'));
+    const handleNotificationPress = async () => {
+        try {
+            const result = await NotificationService.requestInteractivePermission();
+            
+            if (result === 'granted') {
+                Alert.alert('', t('settings.notification_granted'));
+            } else if (result === 'granted_already') {
+                Alert.alert('', t('settings.notification_already_enabled'));
+            } else if (result === 'denied') {
+                Alert.alert('', t('settings.notification_denied'));
+            } else if (result === 'expo_go') {
+                Alert.alert('', t('settings.notification_expo_go'));
+            } else {
+                Alert.alert('', t('settings.notification_failed'));
+            }
+        } catch (error) {
+            console.error('Failed to request notification permission:', error);
+            Alert.alert('', t('settings.notification_failed'));
+        }
     };
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.background }]}>
+            <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.background, paddingTop: insets.top > 0 ? insets.top + 12 : 24 }]}>
                 <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
                     <ChevronLeft size={24} color={theme.primary} />
                 </TouchableOpacity>
@@ -291,10 +310,10 @@ export default function SettingsScreen() {
                             </View>
                             <View>
                                 <Text style={[styles.rowTitle, { color: theme.text }]}>
-                                    Arapça Yazım Stili (İmla)
+                                    {t('settings.arabic_script')}
                                 </Text>
                                 <Text style={[styles.rowSub, { color: theme.muted }]}>
-                                    {selectedArabicScript === 'diyanet' ? 'Diyanet İmlası' : 'Medine İmlası'}
+                                    {selectedArabicScript === 'diyanet' ? t('settings.script_diyanet_short') : t('settings.script_uthmani_short')}
                                 </Text>
                             </View>
                         </View>
@@ -573,7 +592,7 @@ export default function SettingsScreen() {
                 >
                     <View style={[styles.langModal, { backgroundColor: theme.card }]}>
                         <Text style={[styles.langModalTitle, { color: theme.text }]}>
-                            Arapça Yazım Stili
+                            {t('settings.arabic_script_title')}
                         </Text>
                         
                         {/* Diyanet İmlası */}
@@ -586,7 +605,7 @@ export default function SettingsScreen() {
                         >
                             <View>
                                 <Text style={[styles.langName, { color: theme.text }]}>
-                                    Diyanet İmlası (Açık Elif)
+                                    {t('settings.script_diyanet')}
                                 </Text>
                             </View>
                             {selectedArabicScript === 'diyanet' && (
@@ -604,7 +623,7 @@ export default function SettingsScreen() {
                         >
                             <View>
                                 <Text style={[styles.langName, { color: theme.text }]}>
-                                    Medine İmlası (Uthmani)
+                                    {t('settings.script_uthmani')}
                                 </Text>
                             </View>
                             {selectedArabicScript === 'uthmani' && (

@@ -12,10 +12,15 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#b69a73"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kurankerimdiyor",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "associatedDomains": ["applinks:kurannediyor.com.tr"]
     },
     "android": {
       "package": "com.kurankerimdiyor",
@@ -26,7 +31,24 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "kurannediyor.com.tr",
+              "pathPrefix": "/ayet"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,7 +57,26 @@
       "expo-router",
       "expo-asset",
       "expo-localization",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "@bittingz/expo-widgets",
+        {
+          "ios": {
+            "src": "./widgets/ios",
+            "devTeamId": "enesakca04",
+            "mode": "production"
+          },
+          "android": {
+            "src": "./widgets",
+            "widgets": [
+              {
+                "name": "VerseWidget",
+                "resourceName": "@xml/verse_widget_info"
+              }
+            ]
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},

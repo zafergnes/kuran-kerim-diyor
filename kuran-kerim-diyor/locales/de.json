@@ -12,9 +12,13 @@
     "slide2_desc": "Wenn Sie ein Konto erstellen, wird Ihr Lesefortschritt in der Cloud gespeichert. Verlieren Sie nie Ihren Platz, auch wenn Sie Ihr Gerät wechseln.",
     "slide3_title": "Mit der Community teilen",
     "slide3_desc": "Hören Sie sich Verse an und teilen Sie Ihre Gefühle anonym und sofort mit anderen Lesern.",
+    "slide4_title": "Leselayout",
+    "slide4_desc": "Wie möchten Sie den Koran lesen? Sie können dies später in den Einstellungen ändern.",
     "btn_continue": "Weiter",
     "btn_start": "Bismillah",
-    "skip": "Überspringen"
+    "skip": "Überspringen",
+    "layout_single_desc": "Ein Vers pro Bildschirm, fokussiertes und einfaches Lesen.",
+    "layout_page_desc": "Traditionelles gedrucktes Seitenlayout, vollständige Seiten und einfache Verfolgung."
   },
   "search": {
     "placeholder": "Im Koran suchen...",
@@ -62,7 +66,9 @@
     "empty": "Noch keine Verse in dieser Liste gespeichert.",
     "ayah": "{{surah}} - Vers {{number}}",
     "delete_collection_title": "Sammlung löschen",
-    "delete_collection_message": "Sind Sie sicher, dass Sie diese Sammlung und alle darin enthaltenen Verse löschen möchten?"
+    "delete_collection_message": "Sind Sie sicher, dass Sie diese Sammlung und alle darin enthaltenen Verse löschen möchten?",
+    "add_to_collections": "Zu Sammlungen hinzufügen",
+    "create_new_collection": "Neue Sammlung erstellen..."
   },
   "surahs": {
     "title": "Suren",
@@ -114,7 +120,7 @@
   },
   "delete_warning": {
     "title": "Aus Favoriten entfernen",
-    "message": "Sind Sie sicher, dass Sie diesen Vers aus den Favoriten entfernen möchten?",
+    "message": "Wenn Sie diesen Vers aus den Favoriten entfernen, wird er auch aus allen Sammlungen gelöscht, zu denen er gehört. Sind Sie sicher?",
     "dont_ask": "Nicht mehr fragen",
     "cancel": "Abbrechen",
     "confirm": "Ja, entfernen"
@@ -126,24 +132,52 @@
     "close": "Schließen",
     "go_to_verse": "Zum Vers gehen",
     "cancel": "Abbrechen",
-    "delete": "Löschen"
+    "delete": "Löschen",
+    "arabic": "Arabisch",
+    "translation": "Übersetzung",
+    "share": "Teilen",
+    "share_verse": "Vers teilen",
+    "share_message": "Koran sagt: {{reference}}\n\nZum Lesen: {{url}}",
+    "user": "Benutzer",
+    "you": "Du"
   },
   "settings": {
     "title": "Kontoeinstellungen",
     "notifications_section": "Benachrichtigungen",
     "notification_permission": "Benachrichtigungserlaubnis",
-    "notification_permission_sub": "Erhalten Sie Benachrichtigungen über neue Funktionen.",
+    "notification_permission_sub": "Erhalten Sie Benachrichtigungen über neue Funktionen und Erinnerungen.",
     "reading_section": "Leseeinstellungen",
     "show_translation": "Übersetzung anzeigen",
     "show_translation_sub": "Koranübersetzung beim Lesen anzeigen",
     "translation_lang": "Übersetzungssprache",
     "reading_no_extra": "Die Übersetzung wird immer in der gewählten Sprache angezeigt.",
     "coming_soon": "Demnächst!",
+    "notification_expo_go": "Push-Benachrichtigungen werden in Expo Go nicht unterstützt.",
+    "notification_already_enabled": "Benachrichtigungen sind bereits aktiviert. Sie können sie in den Geräteeinstellungen deaktivieren.",
+    "notification_granted": "Benachrichtigungserlaubnis erfolgreich erteilt!",
+    "notification_denied": "Benachrichtigungserlaubnis wurde verweigert. Sie müssen sie in den Geräteeinstellungen aktivieren, um Updates zu erhalten.",
+    "notification_failed": "Beim Anfordern der Benachrichtigungserlaubnis ist ein Fehler aufgetreten.",
     "audio_section": "Audio- & Rezitator-Einstellungen",
     "selected_reciter": "Aktiver Rezitator",
     "select_reciter_title": "Rezitator auswählen",
     "preview_play": "Anhören",
-    "preview_stop": "Stoppen"
+    "preview_stop": "Stoppen",
+    "reading_layout": "Leselayout",
+    "reading_layout_sub": "Wie möchten Sie die Koranseiten lesen?",
+    "arabic_font": "Arabische Schriftart",
+    "arabic_font_sub": "Wählen Sie den Kalligraphiestil für den arabischen Text",
+    "layout_single": "Vers für Vers",
+    "layout_page": "Seite für Seite",
+    "font_noto_naskh": "Diyanet-Kalligraphie (Nesih)",
+    "font_amiri": "Klassische Kalligraphie (Amiri)",
+    "select_layout_title": "Leselayout auswählen",
+    "select_font_title": "Arabische Schriftart auswählen",
+    "arabic_script": "Arabischer Schreibstil (Orthographie)",
+    "arabic_script_title": "Arabischer Schreibstil",
+    "script_diyanet": "Diyanet-Orthographie (Offenes Alif)",
+    "script_uthmani": "Medina-Orthographie (Uthmani)",
+    "script_diyanet_short": "Diyanet-Stil",
+    "script_uthmani_short": "Medina-Stil"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -154,5 +188,8 @@
     "ar_mahermuaiqly_style": "Kaaba Imam - Klare & inspirierende Rezitation",
     "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
     "ar_abdulbasitmurattal_style": "Klassischer & legendärer ägyptischer Stil"
+  },
+  "daily_verse": {
+    "title": "Vers des Tages"
   }
 }

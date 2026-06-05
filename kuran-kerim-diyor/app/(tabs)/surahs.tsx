@@ -5,8 +5,10 @@ import { CheckCircle2 } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { getAllSurahs } from '../../services/quranData';
 import { useProgress } from '../../hooks/useProgress';
+import { useTranslation } from 'react-i18next';
 
 export default function SurahsScreen() {
+    const { t } = useTranslation();
     const surahs = getAllSurahs();
     const theme = Colors.light;
     const router = useRouter();
@@ -22,6 +24,7 @@ export default function SurahsScreen() {
             <FlatList
                 data={surahs}
                 keyExtractor={(item) => item.number.toString()}
+                contentContainerStyle={{ paddingBottom: 24 }}
                 renderItem={({ item }) => {
                     const isCompleted = completedSurahs?.includes(item.number) ?? false;
 
@@ -39,7 +42,7 @@ export default function SurahsScreen() {
                             </View>
                             <View style={styles.surahInfo}>
                                 <Text style={[styles.surahName, { color: theme.text }]}>{item.name.tr}</Text>
-                                <Text style={[styles.surahMeta, { color: theme.muted }]}>{item.englishNameTranslation} • {item.ayahsCount} Ayet</Text>
+                                <Text style={[styles.surahMeta, { color: theme.muted }]}>{item.englishNameTranslation} • {t('surahs.ayah_count', { count: item.ayahsCount })}</Text>
                             </View>
                             <Text style={[styles.surahNameAr, { color: theme.primary }]}>{item.name.ar}</Text>
                         </TouchableOpacity>

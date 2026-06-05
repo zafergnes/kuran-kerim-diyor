@@ -15,6 +15,7 @@ const formatFavCount = (n: number) => {
 };
 
 const SearchResultItem = ({ item, theme, language, onPress }: any) => {
+    const { t } = useTranslation();
     const ayahId = `${item.surahNumber}_${item.ayah.number}`;
     const { favoriteCount } = useAyahStats(item.surahNumber, item.ayah.number);
     const { favorites, userId } = useUserStore();
@@ -29,12 +30,12 @@ const SearchResultItem = ({ item, theme, language, onPress }: any) => {
         >
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={[styles.meta, { color: theme.primary, marginBottom: 0 }]}>
-                    {item.surahName} • Ayet {item.ayah.number}
+                    {item.surahName} • {t('common.ayah')} {item.ayah.number}
                 </Text>
                 {displayCount > 0 && (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ color: theme.primary, marginRight: 4, fontSize: 12, fontWeight: 'bold' }}>
-                            {formatFavCount(displayCount)} kişi
+                            {formatFavCount(displayCount)} {t('common.person')}
                         </Text>
                         <Heart size={14} color={theme.primary} fill={theme.primary} />
                     </View>
@@ -93,6 +94,7 @@ export default function SearchScreen() {
             <FlatList
                 data={results}
                 keyExtractor={(item) => item.ayah.globalNumber.toString()}
+                contentContainerStyle={{ paddingBottom: 24 }}
                 renderItem={({ item }) => (
                     <SearchResultItem 
                         item={item} 

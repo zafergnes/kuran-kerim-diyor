@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Check, TriangleAlert } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 interface DeleteWarningModalProps {
     visible: boolean;
@@ -10,6 +11,7 @@ interface DeleteWarningModalProps {
 }
 
 export function DeleteWarningModal({ visible, onConfirm, onCancel }: DeleteWarningModalProps) {
+    const { t } = useTranslation();
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const [dontAskAgain, setDontAskAgain] = useState(false);
@@ -21,9 +23,9 @@ export function DeleteWarningModal({ visible, onConfirm, onCancel }: DeleteWarni
             <View style={styles.overlay}>
                 <View style={[styles.modalBox, { backgroundColor: theme.card }]}>
                     <TriangleAlert color={theme.primary} size={40} style={{ alignSelf: 'center', marginBottom: 12 }} />
-                    <Text style={[styles.title, { color: theme.text }]}>Favorilerden Çıkar</Text>
+                    <Text style={[styles.title, { color: theme.text }]}>{t('delete_warning.title')}</Text>
                     <Text style={[styles.subtitle, { color: theme.secondary }]}>
-                        Bu ayeti favorilerden çıkardığınızda eklendiği tüm koleksiyonlardan da silinecektir. Emin misiniz?
+                        {t('delete_warning.message')}
                     </Text>
 
                     <TouchableOpacity 
@@ -34,15 +36,15 @@ export function DeleteWarningModal({ visible, onConfirm, onCancel }: DeleteWarni
                         <View style={[styles.checkbox, { borderColor: theme.border, backgroundColor: dontAskAgain ? theme.primary : 'transparent' }]}>
                             {dontAskAgain && <Check size={14} color="#fff" />}
                         </View>
-                        <Text style={{ color: theme.secondary, fontSize: 13 }}>Bir daha sorma</Text>
+                        <Text style={{ color: theme.secondary, fontSize: 13 }}>{t('delete_warning.dont_ask')}</Text>
                     </TouchableOpacity>
 
                     <View style={styles.actions}>
                         <TouchableOpacity style={[styles.btn, styles.btnCancel, { borderColor: theme.border }]} onPress={onCancel}>
-                            <Text style={{ color: theme.text, fontWeight: 'bold' }}>İptal</Text>
+                            <Text style={{ color: theme.text, fontWeight: 'bold' }}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary }]} onPress={() => onConfirm(dontAskAgain)}>
-                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Sil</Text>
+                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>{t('common.delete')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

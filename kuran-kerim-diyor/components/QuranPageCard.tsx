@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -6,11 +6,24 @@ import {
     ScrollView,
     TouchableOpacity,
     useColorScheme,
+    ActivityIndicator,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useUserStore } from '../store/userStore';
 import { AppLanguage } from '../constants/languages';
+import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
+import { Audio } from 'expo-av';
+import { Play, Pause } from 'lucide-react-native';
+import { GlobalAudioController } from '../services/globalAudioController';
+
+const toArabicDigits = (num: number): string => {
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return num.toString().split('').map(digit => {
+        const d = parseInt(digit, 10);
+        return isNaN(d) ? digit : arabicDigits[d];
+    }).join('');
+};
 
 interface QuranPageCardProps {
     pageNumber: number;
@@ -27,11 +40,18 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     activeMode,
     onToggleMode,
 }) => {
+    const { t } = useTranslation();
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     
-    const { language, arabicFontFamily } = useUserStore();
+    const { language, arabicFontFamily, selectedReciter } = useUserStore();
     
+    const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(null);
+    const [playProgress, setPlayProgress] = useState(0);
+
     // Fetch all ayahs on this page
     const pageAyahs = useMemo(() => {
         return getPageAyahs(pageNumber, language);
@@ -43,6 +63,109 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         return pageAyahs[0].surahName;
     }, [pageAyahs]);
 
+    const ownerId = `page_${pageNumber}`;
+
+    useEffect(() => {
+        return () => {
+            GlobalAudioController.stop(ownerId);
+        };
+    }, [pageNumber]);
+
+    useEffect(() => {
+        if (sound) {
+            GlobalAudioController.stop(ownerId);
+        }
+    }, [selectedReciter]);
+
+    const playAyahAtIndex = async (index: number) => {
+        if (index < 0 || index >= pageAyahs.length) {
+            await GlobalAudioController.stop(ownerId);
+            return;
+        }
+
+        setIsLoading(true);
+        setCurrentPlayingIndex(index);
+        setPlayProgress(0);
+
+        try {
+            const ayah = pageAyahs[index];
+            const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${ayah.ayah.globalNumber}.mp3`;
+
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: url },
+                { shouldPlay: true }
+            );
+
+            setSound(newSound);
+            setIsPlaying(true);
+
+            newSound.setOnPlaybackStatusUpdate((status: any) => {
+                if (status.isLoaded) {
+                    if (status.durationMillis) {
+                        setPlayProgress(status.positionMillis / status.durationMillis);
+                    }
+                    if (status.didJustFinish) {
+                        newSound.unloadAsync().then(() => {
+                            setSound(null);
+                            playAyahAtIndex(index + 1);
+                        });
+                    }
+                }
+            });
+
+            await GlobalAudioController.play(newSound, ownerId, () => {
+                setIsPlaying(false);
+                setCurrentPlayingIndex(null);
+                setPlayProgress(0);
+                setSound(null);
+            });
+        } catch (e) {
+            console.error("Page playback error:", e);
+            setIsPlaying(false);
+            setCurrentPlayingIndex(null);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePlayPause = async () => {
+        if (isLoading) return;
+
+        if (isPlaying) {
+            await GlobalAudioController.stop(ownerId);
+        } else {
+            if (sound) {
+                await GlobalAudioController.play(sound, ownerId, () => {
+                    setIsPlaying(false);
+                    setCurrentPlayingIndex(null);
+                    setPlayProgress(0);
+                    setSound(null);
+                });
+                await sound.playAsync();
+                setIsPlaying(true);
+            } else {
+                playAyahAtIndex(0);
+            }
+        }
+    };
+
+    const handleResponderGrantOrMove = (evt: any) => {
+        const { locationX } = evt.nativeEvent;
+        const width = 120;
+        const percentage = Math.min(1, Math.max(0, locationX / width));
+        
+        setPlayProgress(percentage);
+
+        if (sound) {
+            sound.getStatusAsync().then(status => {
+                if (status.isLoaded && status.durationMillis) {
+                    const targetPos = percentage * status.durationMillis;
+                    sound.setPositionAsync(targetPos).catch(() => {});
+                }
+            });
+        }
+    };
+
     const isArabic = activeMode === 'arabic';
 
     const getArabicFont = (weight: 'regular' | 'bold' = 'regular') => {
@@ -52,16 +175,49 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         return weight === 'bold' ? 'Amiri_700Bold' : 'Amiri_400Regular';
     };
 
+    const activeHighlightId = currentPlayingIndex !== null
+        ? `${pageAyahs[currentPlayingIndex].surahNumber}_${pageAyahs[currentPlayingIndex].ayah.number}`
+        : highlightedAyahId;
+
     return (
         <View style={[styles.cardContainer, { height: containerHeight }]}>
             {/* Header Information */}
             <View style={[styles.pageHeader, { borderBottomColor: theme.border }]}>
-                <Text style={[styles.surahTitle, { color: theme.text }]}>
-                    {pageTitle}
-                </Text>
-                <Text style={[styles.pageNumberText, { color: theme.muted }]}>
-                    {language === 'tr' ? `Sayfa ${pageNumber}` : `Page ${pageNumber}`}
-                </Text>
+                <View>
+                    <Text style={[styles.surahTitle, { color: theme.text }]}>
+                        {pageTitle}
+                    </Text>
+                    <Text style={[styles.pageNumberText, { color: theme.muted }]}>
+                        {language === 'tr' ? `Sayfa ${pageNumber}` : `Page ${pageNumber}`}
+                    </Text>
+                </View>
+
+                {/* Page Audio Player Controls */}
+                <View style={styles.pageAudioControls}>
+                    {isPlaying && (
+                        <View 
+                            style={styles.progressBarContainer}
+                            onStartShouldSetResponder={() => true}
+                            onMoveShouldSetResponder={() => true}
+                            onResponderGrant={handleResponderGrantOrMove}
+                            onResponderMove={handleResponderGrantOrMove}
+                        >
+                            <View style={styles.progressBarBg}>
+                                <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                                <View style={[styles.progressThumb, { left: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                            </View>
+                        </View>
+                    )}
+                    <TouchableOpacity style={styles.pageAudioBtn} onPress={handlePlayPause}>
+                        {isLoading ? (
+                            <ActivityIndicator color={theme.primary} size="small" />
+                        ) : isPlaying ? (
+                            <Pause size={20} color={theme.primary} />
+                        ) : (
+                            <Play size={20} color={theme.primary} />
+                        )}
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Scrollable Content */}
@@ -75,7 +231,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     <View style={styles.arabicFlowContainer}>
                         {pageAyahs.map((item, index) => {
                             const isNewSurah = item.ayah.number === 1;
-                            const isHighlighted = highlightedAyahId === `${item.surahNumber}_${item.ayah.number}`;
+                            const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
                             
                             return (
                                 <React.Fragment key={item.ayah.globalNumber}>
@@ -93,12 +249,12 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                 {
                                                     fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
                                                     color: isHighlighted ? theme.primary : theme.text,
-                                                    fontSize: arabicFontFamily === 'noto-naskh' ? 24 : 26,
-                                                    lineHeight: arabicFontFamily === 'noto-naskh' ? 44 : 48,
+                                                    fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
+                                                    lineHeight: arabicFontFamily === 'noto-naskh' ? 40 : 44,
                                                 }
                                             ]}
                                         >
-                                            {item.ayah.arabic}
+                                            {item.ayah.arabic.replace(/\s+/g, '\u2002')}
                                         </Text>
                                         <Text
                                             style={[
@@ -110,7 +266,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                 }
                                             ]}
                                         >
-                                            {` ﴾${item.ayah.number}﴿ `}
+                                            {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
                                         </Text>
                                     </Text>
                                 </React.Fragment>
@@ -122,7 +278,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     <View style={styles.translationContainer}>
                         {pageAyahs.map((item, index) => {
                             const isNewSurah = item.ayah.number === 1;
-                            const isHighlighted = highlightedAyahId === `${item.surahNumber}_${item.ayah.number}`;
+                            const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
                             
                             return (
                                 <View key={item.ayah.globalNumber} style={styles.translationRow}>
@@ -175,7 +331,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                 { color: isArabic ? '#fff' : theme.muted }
                             ]}
                         >
-                            {language === 'tr' ? 'Arapça' : 'Arabic'}
+                            {t('common.arabic')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -191,7 +347,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                 { color: !isArabic ? '#fff' : theme.muted }
                             ]}
                         >
-                            {language === 'tr' ? 'Meal' : 'Translation'}
+                            {t('common.translation')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -220,6 +376,39 @@ const styles = StyleSheet.create({
     pageNumberText: {
         fontSize: 13,
         fontWeight: '600',
+    },
+    pageAudioControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    pageAudioBtn: {
+        padding: 6,
+        marginLeft: 4,
+    },
+    progressBarContainer: {
+        width: 120,
+        height: 24,
+        justifyContent: 'center',
+        marginRight: 4,
+    },
+    progressBarBg: {
+        width: 120,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: 'rgba(182, 154, 115, 0.2)',
+        position: 'relative',
+    },
+    progressBarFill: {
+        height: '100%',
+        borderRadius: 3,
+    },
+    progressThumb: {
+        position: 'absolute',
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        top: -3,
+        marginLeft: -6,
     },
     scrollArea: {
         flex: 1,

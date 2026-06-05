@@ -15,9 +15,10 @@ type AyahCardProps = {
   ayah: Ayah;
   surahName: string;
   surahNumber: number;
+  highlighted?: boolean;
 };
 
-export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
+export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showCollections, setShowCollections] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
@@ -94,11 +95,17 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
   return (
     <article
       id={`ayah-${ayah.number}`}
-      className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7"
+      className={`rounded-lg border bg-card p-5 shadow-sm sm:p-7 transition-all duration-300 ${
+        highlighted ? "border-primary ring-1 ring-primary bg-primary/5 shadow-md scale-[1.01]" : "border-border"
+      }`}
       onMouseEnter={() => setProgress(surahNumber, ayah.number)}
       onFocus={() => setProgress(surahNumber, ayah.number)}
     >
-      <p className={`${arabicFontClass} text-center text-4xl leading-[2.1] text-text sm:text-[42px]`} dir="rtl">
+      <p
+        className={`${arabicFontClass} text-center text-3xl leading-[2.3] text-text sm:text-[34px]`}
+        style={{ wordSpacing: "0.15em" }}
+        dir="rtl"
+      >
         {arabicText}
       </p>
       {shouldShowTranslation && (

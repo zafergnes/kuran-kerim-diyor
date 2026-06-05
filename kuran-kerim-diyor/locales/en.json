@@ -16,7 +16,9 @@
     "slide4_desc": "How would you like to read the Quran? You can change this later in settings.",
     "btn_continue": "Continue",
     "btn_start": "Bismillah",
-    "skip": "Skip"
+    "skip": "Skip",
+    "layout_single_desc": "One verse per screen, focused and simple reading.",
+    "layout_page_desc": "Traditional printed page layout, complete pages and easy tracking."
   },
   "search": {
     "placeholder": "Search the Quran...",
@@ -61,10 +63,12 @@
   },
   "favorites": {
     "title": "My Favorites",
-    "empty": "No verses saved to this list yet.",
+    "empty": "No verses saved in this list yet.",
     "ayah": "{{surah}} - Verse {{number}}",
     "delete_collection_title": "Delete Collection",
-    "delete_collection_message": "Are you sure you want to delete this collection and all the verses in it?"
+    "delete_collection_message": "Are you sure you want to delete this collection and all verses in it?",
+    "add_to_collections": "Add to Collections",
+    "create_new_collection": "Create new collection..."
   },
   "surahs": {
     "title": "Surahs",
@@ -116,7 +120,7 @@
   },
   "delete_warning": {
     "title": "Remove from Favorites",
-    "message": "Are you sure you want to remove this verse from favorites?",
+    "message": "Removing this verse from favorites will also delete it from all collections it belongs to. Are you sure?",
     "dont_ask": "Don't ask again",
     "cancel": "Cancel",
     "confirm": "Yes, Remove"
@@ -128,7 +132,14 @@
     "close": "Close",
     "go_to_verse": "Go to Verse",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "arabic": "Arabic",
+    "translation": "Translation",
+    "share": "Share",
+    "share_verse": "Share Verse",
+    "share_message": "Quran Says: {{reference}}\n\nTo read: {{url}}",
+    "user": "User",
+    "you": "You"
   },
   "settings": {
     "title": "Account Settings",
@@ -141,6 +152,11 @@
     "translation_lang": "Translation Language",
     "reading_no_extra": "Translation is always displayed in your selected language.",
     "coming_soon": "Coming soon!",
+    "notification_expo_go": "Push notifications are not supported in Expo Go.",
+    "notification_already_enabled": "Notifications are already enabled. You can disable them in your device settings.",
+    "notification_granted": "Notification permission granted successfully!",
+    "notification_denied": "Notification permission was denied. You must enable it in device settings to receive updates.",
+    "notification_failed": "An error occurred while requesting notification permission.",
     "audio_section": "Audio & Reciter Settings",
     "selected_reciter": "Active Reciter",
     "select_reciter_title": "Select Reciter",
@@ -155,7 +171,13 @@
     "font_noto_naskh": "Diyanet Calligraphy (Naskh)",
     "font_amiri": "Classical Calligraphy (Amiri)",
     "select_layout_title": "Select Reading Layout",
-    "select_font_title": "Select Arabic Font"
+    "select_font_title": "Select Arabic Font",
+    "arabic_script": "Arabic Writing Style (Orthography)",
+    "arabic_script_title": "Arabic Writing Style",
+    "script_diyanet": "Diyanet Orthography (Open Alif)",
+    "script_uthmani": "Medina Orthography (Uthmani)",
+    "script_diyanet_short": "Diyanet Style",
+    "script_uthmani_short": "Medina Style"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -166,5 +188,8 @@
     "ar_mahermuaiqly_style": "Kaaba Imam - Clear & inspiring recitation",
     "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
     "ar_abdulbasitmurattal_style": "Classic & legendary Egyptian style"
+  },
+  "daily_verse": {
+    "title": "Verse of the Day"
   }
 }

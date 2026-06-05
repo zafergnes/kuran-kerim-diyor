@@ -12,9 +12,13 @@
     "slide2_desc": "Cuando creas una cuenta, tu progreso de lectura se guarda en la nube. Nunca pierdas tu lugar, incluso si cambias de dispositivo.",
     "slide3_title": "Comparte con la comunidad",
     "slide3_desc": "Escucha versículos y comparte tus sentimientos de forma anónima con otros lectores al instante.",
+    "slide4_title": "Diseño de lectura",
+    "slide4_desc": "¿Cómo te gustaría leer el Corán? Puedes cambiar esto más adelante en la configuración.",
     "btn_continue": "Continuar",
     "btn_start": "Bismillah",
-    "skip": "Omitir"
+    "skip": "Omitir",
+    "layout_single_desc": "Un versículo por pantalla, lectura enfocada y simple.",
+    "layout_page_desc": "Diseño tradicional de página impresa, páginas completas y fácil seguimiento."
   },
   "search": {
     "placeholder": "Buscar en el Corán...",
@@ -62,7 +66,9 @@
     "empty": "Aún no hay versículos guardados en esta lista.",
     "ayah": "{{surah}} - Versículo {{number}}",
     "delete_collection_title": "Eliminar colección",
-    "delete_collection_message": "¿Estás seguro de que deseas eliminar esta colección y todos los versículos que contiene?"
+    "delete_collection_message": "¿Estás seguro de que deseas eliminar esta colección y todos los versículos que contiene?",
+    "add_to_collections": "Añadir a colecciones",
+    "create_new_collection": "Crear nueva colección..."
   },
   "surahs": {
     "title": "Suras",
@@ -113,8 +119,8 @@
     "surah_label": "Sura"
   },
   "delete_warning": {
-    "title": "Quitar de favoritos",
-    "message": "¿Estás seguro de que quieres quitar este versículo de favoritos?",
+    "title": "Eliminar de favoritos",
+    "message": "Eliminar este versículo de los favoritos también lo eliminará de todas las colecciones a las que pertenece. ¿Estás seguro?",
     "dont_ask": "No volver a preguntar",
     "cancel": "Cancelar",
     "confirm": "Sí, quitar"
@@ -126,24 +132,52 @@
     "close": "Cerrar",
     "go_to_verse": "Ir al versículo",
     "cancel": "Cancelar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "arabic": "Árabe",
+    "translation": "Traducción",
+    "share": "Compartir",
+    "share_verse": "Compartir versículo",
+    "share_message": "El Corán dice: {{reference}}\n\nPara leer: {{url}}",
+    "user": "Usuario",
+    "you": "Tú"
   },
   "settings": {
     "title": "Configuración de la cuenta",
     "notifications_section": "Notificaciones",
     "notification_permission": "Permiso de notificaciones",
-    "notification_permission_sub": "Recibe notificaciones sobre nuevas funciones.",
+    "notification_permission_sub": "Recibe notificaciones sobre nuevas funciones y recordatorios.",
     "reading_section": "Preferencias de lectura",
     "show_translation": "Mostrar traducción",
     "show_translation_sub": "Mostrar la traducción del Corán durante la lectura",
     "translation_lang": "Idioma de traducción",
     "reading_no_extra": "La traducción siempre se muestra en el idioma seleccionado.",
     "coming_soon": "¡Próximamente!",
+    "notification_expo_go": "Las notificaciones push no son compatibles con Expo Go.",
+    "notification_already_enabled": "Las notificaciones ya están activadas. Puedes desactivarlas en los ajustes del dispositivo.",
+    "notification_granted": "¡Permiso de notificación concedido con éxito!",
+    "notification_denied": "Se denegó el permiso de notificación. Debes activarlo en los ajustes del dispositivo para recibir actualizaciones.",
+    "notification_failed": "Ocurrió un error al solicitar el permiso de notificación.",
     "audio_section": "Ajustes de Audio y Recitador",
     "selected_reciter": "Recitador Activo",
     "select_reciter_title": "Seleccionar recitador",
     "preview_play": "Escuchar",
-    "preview_stop": "Detener"
+    "preview_stop": "Detener",
+    "reading_layout": "Diseño de lectura",
+    "reading_layout_sub": "¿Cómo te gustaría leer las páginas del Corán?",
+    "arabic_font": "Fuente árabe",
+    "arabic_font_sub": "Selecciona el estilo de caligrafía para el texto árabe",
+    "layout_single": "Versículo por versículo",
+    "layout_page": "Página por página",
+    "font_noto_naskh": "Caligrafía de Diyanet (Naskh)",
+    "font_amiri": "Caligrafía clásica (Amiri)",
+    "select_layout_title": "Seleccionar diseño de lectura",
+    "select_font_title": "Seleccionar fuente árabe",
+    "arabic_script": "Estilo de Escritura Árabe (Ortografía)",
+    "arabic_script_title": "Estilo de Escritura Árabe",
+    "script_diyanet": "Ortografía de Diyanet (Alif Abierta)",
+    "script_uthmani": "Ortografía de Medina (Uthmani)",
+    "script_diyanet_short": "Estilo Diyanet",
+    "script_uthmani_short": "Estilo Medina"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -154,5 +188,8 @@
     "ar_mahermuaiqly_style": "Imam de la Kaaba - Recitación clara e inspiradora",
     "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
     "ar_abdulbasitmurattal_style": "Estilo clásico y legendario de Egipto"
+  },
+  "daily_verse": {
+    "title": "Versículo del Día"
   }
 }

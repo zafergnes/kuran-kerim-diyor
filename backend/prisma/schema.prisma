@@ -25,6 +25,7 @@ model User {
   reports            Report[]
   likes              CommentLike[]
   pushDevices        PushDevice[]
+  webPushSubscriptions WebPushSubscription[]
 }
 
 model Report {
@@ -123,6 +124,19 @@ model VerseTheme {
 model PushDevice {
   id        String   @id @default(uuid())
   token     String   @unique
+  timezone  String
+  language  String   @default("tr")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WebPushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   timezone  String
   language  String   @default("tr")
   userId    String?

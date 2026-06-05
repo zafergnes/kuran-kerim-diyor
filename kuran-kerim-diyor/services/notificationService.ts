@@ -82,5 +82,44 @@ export class NotificationService {
 
     return token;
   }
+
+  /**
+   * Checks current permission and requests it if not already granted.
+   * Returns permission status result.
+   */
+  static async requestInteractivePermission(): Promise<'expo_go' | 'granted_already' | 'granted' | 'denied' | 'failed'> {
+    const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (isExpoGo) {
+      return 'expo_go';
+    }
+
+    try {
+      const Notifications = require('expo-notifications');
+      const isDevice = Constants.executionEnvironment !== ExecutionEnvironment.Bare && 
+                      Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+
+      if (!isDevice && Platform.OS === 'web') {
+        return 'failed';
+      }
+
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      if (existingStatus === 'granted') {
+        // Already granted, refresh registration
+        await this.registerForPushNotifications();
+        return 'granted_already';
+      }
+
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status === 'granted') {
+        await this.registerForPushNotifications();
+        return 'granted';
+      }
+
+      return 'denied';
+    } catch (e) {
+      console.error('[NotificationService] Error in requestInteractivePermission:', e);
+      return 'failed';
+    }
+  }
 }
 

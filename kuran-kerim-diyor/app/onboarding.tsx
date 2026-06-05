@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useColorScheme, FlatList, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useColorScheme, FlatList, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BookOpen, Cloud, Heart, ArrowRight, Check, Globe } from 'lucide-react-native';
@@ -135,7 +136,7 @@ export default function OnboardingScreen() {
                                                 {t('settings.layout_single')}
                                             </Text>
                                             <Text style={[styles.choiceDesc, { color: theme.muted }]}>
-                                                {language === 'tr' ? 'Her ekranda tek bir ayet, tefekkür odaklı ve sade okuma.' : 'One verse per screen, focused and simple reading.'}
+                                            {t('onboarding.layout_single_desc')}
                                             </Text>
                                         </View>
                                         {readingLayout === 'single' && (
@@ -165,7 +166,7 @@ export default function OnboardingScreen() {
                                                 {t('settings.layout_page')}
                                             </Text>
                                             <Text style={[styles.choiceDesc, { color: theme.muted }]}>
-                                                {language === 'tr' ? 'Geleneksel basılı sayfa yapısı, toplu okuma ve sayfa takibi.' : 'Traditional printed page layout, complete pages and easy tracking.'}
+                                            {t('onboarding.layout_page_desc')}
                                             </Text>
                                         </View>
                                         {readingLayout === 'page' && (

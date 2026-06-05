@@ -15,7 +15,7 @@ WebBrowser.maybeCompleteAuthSession();
 import { BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star, Settings, LogOut, UserX, ChevronRight, Globe, Check } from 'lucide-react-native';
 import { useColorScheme, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 
 const ICON_MAP: Record<string, any> = {
     BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star
@@ -26,8 +26,22 @@ export default function ProfileScreen() {
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const { userId, isAnonymous, email, setAuth, language, setLanguage } = useUserStore();
     const router = useRouter();
+    const navigation = useNavigation();
     const { t } = useTranslation();
     const [showLangModal, setShowLangModal] = useState(false);
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity 
+                    onPress={() => router.push('/settings')} 
+                    style={{ marginRight: 16, padding: 8 }}
+                >
+                    <Settings size={22} color={theme.primary} />
+                </TouchableOpacity>
+            )
+        });
+    }, [navigation, theme.primary]);
 
     const clearDevStorage = async () => {
         await AsyncStorage.removeItem('hasOnboarded');

@@ -5,6 +5,7 @@ import { ChevronLeft, Heart, Sparkles } from 'lucide-react-native';
 import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService';
 import { VerseShareCard } from '../../components/VerseShareCard';
 import { Modal, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
@@ -17,6 +18,7 @@ import { useAyahStats } from '../../hooks/useAyahStats';
 import { QuranPageCard } from '../../components/QuranPageCard';
 import { getPageFromSurahAyah } from '../../utils/quranHelpers';
 import { PAGE_START_MAP } from '../../utils/pageMapping';
+import { useTranslation } from 'react-i18next';
 
 const formatFavCount = (n: number) => {
     if (n < 1000) return n.toString();
@@ -27,6 +29,8 @@ const { width } = Dimensions.get('window');
 
 export default function MainFeedScreen() {
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
     const { currentSurah, currentAyah, setProgress } = useProgress();
     const surah = getSurah(currentSurah || 1);
     const theme = Colors.light;
@@ -64,6 +68,12 @@ export default function MainFeedScreen() {
     }, [currentSurah, currentAyah]);
 
     useEffect(() => {
+        // Cihaz internetsiz veya yavaşken önbellekteki veriyi anında göster
+        DailyVerseService.getCachedDailyVerse().then(cached => {
+            if (cached) setDailyVerse(cached);
+        });
+
+        // Güncel veriyi arka planda çekip arayüzü güncelle
         DailyVerseService.getDailyVerse().then(setDailyVerse).catch(() => {});
     }, []);
 
@@ -366,7 +376,7 @@ export default function MainFeedScreen() {
             {showSwipeHint && (
                 <View style={styles.swipeHintOverlay} pointerEvents="none">
                     <ChevronLeft size={48} color="#fff" style={{ marginBottom: 16 }} />
-                    <Text style={styles.swipeHintText}>Sıradaki ayet için{'\n'}sola kaydırın</Text>
+                    <Text style={styles.swipeHintText}>{t('common.swipe_hint')}</Text>
                 </View>
             )}
             <DeleteWarningModal 
@@ -385,12 +395,12 @@ export default function MainFeedScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
                         <View style={styles.modalHeader}>
-                            <Text style={[styles.modalTitle, { color: theme.text }]}>Günün Ayeti</Text>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('daily_verse.title')}</Text>
                             <TouchableOpacity onPress={() => setShowDailyModal(false)}>
-                                <Text style={{ color: theme.primary, fontWeight: 'bold' }}>Kapat</Text>
+                                <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{t('common.close')}</Text>
                             </TouchableOpacity>
                         </View>
-                        <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                        <ScrollView contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 20) }}>
                             {dailyVerse && (
                                 <VerseShareCard 
                                     text={dailyVerse.text} 

@@ -145,10 +145,20 @@ export default function RootLayout() {
                 } else {
                     useUserStore.getState().setAuth(null, false, null, null);
                 }
-            } catch (e) {
-                // If token is invalid or expired, clear it
-                await SecureStore.deleteItemAsync('userToken');
-                useUserStore.getState().setAuth(null, false, null, null);
+            } catch (e: any) {
+                // Sadece yetkilendirme hatası durumunda (HTTP 401 veya 403) veya 
+                // token SecureStore'dan silinmişse (örneğin yenileme başarısız olup interceptor silmişse) oturumu temizle.
+                // Bağlantı hatası, sunucu çökmesi vb. durumlarda yerel oturumu koru.
+                const isAuthError = e.response && (e.response.status === 401 || e.response.status === 403);
+                const tokenStillExists = await SecureStore.getItemAsync('userToken');
+                
+                if (isAuthError || !tokenStillExists) {
+                    await SecureStore.deleteItemAsync('userToken');
+                    await SecureStore.deleteItemAsync('refreshToken');
+                    useUserStore.getState().setAuth(null, false, null, null);
+                } else {
+                    console.log('[checkAuth] Network or server error, keeping offline session active.');
+                }
             }
         };
 
