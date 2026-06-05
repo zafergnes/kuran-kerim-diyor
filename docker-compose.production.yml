@@ -20,6 +20,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=https://api.kurannediyor.com.tr/api
+        - NEXT_PUBLIC_VAPID_PUBLIC_KEY=BOmboU4_qBzK6wn0WLVZwoZmGqm2rvnmNfcHLIu1NW5X-PJ6BaPw5MnD2WDaGy82gZ0P5uiITU3pp7aLhE4xtI4
     container_name: kuran-web
     restart: always
     environment:
@@ -39,6 +40,9 @@ services:
       - DATABASE_URL=postgresql://kuran_admin:secure_password_123@kuran_postgres:5432/kuran_db?schema=public
       - JWT_SECRET=your_jwt_secret
       - GEMINI_API_KEY=your_gemini_key
+      - VAPID_PUBLIC_KEY=BOmboU4_qBzK6wn0WLVZwoZmGqm2rvnmNfcHLIu1NW5X-PJ6BaPw5MnD2WDaGy82gZ0P5uiITU3pp7aLhE4xtI4
+      - VAPID_PRIVATE_KEY=tpX5suTDLJYF4dCwNwqAMXMaM68M6O5Lwg04v979uac
+      - VAPID_SUBJECT=mailto:info@kuran-kerim-diyor.com
     volumes:
       - ./kuran-ne-diyor-web/data:/app/kuran-ne-diyor-web/data
     networks:
