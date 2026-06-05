@@ -28,6 +28,16 @@ const notoNaskh = Noto_Naskh_Arabic({
 export const metadata: Metadata = {
   title: "Kuran Ne Diyor",
   description: "Kur'an ayetlerini okuyun, arayın ve kaldığınız yerden devam edin.",
+  manifest: "/manifest.json",
+  themeColor: "#b69a73",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Kuran Ne Diyor",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
