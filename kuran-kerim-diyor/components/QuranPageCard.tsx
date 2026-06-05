@@ -229,49 +229,63 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                 {isArabic ? (
                     /* ARABIC FLOW LAYOUT */
                     <View style={styles.arabicFlowContainer}>
-                        {pageAyahs.map((item, index) => {
-                            const isNewSurah = item.ayah.number === 1;
-                            const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
-                            
-                            return (
-                                <React.Fragment key={item.ayah.globalNumber}>
-                                    {isNewSurah && (
+                        {(() => {
+                            // Group ayahs by surah to render surah dividers correctly
+                            const groups: { surahName: string; items: typeof pageAyahs }[] = [];
+                            pageAyahs.forEach(item => {
+                                let lastGroup = groups[groups.length - 1];
+                                if (!lastGroup || lastGroup.items[0].surahNumber !== item.surahNumber) {
+                                    lastGroup = { surahName: item.surahName, items: [] };
+                                    groups.push(lastGroup);
+                                }
+                                lastGroup.items.push(item);
+                            });
+
+                            return groups.map((group, gIdx) => (
+                                <View key={`g_${gIdx}`} style={{ width: '100%', alignItems: 'flex-end' }}>
+                                    {group.items[0].ayah.number === 1 && (
                                         <View style={[styles.surahDivider, { borderColor: theme.border, backgroundColor: theme.card }]}>
                                             <Text style={[styles.surahDividerText, { color: theme.primary }]}>
-                                                {item.surahName}
+                                                {group.surahName}
                                             </Text>
                                         </View>
                                     )}
-                                    <Text style={{ textAlign: 'right', writingDirection: 'rtl' }}>
-                                        <Text
-                                            style={[
-                                                styles.arabicWordText,
-                                                {
-                                                    fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
-                                                    color: isHighlighted ? theme.primary : theme.text,
-                                                    fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
-                                                    lineHeight: arabicFontFamily === 'noto-naskh' ? 40 : 44,
-                                                }
-                                            ]}
-                                        >
-                                            {item.ayah.arabic.replace(/\s+/g, '\u2002')}
-                                        </Text>
-                                        <Text
-                                            style={[
-                                                styles.ayahNumberBadge,
-                                                {
-                                                    fontFamily: getArabicFont('bold'),
-                                                    color: isHighlighted ? theme.primary : theme.muted,
-                                                    fontSize: 16,
-                                                }
-                                            ]}
-                                        >
-                                            {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
-                                        </Text>
+                                    <Text style={styles.arabicParagraphText}>
+                                        {group.items.map((item) => {
+                                            const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
+                                            return (
+                                                <React.Fragment key={item.ayah.globalNumber}>
+                                                    <Text
+                                                        style={[
+                                                            styles.arabicWordText,
+                                                            {
+                                                                fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
+                                                                color: isHighlighted ? theme.primary : theme.text,
+                                                                fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
+                                                            }
+                                                        ]}
+                                                    >
+                                                        {item.ayah.arabic.replace(/\s+/g, '\u2002')}
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.ayahNumberBadge,
+                                                            {
+                                                                fontFamily: getArabicFont('bold'),
+                                                                color: isHighlighted ? theme.primary : theme.muted,
+                                                                fontSize: 16,
+                                                            }
+                                                        ]}
+                                                    >
+                                                        {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
+                                                    </Text>
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </Text>
-                                </React.Fragment>
-                            );
-                        })}
+                                </View>
+                            ));
+                        })()}
                     </View>
                 ) : (
                     /* TRANSLATION VERTICAL LIST */
@@ -419,10 +433,11 @@ const styles = StyleSheet.create({
         paddingBottom: 100, // Toggle pill bottom padding
     },
     arabicFlowContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
+        width: '100%',
+    },
+    arabicParagraphText: {
+        textAlign: 'right',
+        writingDirection: 'rtl',
         width: '100%',
     },
     arabicWordText: {

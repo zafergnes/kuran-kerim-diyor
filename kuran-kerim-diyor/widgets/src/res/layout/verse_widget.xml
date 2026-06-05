@@ -20,16 +20,16 @@
     <TextView
         android:id="@+id/widget_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/widget_title"
         android:layout_above="@id/widget_reference"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
         android:text="Yükleniyor..."
         android:textColor="#333333"
         android:textSize="14sp"
         android:ellipsize="end"
-        android:maxLines="4"
+        android:maxLines="6"
         android:gravity="center_vertical" />
 
     <TextView
