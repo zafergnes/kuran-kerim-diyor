@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
+import { InstallPrompt } from "./InstallPrompt";
 
 const navItems = [
   { href: "/", label: "Ana Sayfa", icon: Home },
@@ -86,6 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
         <main>{children}</main>
       </div>
+      <InstallPrompt />
     </div>
   );
 }

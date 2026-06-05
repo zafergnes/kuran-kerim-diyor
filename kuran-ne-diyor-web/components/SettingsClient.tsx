@@ -4,7 +4,8 @@ import { useRef, useState, useEffect } from "react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import type { AppLanguage } from "@/types/quran";
-import { Loader2, Pause, Play, Headphones, Check } from "lucide-react";
+import { Loader2, Pause, Play, Headphones, Check, Bell } from "lucide-react";
+import { WebNotificationService } from "@/services/webNotificationService";
 
 const languages: { value: AppLanguage; label: string }[] = [
   { value: "tr", label: "Türkçe" },
@@ -42,6 +43,47 @@ export function SettingsClient() {
   const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [isNotificationsSupported, setIsNotificationsSupported] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
+      setIsNotificationsSupported(true);
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.pushManager.getSubscription().then((subscription) => {
+          setIsSubscribed(!!subscription && Notification.permission === "granted");
+        });
+      });
+    }
+  }, []);
+
+  const handleNotificationToggle = async () => {
+    if (isNotificationLoading) return;
+    setIsNotificationLoading(true);
+    try {
+      if (isSubscribed) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+        setIsSubscribed(false);
+      } else {
+        const subscription = await WebNotificationService.registerAndSubscribe();
+        if (subscription) {
+          setIsSubscribed(true);
+        } else {
+          alert("Bildirim izni reddedildi veya bir hata olustu. Tarayici ayarlarindan bildirim iznini kontrol edin.");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling web push subscription:", error);
+    } finally {
+      setIsNotificationLoading(false);
+    }
+  };
 
   const handlePreviewPlayPause = async (reciterId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Okuyucu seçimini tetiklemesini engelle
@@ -187,6 +229,42 @@ export function SettingsClient() {
             );
           })}
         </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <Bell className="text-primary" size={24} />
+          <h2 className="text-2xl font-bold text-text">Gunun Ayeti Bildirimleri</h2>
+        </div>
+        <p className="text-xs font-semibold text-muted mb-4">
+          Her gun belirlediginiz saatte Gunun Ayeti bildirimlerini tarayiciniza almak icin aktilestirin.
+        </p>
+
+        {!isNotificationsSupported ? (
+          <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-xs font-medium text-yellow-600 dark:text-yellow-400">
+            Bu tarayici push bildirimlerini desteklememektedir. Eger iOS cihaz kullaniyorsaniz, 
+            bildirim alabilmek icin once bu siteyi Paylas &gt; Ana Ekrana Ekle secenegiyle telefonunuza yuklemeli ve 
+            ardindan ana ekrandan acarak bu ayari aktif etmelisiniz.
+          </div>
+        ) : (
+          <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-background p-4 text-sm font-bold text-text cursor-pointer hover:bg-background/80 transition">
+            <span className="flex flex-col gap-0.5">
+              <span>Gunun Ayeti Bildirimlerini Al</span>
+              <span className="text-xs font-medium text-muted">Web Push Bildirimleri</span>
+            </span>
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={isSubscribed}
+                onChange={handleNotificationToggle}
+                disabled={isNotificationLoading}
+                className="sr-only peer"
+                id="web-push-toggle"
+              />
+              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </div>
+          </label>
+        )}
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
