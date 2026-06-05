@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X, Download, Share } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -17,6 +18,7 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Check if running as PWA (standalone)
@@ -88,11 +90,11 @@ export function InstallPrompt() {
             ق
           </div>
           <div>
-            <h3 className="font-bold text-text text-sm">Kuran Ne Diyor</h3>
+            <h3 className="font-bold text-text text-sm">{t("web.install_title", "Kuran Ne Diyor")}</h3>
             <p className="text-xs text-muted font-semibold mt-0.5">
               {isIOS 
-                ? "Daha iyi bir deneyim icin ana ekrana ekleyin." 
-                : "Hizli erisim ve bildirimler icin uygulamayi yukleyin."}
+                ? t("web.install_desc_ios", "Daha iyi bir deneyim icin ana ekrana ekleyin.") 
+                : t("web.install_desc_android", "Hizli erisim ve bildirimler icin uygulamayi yukleyin.")}
             </p>
           </div>
         </div>
@@ -108,7 +110,7 @@ export function InstallPrompt() {
         {isIOS ? (
           <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-bold text-primary">
             <Share size={14} className="shrink-0" />
-            <span>Paylas &gt; Ana Ekrana Ekle secenegine dokunun.</span>
+            <span>{t("web.install_ios_guide", "Paylas > Ana Ekrana Ekle secenegine dokunun.")}</span>
           </div>
         ) : (
           <button
@@ -117,7 +119,7 @@ export function InstallPrompt() {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-white shadow transition hover:opacity-90 disabled:opacity-50"
           >
             <Download size={14} />
-            Uygulamayi Yukle
+            {t("web.install_button", "Uygulamayi Yukle")}
           </button>
         )}
       </div>

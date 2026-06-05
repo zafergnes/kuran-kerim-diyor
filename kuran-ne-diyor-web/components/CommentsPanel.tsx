@@ -5,8 +5,10 @@ import { Flag, Heart, Reply, Send, Trash2 } from "lucide-react";
 import apiClient from "@/services/apiClient";
 import { useComments } from "@/hooks/useComments";
 import { useUserStore } from "@/store/userStore";
+import { useTranslation } from "react-i18next";
 
 export function CommentsPanel({ ayahId }: { ayahId: string }) {
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const { comments, loading, error, addComment, deleteComment, toggleLike } = useComments(ayahId);
   const [text, setText] = useState("");
@@ -40,12 +42,12 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
       setText("");
       setReplyToId(null);
     } catch (caught) {
-      setFormError(caught instanceof Error ? caught.message : "Yorum gonderilemedi.");
+      setFormError(caught instanceof Error ? caught.message : t("comments.postError", "Yorum gonderilemedi."));
     }
   };
 
   const reportComment = async (commentId: number) => {
-    const reason = window.prompt("Sikayet nedeni");
+    const reason = window.prompt(t("comments.reportReason", "Sikayet nedeni"));
     if (!reason?.trim()) return;
     await apiClient.post("/reports", { commentId, reason: reason.trim() });
   };
@@ -62,7 +64,7 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
         <div className="rounded-md border border-border bg-background p-4">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-text">{comment.user?.name || "Anonim"}</p>
+              <p className="text-sm font-bold text-text">{comment.user?.name || t("comments.anonymous", "Anonim")}</p>
               <p className="text-xs font-semibold text-muted">
                 {new Date(comment.createdAt).toLocaleDateString("tr-TR")}
                 {comment.language ? ` · ${comment.language.toUpperCase()}` : ""}
@@ -70,7 +72,7 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
               </p>
             </div>
             {isMine && (
-              <button onClick={() => void deleteComment(comment.id)} className="text-muted hover:text-primary" title="Sil">
+              <button onClick={() => void deleteComment(comment.id)} className="text-muted hover:text-primary" title={t("comments.delete", "Sil")}>
                 <Trash2 size={16} />
               </button>
             )}
@@ -87,12 +89,12 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
             </button>
             <button onClick={() => setReplyToId(comment.id)} className="inline-flex items-center gap-1 text-xs font-bold text-primary">
               <Reply size={15} />
-              Yanitla
+              {t("comments.reply", "Yanitla")}
             </button>
             {user && !user.isGuest && !isMine && (
               <button onClick={() => void reportComment(comment.id)} className="inline-flex items-center gap-1 text-xs font-bold text-muted">
                 <Flag size={15} />
-                Sikayet
+                {t("comments.report", "Sikayet")}
               </button>
             )}
           </div>
@@ -116,15 +118,15 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
                   : "border-border bg-card text-muted hover:bg-background"
               }`}
             >
-              {language === "all" ? "Tumu" : language.toUpperCase()}
+              {language === "all" ? t("comments.all", "Tumu") : language.toUpperCase()}
             </button>
           ))}
         </div>
-        {loading ? <p className="text-sm font-semibold text-muted">Yorumlar yukleniyor...</p> : null}
+        {loading ? <p className="text-sm font-semibold text-muted">{t("comments.loading", "Yorumlar yukleniyor...")}</p> : null}
         {error ? <p className="text-sm font-semibold text-primary">{error}</p> : null}
         {!loading && topLevelComments.length === 0 ? (
           <p className="rounded-md border border-border bg-background p-5 text-center text-sm font-semibold text-muted">
-            Bu ayet icin ilk yorumu sen yaz.
+            {t("comments.beFirstToComment", "Bu ayet icin ilk yorumu sen yaz.")}
           </p>
         ) : (
           <div className="grid gap-4">{topLevelComments.map((comment) => renderComment(comment.id))}</div>
@@ -134,15 +136,15 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
       <form onSubmit={submit} className="border-t border-border p-5">
         {replyToId && (
           <div className="mb-3 flex items-center justify-between rounded-md bg-background px-3 py-2 text-xs font-bold text-muted">
-            <span>Yanit yaziliyor</span>
+            <span>{t("comments.replying", "Yanit yaziliyor")}</span>
             <button type="button" onClick={() => setReplyToId(null)} className="text-primary">
-              Vazgec
+              {t("comments.cancel", "Vazgec")}
             </button>
           </div>
         )}
         {!user || user.isGuest ? (
           <p className="rounded-md border border-border bg-background p-4 text-sm font-semibold text-muted">
-            Yorum yazmak ve begenmek icin hesapla giris yapmalisiniz.
+            {t("comments.loginToComment", "Yorum yazmak ve begenmek icin hesapla giris yapmalisiniz.")}
           </p>
         ) : (
           <div className="flex gap-2">
@@ -151,9 +153,9 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
               onChange={(event) => setText(event.target.value)}
               className="min-h-20 flex-1 resize-none rounded-md border border-border bg-background p-3 text-sm text-text placeholder:text-muted"
               maxLength={1000}
-              placeholder="Yorum yaz..."
+              placeholder={t("comments.writeComment", "Yorum yaz...")}
             />
-            <button className="grid h-12 w-12 place-items-center rounded-md bg-primary text-white" title="Gonder">
+            <button className="grid h-12 w-12 place-items-center rounded-md bg-primary text-white" title={t("comments.send", "Gonder")}>
               <Send size={18} />
             </button>
           </div>

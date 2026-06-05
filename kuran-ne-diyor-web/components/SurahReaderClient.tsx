@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, List, Loader2, Pause, Play } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AyahCard } from "@/components/AyahCard";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
@@ -22,6 +23,8 @@ type SurahReaderClientProps = {
 };
 
 export function SurahReaderClient({ surah }: SurahReaderClientProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language as 'tr' | 'en' | 'ar' | 'de' | 'fr' | 'es';
   useAppInit();
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -259,10 +262,10 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
       <div className="mb-6 rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-bold text-primary">Sure {surah.number}</p>
-            <h1 className="mt-1 text-3xl font-bold text-text">{surah.name.tr}</h1>
+            <p className="text-sm font-bold text-primary">{t("surah.surah", "Sure")} {surah.number}</p>
+            <h1 className="mt-1 text-3xl font-bold text-text">{surah.name[lang] || surah.name.tr}</h1>
             <p className="mt-2 text-sm font-semibold text-muted">
-              {surah.englishNameTranslation} · {surah.ayahs.length} ayet · {surah.revelationType}
+              {surah.englishNameTranslation} · {surah.ayahs.length} {t("common.ayah", "ayet").toLowerCase()} · {surah.revelationType}
             </p>
           </div>
           <p className={`${arabicFontClass} text-5xl font-normal text-primary`} dir="rtl">
@@ -277,7 +280,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
               className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
             >
               <ChevronLeft size={18} />
-              Önceki
+              {t("common.previous", "Önceki")}
             </Link>
           )}
           <button
@@ -285,14 +288,14 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
             className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
           >
             <List size={18} />
-            {listMode ? "Kaydırmalı oku" : "Liste görünümü"}
+            {listMode ? t("surah.swipe_view", "Kaydırmalı oku") : t("surah.list_view", "Liste görünümü")}
           </button>
           {surah.number < 114 && (
             <Link
               href={`/surah/${surah.number + 1}`}
               className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
             >
-              Sonraki
+              {t("common.next", "Sonraki")}
               <ChevronRight size={18} />
             </Link>
           )}
@@ -310,11 +313,11 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                 <div key={pageNum} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 mb-6">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-primary">Sayfa {pageNum}</span>
+                      <span className="text-sm font-bold text-primary">{t("common.page", "Sayfa")} {pageNum}</span>
                       <button
                         onClick={() => void togglePagePlay(pageNum, pageAyahs)}
                         className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-primary hover:bg-background transition"
-                        title={playingPageNum === pageNum && isPagePlaying ? "Duraklat" : "Sayfayı Dinle"}
+                        title={playingPageNum === pageNum && isPagePlaying ? t("common.pause", "Duraklat") : t("surah.listen_page", "Sayfayı Dinle")}
                       >
                         {playingPageNum === pageNum && isPageAudioLoading ? (
                           <Loader2 size={14} className="animate-spin" />
@@ -348,14 +351,14 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                         </div>
                       )}
                     </div>
-                    <span className="text-xs font-semibold text-muted">{surah.name.tr}</span>
+                    <span className="text-xs font-semibold text-muted">{surah.name[lang] || surah.name.tr}</span>
                   </div>
                   <div className="grid gap-5">
                     {pageAyahs.map((ayah, idx) => (
                       <AyahCard
                         key={ayah.globalNumber}
                         ayah={ayah}
-                        surahName={surah.name.tr}
+                        surahName={surah.name[lang] || surah.name.tr}
                         surahNumber={surah.number}
                         highlighted={playingPageNum === pageNum && playingAyahIndex === idx}
                       />
@@ -366,7 +369,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
             })
           ) : (
             surah.ayahs.map((ayah) => (
-              <AyahCard key={ayah.globalNumber} ayah={ayah} surahName={surah.name.tr} surahNumber={surah.number} />
+              <AyahCard key={ayah.globalNumber} ayah={ayah} surahName={surah.name[lang] || surah.name.tr} surahNumber={surah.number} />
             ))
           )}
         </div>
@@ -387,11 +390,11 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 mb-6">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-primary">Sayfa {pageNum}</span>
+                            <span className="text-sm font-bold text-primary">{t("common.page", "Sayfa")} {pageNum}</span>
                             <button
                               onClick={() => void togglePagePlay(pageNum, pageAyahs)}
                               className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-primary hover:bg-background transition"
-                              title={playingPageNum === pageNum && isPagePlaying ? "Duraklat" : "Sayfayı Dinle"}
+                              title={playingPageNum === pageNum && isPagePlaying ? t("common.pause", "Duraklat") : t("surah.listen_page", "Sayfayı Dinle")}
                             >
                               {playingPageNum === pageNum && isPageAudioLoading ? (
                                 <Loader2 size={14} className="animate-spin" />
@@ -425,14 +428,14 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                               </div>
                             )}
                           </div>
-                          <span className="text-xs font-semibold text-muted">{surah.name.tr}</span>
+                          <span className="text-xs font-semibold text-muted">{surah.name[lang] || surah.name.tr}</span>
                         </div>
                         <div className="grid gap-5">
                           {pageAyahs.map((ayah, idx) => (
                             <AyahCard
                               key={ayah.globalNumber}
                               ayah={ayah}
-                              surahName={surah.name.tr}
+                              surahName={surah.name[lang] || surah.name.tr}
                               surahNumber={surah.number}
                               highlighted={playingPageNum === pageNum && playingAyahIndex === idx}
                             />
@@ -447,7 +450,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
               surah.ayahs.map((ayah) => (
                 <section key={ayah.globalNumber} className="min-w-full snap-start">
                   <div className="min-h-[calc(100vh-260px)] px-1">
-                    <AyahCard ayah={ayah} surahName={surah.name.tr} surahNumber={surah.number} />
+                    <AyahCard ayah={ayah} surahName={surah.name[lang] || surah.name.tr} surahNumber={surah.number} />
                   </div>
                 </section>
               ))

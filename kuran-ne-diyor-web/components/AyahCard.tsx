@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { BookmarkPlus, Copy, Heart, MessageSquare, Share2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Ayah } from "@/types/quran";
 import { useAyahStats } from "@/hooks/useAyahStats";
 import { useUserStore } from "@/store/userStore";
@@ -19,6 +20,7 @@ type AyahCardProps = {
 };
 
 export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCardProps) {
+  const { t } = useTranslation();
   const [showComments, setShowComments] = useState(false);
   const [showCollections, setShowCollections] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
@@ -113,11 +115,11 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
       )}
       <footer className="mt-7 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-bold text-muted">
-          {surahName} · Ayet {ayah.number} · {surahNumber}:{ayah.number}
+          {surahName} · {t("common.ayah", "Ayet")} {ayah.number} · {surahNumber}:{ayah.number}
           {stats && (
             <span className="ml-2 text-primary">
-              {stats.favoriteCount > 0 ? `· ${stats.favoriteCount} favori` : ""}{" "}
-              {stats.commentCount > 0 ? `· ${stats.commentCount} yorum` : ""}
+              {stats.favoriteCount > 0 ? `· ${stats.favoriteCount} ${t("favorites.title", "Favori").toLowerCase()}` : ""}{" "}
+              {stats.commentCount > 0 ? `· ${stats.commentCount} ${t("comments.title", "Yorumlar").toLowerCase()}` : ""}
             </span>
           )}
         </p>
@@ -126,35 +128,35 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
           <button
             onClick={handleCopy}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
-            title="Kopyala"
+            title={t("common.copy", "Kopyala")}
           >
             <Copy size={18} />
           </button>
           <button
             onClick={handleShare}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
-            title="Paylaş"
+            title={t("common.share", "Paylaş")}
           >
             <Share2 size={18} />
           </button>
           <button
             onClick={handleFavorite}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
-            title="Favori"
+            title={t("favorites.title", "Favori")}
           >
             <Heart size={18} fill={isFavorited ? "currentColor" : "none"} />
           </button>
           <button
             onClick={() => setShowCollections(true)}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
-            title="Koleksiyona ekle"
+            title={t("favorites.add_to_collections", "Koleksiyona ekle")}
           >
             <BookmarkPlus size={18} />
           </button>
           <button
             onClick={() => setShowComments(true)}
             className="relative grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
-            title="Yorumlar"
+            title={t("comments.title", "Yorumlar")}
           >
             <MessageSquare size={18} />
             {stats && stats.commentCount > 0 && (
@@ -170,8 +172,8 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
           <div className="ml-auto flex h-full max-w-xl flex-col rounded-lg border border-border bg-card shadow-xl">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
-                <p className="text-sm font-bold text-primary">{surahName} · Ayet {ayah.number}</p>
-                <h2 className="text-xl font-bold text-text">Yorumlar</h2>
+                <p className="text-sm font-bold text-primary">{surahName} · {t("common.ayah", "Ayet")} {ayah.number}</p>
+                <h2 className="text-xl font-bold text-text">{t("comments.title", "Yorumlar")}</h2>
               </div>
               <button
                 onClick={() => {
@@ -179,7 +181,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
                   void refresh();
                 }}
                 className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary hover:bg-background"
-                title="Kapat"
+                title={t("common.close", "Kapat")}
               >
                 <X size={18} />
               </button>

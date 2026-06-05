@@ -6,6 +6,7 @@ import { useUserStore } from "@/store/userStore";
 import type { AppLanguage } from "@/types/quran";
 import { Loader2, Pause, Play, Headphones, Check, Bell } from "lucide-react";
 import { WebNotificationService } from "@/services/webNotificationService";
+import { useTranslation } from "react-i18next";
 
 const languages: { value: AppLanguage; label: string }[] = [
   { value: "tr", label: "Türkçe" },
@@ -24,6 +25,7 @@ const reciters = [
 ];
 
 export function SettingsClient() {
+  const { t } = useTranslation();
   useAppInit();
   const language = useUserStore((state) => state.language);
   const setLanguage = useUserStore((state) => state.setLanguage);
@@ -75,7 +77,7 @@ export function SettingsClient() {
         if (subscription) {
           setIsSubscribed(true);
         } else {
-          alert("Bildirim izni reddedildi veya bir hata olustu. Tarayici ayarlarindan bildirim iznini kontrol edin.");
+          alert(t("settings.notificationError", "Bildirim izni reddedildi veya bir hata olustu. Tarayici ayarlarindan bildirim iznini kontrol edin."));
         }
       }
     } catch (error) {
@@ -136,7 +138,7 @@ export function SettingsClient() {
   return (
     <div className="grid gap-5">
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-text">Dil</h1>
+        <h1 className="text-2xl font-bold text-text">{t("profile.language", "Dil")}</h1>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {languages.map((item) => (
             <button
@@ -153,9 +155,9 @@ export function SettingsClient() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-text">Arapça kullanıcı ayarı</h2>
+        <h2 className="text-2xl font-bold text-text">{t("settings.arabic_user_settings", "Arapça kullanıcı ayarı")}</h2>
         <label className="mt-4 flex items-center justify-between gap-4 rounded-md border border-border bg-background p-4 text-sm font-bold text-text">
-          Meal göster
+          {t("settings.show_translation", "Meal göster")}
           <input
             type="checkbox"
             checked={showArabicTranslation}
@@ -179,9 +181,9 @@ export function SettingsClient() {
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <Headphones className="text-primary" size={24} />
-          <h2 className="text-2xl font-bold text-text">Ses ve Okuyucu Ayarları</h2>
+          <h2 className="text-2xl font-bold text-text">{t("settings.audio_section", "Ses ve Okuyucu Ayarları")}</h2>
         </div>
-        <p className="text-xs font-semibold text-muted mb-4">Ayetleri dinlerken okuyacak imamı seçin. Oynat tuşuna basarak seslerini önizleyebilirsiniz.</p>
+        <p className="text-xs font-semibold text-muted mb-4">{t("settings.audio_reciter_desc", "Ayetleri dinlerken okuyacak imamı seçin. Oynat tuşuna basarak seslerini önizleyebilirsiniz.")}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {reciters.map((item) => {
             const isSelected = selectedReciter === item.id;
@@ -213,7 +215,7 @@ export function SettingsClient() {
                 <button
                   onClick={(e) => void handlePreviewPlayPause(item.id, e)}
                   className="grid h-8 w-8 place-items-center rounded-full border border-primary text-primary transition hover:bg-primary/10"
-                  title={isPlayingPreview ? "Durdur" : "Önizleme Dinle"}
+                  title={isPlayingPreview ? t("settings.preview_stop", "Durdur") : t("settings.preview_play", "Önizleme Dinle")}
                 >
                   {isPlayingPreview ? (
                     isPreviewLoading ? (
@@ -234,23 +236,21 @@ export function SettingsClient() {
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <Bell className="text-primary" size={24} />
-          <h2 className="text-2xl font-bold text-text">Gunun Ayeti Bildirimleri</h2>
+          <h2 className="text-2xl font-bold text-text">{t("web.notification_title", "Gunun Ayeti Bildirimleri")}</h2>
         </div>
         <p className="text-xs font-semibold text-muted mb-4">
-          Her gun belirlediginiz saatte Gunun Ayeti bildirimlerini tarayiciniza almak icin aktilestirin.
+          {t("web.notification_desc", "Her gun belirlediginiz saatte Gunun Ayeti bildirimlerini tarayiciniza almak icin aktilestirin.")}
         </p>
 
         {!isNotificationsSupported ? (
           <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-xs font-medium text-yellow-600 dark:text-yellow-400">
-            Bu tarayici push bildirimlerini desteklememektedir. Eger iOS cihaz kullaniyorsaniz, 
-            bildirim alabilmek icin once bu siteyi Paylas &gt; Ana Ekrana Ekle secenegiyle telefonunuza yuklemeli ve 
-            ardindan ana ekrandan acarak bu ayari aktif etmelisiniz.
+            {t("web.notification_not_supported", "Bu tarayici push bildirimlerini desteklememektedir. Eger iOS cihaz kullaniyorsaniz, bildirim alabilmek icin once bu siteyi Paylas > Ana Ekrana Ekle secenegiyle telefonunuza yuklemeli ve ardindan ana ekrandan acarak bu ayari aktif etmelisiniz.")}
           </div>
         ) : (
           <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-background p-4 text-sm font-bold text-text cursor-pointer hover:bg-background/80 transition">
             <span className="flex flex-col gap-0.5">
-              <span>Gunun Ayeti Bildirimlerini Al</span>
-              <span className="text-xs font-medium text-muted">Web Push Bildirimleri</span>
+              <span>{t("web.notification_toggle", "Günün Ayeti Bildirimlerini Al")}</span>
+              <span className="text-xs font-medium text-muted">{t("web.notification_toggle_sub", "Web Push Bildirimleri")}</span>
             </span>
             <div className="relative flex items-center">
               <input
@@ -268,13 +268,13 @@ export function SettingsClient() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-text">Okuma Tercihleri</h2>
-        <p className="text-xs font-semibold text-muted mb-4">Okuma düzeni, yazı tipi ve imla (yazım stili) tercihlerinizi güncelleyin.</p>
+        <h2 className="text-2xl font-bold text-text">{t("settings.reading_section", "Okuma Tercihleri")}</h2>
+        <p className="text-xs font-semibold text-muted mb-4">{t("settings.reading_layout_sub", "Okuma düzeni, yazı tipi ve imla (yazım stili) tercihlerinizi güncelleyin.")}</p>
         
         <div className="grid gap-6 sm:grid-cols-3">
           {/* Okuma Düzeni */}
           <div>
-            <label className="block text-sm font-bold text-text mb-2">Okuma Düzeni</label>
+            <label className="block text-sm font-bold text-text mb-2">{t("settings.reading_layout", "Okuma Düzeni")}</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setReadingLayout("single")}
@@ -284,7 +284,7 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Ayet Ayet
+                {t("settings.layout_single", "Ayet Ayet")}
               </button>
               <button
                 onClick={() => setReadingLayout("page")}
@@ -294,14 +294,14 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Sayfa Sayfa
+                {t("settings.layout_page", "Sayfa Sayfa")}
               </button>
             </div>
           </div>
 
           {/* Arapça Yazı Tipi */}
           <div>
-            <label className="block text-sm font-bold text-text mb-2">Arapça Yazı Tipi</label>
+            <label className="block text-sm font-bold text-text mb-2">{t("settings.arabic_font", "Arapça Yazı Tipi")}</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setArabicFontFamily("noto-naskh")}
@@ -311,7 +311,7 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Diyanet Hat (Nesih)
+                {t("settings.font_noto_naskh", "Diyanet Hat (Nesih)")}
               </button>
               <button
                 onClick={() => setArabicFontFamily("amiri")}
@@ -321,14 +321,14 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Klasik Hat (Amiri)
+                {t("settings.font_amiri", "Klasik Hat (Amiri)")}
               </button>
             </div>
           </div>
 
           {/* Arapça Yazım Stili (İmla) */}
           <div>
-            <label className="block text-sm font-bold text-text mb-2">Arapça Yazım Stili (İmla)</label>
+            <label className="block text-sm font-bold text-text mb-2">{t("settings.arabic_script", "Arapça Yazım Stili (İmla)")}</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedArabicScript("diyanet")}
@@ -338,7 +338,7 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Diyanet İmlası
+                {t("settings.script_diyanet_short", "Diyanet İmlası")}
               </button>
               <button
                 onClick={() => setSelectedArabicScript("uthmani")}
@@ -348,7 +348,7 @@ export function SettingsClient() {
                     : "border-border text-secondary hover:bg-background"
                 }`}
               >
-                Medine İmlası
+                {t("settings.script_uthmani_short", "Medine İmlası")}
               </button>
             </div>
           </div>

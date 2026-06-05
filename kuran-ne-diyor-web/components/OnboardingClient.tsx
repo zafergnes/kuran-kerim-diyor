@@ -6,6 +6,7 @@ import { ArrowRight, BookOpen, Check, Cloud, Globe, Heart } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import type { AppLanguage } from "@/types/quran";
+import { useTranslation } from "react-i18next";
 
 const languages: { value: AppLanguage; nativeName: string; name: string }[] = [
   { value: "tr", nativeName: "Türkçe", name: "Turkish" },
@@ -22,25 +23,26 @@ export function OnboardingClient() {
   const [showLanguages, setShowLanguages] = useState(false);
   const language = useUserStore((state) => state.language);
   const setLanguage = useUserStore((state) => state.setLanguage);
+  const { t } = useTranslation();
   const slides = useMemo(
     () => [
       {
-        title: "Kur'an'ı sade bir akışta oku",
-        description: "Ayetleri Arapça metin ve seçtiğin meal diliyle takip et.",
+        title: t("onboarding.slide1_title", "Kur'an'ı sade bir akışta oku"),
+        description: t("onboarding.slide1_desc", "Ayetleri Arapça metin ve seçtiğin meal diliyle takip et."),
         icon: BookOpen,
       },
       {
-        title: "Verilerin hesabınla senkron kalsın",
-        description: "Favoriler, koleksiyonlar ve yorumlar backend ile korunur.",
+        title: t("onboarding.slide2_title", "Verilerin hesabınla senkron kalsın"),
+        description: t("onboarding.slide2_desc", "Favoriler, koleksiyonlar ve yorumlar backend ile korunur."),
         icon: Cloud,
       },
       {
-        title: "Ayetleri kaydet ve paylaş",
-        description: "Favorilere ekle, koleksiyon oluştur, yorum yaz ve kaldığın yerden devam et.",
+        title: t("onboarding.slide3_title", "Ayetleri kaydet ve paylaş"),
+        description: t("onboarding.slide3_desc", "Favorilere ekle, koleksiyon oluştur, yorum yaz ve kaldığın yerden devam et."),
         icon: Heart,
       },
     ],
-    [],
+    [t],
   );
   const slide = slides[index];
   const Icon = slide.icon;
@@ -56,7 +58,7 @@ export function OnboardingClient() {
           <Globe size={24} />
         </button>
         <Link href="/" onClick={finish} className="text-sm font-bold text-muted hover:text-primary">
-          Geç
+          {t("onboarding.btn_skip", "Geç")}
         </Link>
       </header>
 
@@ -86,7 +88,7 @@ export function OnboardingClient() {
             onClick={finish}
             className="mx-auto flex h-14 max-w-md items-center justify-center gap-2 rounded-full bg-primary text-lg font-bold text-white shadow-sm"
           >
-            Başla
+            {t("onboarding.btn_start", "Başla")}
             <Check size={20} />
           </Link>
         ) : (
@@ -94,7 +96,7 @@ export function OnboardingClient() {
             onClick={() => setIndex((value) => value + 1)}
             className="mx-auto flex h-14 w-full max-w-md items-center justify-center gap-2 rounded-full bg-primary text-lg font-bold text-white shadow-sm"
           >
-            Devam
+            {t("onboarding.btn_next", "Devam")}
             <ArrowRight size={20} />
           </button>
         )}
@@ -103,7 +105,7 @@ export function OnboardingClient() {
       {showLanguages && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
           <div className="w-full max-w-sm overflow-hidden rounded-lg border border-border bg-card shadow-xl">
-            <h2 className="px-5 py-4 text-base font-bold text-text">Dil seç</h2>
+            <h2 className="px-5 py-4 text-base font-bold text-text">{t("settings.language", "Dil seç")}</h2>
             {languages.map((item) => (
               <button
                 key={item.value}

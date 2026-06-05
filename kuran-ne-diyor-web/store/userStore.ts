@@ -168,7 +168,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Giriş başarısız. Bilgileri kontrol edin." });
+      set({ loading: false, error: "auth_errors.invalid_credential" });
       throw error;
     }
   },
@@ -182,7 +182,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Kayıt başarısız. E-posta kullanılıyor olabilir." });
+      set({ loading: false, error: "auth_errors.email_in_use" });
       throw error;
     }
   },
@@ -196,7 +196,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Misafir oturumu açılamadı." });
+      set({ loading: false, error: "auth_errors.generic" });
       throw error;
     }
   },

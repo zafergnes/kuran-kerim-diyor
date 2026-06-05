@@ -5,20 +5,22 @@ import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User } f
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
-
-const navItems = [
-  { href: "/", label: "Ana Sayfa", icon: Home },
-  { href: "/search", label: "Ara", icon: Search },
-  { href: "/favorites", label: "Favoriler", icon: Heart },
-  { href: "/collections", label: "Koleksiyonlar", icon: BookOpen },
-  { href: "/my-comments", label: "Yorumlarım", icon: MessageSquare },
-  { href: "/profile", label: "Profil", icon: User },
-  { href: "/settings", label: "Ayarlar", icon: Settings },
-];
+import { useTranslation } from "react-i18next";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   useAppInit();
   const user = useUserStore((state) => state.user);
+  const { t } = useTranslation();
+
+  const navItems = [
+    { href: "/", label: t("tabs.quran", "Ana Sayfa"), icon: Home },
+    { href: "/search", label: t("tabs.search", "Ara"), icon: Search },
+    { href: "/favorites", label: t("favorites.title", "Favoriler"), icon: Heart },
+    { href: "/collections", label: t("collections.title", "Koleksiyonlar"), icon: BookOpen },
+    { href: "/my-comments", label: t("my_comments.title", "Yorumlarım"), icon: MessageSquare },
+    { href: "/profile", label: t("tabs.profile", "Profil"), icon: User },
+    { href: "/settings", label: t("profile.settings", "Ayarlar"), icon: Settings },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-text">
@@ -29,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               ق
             </span>
             <span>
-              <span className="block text-base font-bold text-text">Kuran Ne Diyor</span>
+              <span className="block text-base font-bold text-text">{t("web.install_title", "Kuran Ne Diyor")}</span>
               <span className="block text-xs font-semibold text-muted">Web</span>
             </span>
           </Link>
@@ -52,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-white transition hover:opacity-90"
             >
               {user ? <User size={18} /> : <LogIn size={18} />}
-              {user ? user.name || "Profil" : "Giriş"}
+              {user ? user.name || t("tabs.profile", "Profil") : t("profile.login", "Giriş")}
             </Link>
           </nav>
         </div>
@@ -80,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="mt-3 inline-flex h-11 items-center gap-3 rounded-md bg-primary px-3 text-sm font-bold text-white transition hover:opacity-90"
               >
                 <LogIn size={19} />
-                Giriş yap
+                {t("profile.login", "Giriş yap")}
               </Link>
             )}
           </nav>
