@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User } from "lucide-react";
+import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
@@ -11,6 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useAppInit();
   const user = useUserStore((state) => state.user);
   const { t } = useTranslation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: "/", label: t("tabs.quran", "Ana Sayfa"), icon: Home },
@@ -35,6 +37,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="block text-xs font-semibold text-muted">Web</span>
             </span>
           </Link>
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="grid h-10 w-10 place-items-center rounded-md border border-border bg-background text-primary transition hover:bg-card"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
           <nav className="hidden items-center gap-1 lg:flex">
             {navItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
@@ -58,6 +69,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </nav>
         </div>
+        
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="absolute left-0 right-0 top-full z-30 flex flex-col border-b border-border bg-card/95 p-4 shadow-xl backdrop-blur lg:hidden">
+            <nav className="grid gap-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-12 items-center gap-3 rounded-md px-4 text-sm font-bold text-text transition hover:bg-background"
+                  >
+                    <Icon size={20} className="text-primary" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              {!user && (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="mt-2 flex h-12 items-center gap-3 rounded-md bg-primary px-4 text-sm font-bold text-white transition hover:opacity-90"
+                >
+                  <LogIn size={20} />
+                  {t("profile.login", "Giriş yap")}
+                </Link>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
