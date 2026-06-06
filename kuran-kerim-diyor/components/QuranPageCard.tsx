@@ -230,69 +230,112 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     /* ARABIC FLOW LAYOUT */
                     <View style={styles.arabicFlowContainer}>
                         {(() => {
+                            const { splitBismillah, isSajdahAyah, hasBismillah } = require('../utils/quranHelpers');
+                            
                             // Group ayahs by surah to render surah dividers correctly
-                            const groups: { surahName: string; items: typeof pageAyahs }[] = [];
+                            const groups: { surahName: string; surahNumber: number; items: typeof pageAyahs }[] = [];
                             pageAyahs.forEach(item => {
                                 let lastGroup = groups[groups.length - 1];
                                 if (!lastGroup || lastGroup.items[0].surahNumber !== item.surahNumber) {
-                                    lastGroup = { surahName: item.surahName, items: [] };
+                                    lastGroup = { surahName: item.surahName, surahNumber: item.surahNumber, items: [] };
                                     groups.push(lastGroup);
                                 }
                                 lastGroup.items.push(item);
                             });
 
-                            return groups.map((group, gIdx) => (
-                                <View key={`g_${gIdx}`} style={{ width: '100%', alignItems: 'flex-end' }}>
-                                    {group.items[0].ayah.number === 1 && (
-                                        <View style={[styles.surahDivider, { borderColor: theme.border, backgroundColor: theme.card }]}>
-                                            <Text style={[styles.surahDividerText, { color: theme.primary }]}>
-                                                {group.surahName}
-                                            </Text>
-                                        </View>
-                                    )}
-                                    <Text style={styles.arabicParagraphText}>
-                                        {group.items.map((item) => {
-                                            const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
-                                            return (
-                                                <React.Fragment key={item.ayah.globalNumber}>
-                                                    <Text
-                                                        style={[
-                                                            styles.arabicWordText,
-                                                            {
-                                                                fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
-                                                                color: isHighlighted ? theme.primary : theme.text,
-                                                                fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
-                                                            }
-                                                        ]}
-                                                    >
-                                                        {item.ayah.arabic.replace(/\s+/g, '\u2002')}
-                                                    </Text>
-                                                    <Text
-                                                        style={[
-                                                            styles.ayahNumberBadge,
-                                                            {
-                                                                fontFamily: getArabicFont('bold'),
-                                                                color: isHighlighted ? theme.primary : theme.muted,
-                                                                fontSize: 16,
-                                                            }
-                                                        ]}
-                                                    >
-                                                        {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
-                                                    </Text>
-                                                </React.Fragment>
-                                            );
-                                        })}
+                            const renderArabicWordText = (word: string, isHighlighted: boolean) => {
+                                const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
+                                const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
+                                return (
+                                    <Text
+                                        style={[
+                                            styles.arabicWordText,
+                                            {
+                                                fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
+                                                color: isHighlighted ? theme.primary : (isAllah ? '#D32F2F' : theme.text),
+                                                fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
+                                                fontWeight: isAllah ? 'bold' : 'normal',
+                                            }
+                                        ]}
+                                    >
+                                        {word}
                                     </Text>
-                                </View>
-                            ));
+                                );
+                            };
+
+                            return groups.map((group, gIdx) => {
+                                const showPageBismillah = group.items[0].ayah.number === 1 && hasBismillah(group.surahNumber);
+                                
+                                return (
+                                    <View key={`g_${gIdx}`} style={{ width: '100%', alignItems: 'flex-end' }}>
+                                        {group.items[0].ayah.number === 1 && (
+                                            <View style={[styles.surahDivider, { borderColor: theme.border, backgroundColor: theme.card }]}>
+                                                <Text style={[styles.surahDividerText, { color: theme.primary }]}>
+                                                    {group.surahName}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        {showPageBismillah && (
+                                            <View style={styles.pageBismillahContainer}>
+                                                <Text style={[styles.pageBismillahText, { color: theme.text, fontFamily: getArabicFont('bold') }]}>
+                                                    {require('../utils/quranHelpers').BISMILLAH_ARABIC_UTHMANI}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        <Text style={styles.arabicParagraphText}>
+                                            {group.items.map((item) => {
+                                                const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
+                                                const isSajdah = isSajdahAyah(item.surahNumber, item.ayah.number);
+
+                                                let textToRender = item.ayah.arabic;
+                                                if (item.ayah.number === 1 && hasBismillah(item.surahNumber)) {
+                                                    textToRender = splitBismillah(item.ayah.arabic).ayahText;
+                                                }
+
+                                                const words = textToRender.replace(/\s+/g, ' ').split(' ');
+
+                                                return (
+                                                    <React.Fragment key={item.ayah.globalNumber}>
+                                                        {words.map((word, wIdx) => (
+                                                            <React.Fragment key={wIdx}>
+                                                                {renderArabicWordText(word, isHighlighted)}
+                                                                <Text> </Text>
+                                                            </React.Fragment>
+                                                        ))}
+                                                        <Text
+                                                            style={[
+                                                                styles.ayahNumberBadge,
+                                                                {
+                                                                    fontFamily: getArabicFont('bold'),
+                                                                    color: isHighlighted ? theme.primary : theme.muted,
+                                                                    fontSize: 16,
+                                                                }
+                                                            ]}
+                                                        >
+                                                            {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
+                                                        </Text>
+                                                        {isSajdah && (
+                                                            <Text style={{ fontSize: 18, color: theme.primary, marginLeft: 2 }}>
+                                                                ۩
+                                                            </Text>
+                                                        )}
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </Text>
+                                    </View>
+                                );
+                            });
                         })()}
                     </View>
                 ) : (
                     /* TRANSLATION VERTICAL LIST */
                     <View style={styles.translationContainer}>
                         {pageAyahs.map((item, index) => {
+                            const { isSajdahAyah } = require('../utils/quranHelpers');
                             const isNewSurah = item.ayah.number === 1;
                             const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
+                            const isSajdah = isSajdahAyah(item.surahNumber, item.ayah.number);
                             
                             return (
                                 <View key={item.ayah.globalNumber} style={styles.translationRow}>
@@ -308,10 +351,10 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                             styles.translationCard,
                                             {
                                                 backgroundColor: isHighlighted ? theme.primary + '10' : 'transparent',
-                                                borderColor: isHighlighted ? theme.primary : 'transparent',
+                                                borderColor: isHighlighted ? theme.primary : (isSajdah ? 'rgba(211, 47, 47, 0.3)' : 'transparent'),
                                                 borderWidth: 1,
                                                 borderRadius: 12,
-                                                padding: isHighlighted ? 12 : 4,
+                                                padding: isHighlighted || isSajdah ? 12 : 4,
                                             }
                                         ]}
                                     >
@@ -320,6 +363,11 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                 {`[${item.ayah.number}] `}
                                             </Text>
                                             {item.ayah.translations[language as AppLanguage] || item.ayah.translations.tr}
+                                            {isSajdah && (
+                                                <Text style={{ color: '#D32F2F', fontWeight: 'bold', fontSize: 12 }}>
+                                                    {` [۩ ${t('common.sajdah_warning_short', 'Secde Ayeti')}]`}
+                                                </Text>
+                                            )}
                                         </Text>
                                     </View>
                                 </View>
@@ -434,6 +482,17 @@ const styles = StyleSheet.create({
     },
     arabicFlowContainer: {
         width: '100%',
+    },
+    pageBismillahContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginVertical: 12,
+        paddingBottom: 8,
+    },
+    pageBismillahText: {
+        fontSize: 24,
+        lineHeight: 38,
+        textAlign: 'center',
     },
     arabicParagraphText: {
         textAlign: 'right',
