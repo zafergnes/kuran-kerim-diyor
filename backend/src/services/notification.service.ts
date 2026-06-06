@@ -113,7 +113,8 @@ export class NotificationService {
 
             const chunks = expo.chunkPushNotifications(messages);
             for (const chunk of chunks) {
-              await expo.sendPushNotificationsAsync(chunk);
+              const tickets = await expo.sendPushNotificationsAsync(chunk);
+              console.log('[Notification] Expo Push Tickets:', JSON.stringify(tickets));
             }
           } catch (error) {
             console.error(`Error sending mobile notifications for lang ${lang}:`, error);
