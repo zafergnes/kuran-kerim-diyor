@@ -10,7 +10,7 @@ import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
 import { useProgress } from '../../hooks/useProgress';
-import { useNavigation } from 'expo-router';
+import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { useUserStore } from '../../store/userStore';
 import { DeleteWarningModal } from '../../components/DeleteWarningModal';
@@ -29,6 +29,7 @@ const { width } = Dimensions.get('window');
 
 export default function MainFeedScreen() {
     const navigation = useNavigation();
+    const params = useLocalSearchParams();
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
     const { currentSurah, currentAyah, setProgress } = useProgress();
@@ -76,6 +77,12 @@ export default function MainFeedScreen() {
         // Güncel veriyi arka planda çekip arayüzü güncelle
         DailyVerseService.getDailyVerse().then(setDailyVerse).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        if (params.showDaily === 'true') {
+            setShowDailyModal(true);
+        }
+    }, [params.showDaily]);
 
     const flatListRef = useRef<FlatList>(null);
     const scrubTimer = useRef<NodeJS.Timeout | null>(null);

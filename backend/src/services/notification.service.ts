@@ -115,7 +115,9 @@ export class NotificationService {
                 title: NOTIFICATION_TITLES[lang] || NOTIFICATION_TITLES['en'],
                 body: `${dailyContext.reference}\n${dailyContext.text.substring(0, 100)}...`,
                 data: { 
-                  reference: dailyContext.reference
+                  showDaily: 'true',
+                  surah: dailyContext.surahNumber.toString(),
+                  ayah: dailyContext.startAyah.toString()
                 },
               });
             }

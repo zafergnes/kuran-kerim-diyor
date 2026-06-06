@@ -36,8 +36,12 @@ export default function AyetRedirect() {
       useUserStore.getState().setProgress(Number(surah), Number(ayah));
     }
     
-    // Redirect to the main tabs reader
-    router.replace('/(tabs)');
+    // Redirect to the main tabs reader with a short delay to ensure navigation is ready during cold starts
+    const timer = setTimeout(() => {
+      router.replace('/(tabs)');
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, [params]);
 
   return null;

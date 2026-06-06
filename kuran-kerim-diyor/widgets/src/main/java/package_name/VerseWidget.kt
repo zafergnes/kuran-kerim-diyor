@@ -21,8 +21,13 @@ class VerseWidget : AppWidgetProvider() {
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         thread {
             try {
+                // Sistem dilini tespit et, desteklenen dillerdense API'ye gec, degilse tr varsayilan
+                val lang = java.util.Locale.getDefault().language
+                val supportedLangs = listOf("tr", "en", "de", "fr", "es", "ar")
+                val apiLang = if (supportedLangs.contains(lang)) lang else "tr"
+
                 // API'den veri cek (Gunun Ayeti)
-                val jsonText = URL("https://api.kurannediyor.com.tr/api/daily-context?lang=tr").readText()
+                val jsonText = URL("https://api.kurannediyor.com.tr/api/daily-context?lang=$apiLang").readText()
                 val data = JSONObject(jsonText)
                 
                 val text = data.getString("text")

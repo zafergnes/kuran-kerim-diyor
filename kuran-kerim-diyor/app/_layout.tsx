@@ -70,7 +70,16 @@ export default function RootLayout() {
 
                 notificationListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
                     const data = response.notification.request.content.data;
-                    if (data?.surah && data?.ayah) {
+                    if (data?.showDaily === 'true') {
+                        if (data?.surah && data?.ayah) {
+                            import('../store/userStore').then(({ useUserStore }) => {
+                                useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
+                                router.replace('/(tabs)?showDaily=true');
+                            });
+                        } else {
+                            router.replace('/(tabs)?showDaily=true');
+                        }
+                    } else if (data?.surah && data?.ayah) {
                         import('../store/userStore').then(({ useUserStore }) => {
                             useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
                             router.replace('/(tabs)');

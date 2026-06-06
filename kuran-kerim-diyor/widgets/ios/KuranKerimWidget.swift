@@ -9,9 +9,51 @@ struct DailyVerseResponse: Codable {
     let startAyah: Int
 }
 
+// Helper translation functions
+func getSystemLanguage() -> String {
+    let lang = Locale.preferredLanguages.first?.prefix(2).map(String.init) ?? "tr"
+    let supported = ["tr", "en", "de", "fr", "es", "ar"]
+    return supported.contains(lang) ? lang : "tr"
+}
+
+func getTranslation(for key: String) -> String {
+    let lang = Locale.preferredLanguages.first?.prefix(2).map(String.init) ?? "tr"
+    switch key {
+    case "title":
+        switch lang {
+        case "tr": return "GÜNÜN AYETİ"
+        case "de": return "VERS DES TAGES"
+        case "fr": return "VERSET DU JOUR"
+        case "es": return "VERSÍCULO DEL DÍA"
+        case "ar": return "آية اليوم"
+        default: return "VERSE OF THE DAY"
+        }
+    case "loading":
+        switch lang {
+        case "tr": return "Günün Ayeti yükleniyor..."
+        case "de": return "Vers des Tages wird geladen..."
+        case "fr": return "Chargement du verset du jour..."
+        case "es": return "Cargando el versículo del día..."
+        case "ar": return "جاري تحميل آية اليوم..."
+        default: return "Loading daily verse..."
+        }
+    case "error":
+        switch lang {
+        case "tr": return "Günün Ayeti yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
+        case "de": return "Vers des Tages konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung."
+        case "fr": return "Impossible de charger le verset du jour. Veuillez vérifier votre connexion Internet."
+        case "es": return "No se pudo cargar el versículo del día. Por favor, verifique su conexión a Internet."
+        case "ar": return "تعذر تحميل آية اليوم. يرجى التحقق من الاتصال بالإنترنت."
+        default: return "Could not load daily verse. Please check your internet connection."
+        }
+    default:
+        return ""
+    }
+}
+
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), text: "Gunun Ayeti yukleniyor...", reference: "", surah: 1, ayah: 1)
+        SimpleEntry(date: Date(), text: getTranslation(for: "loading"), reference: "", surah: 1, ayah: 1)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -24,7 +66,7 @@ struct Provider: TimelineProvider {
             if let res = response {
                 entry = SimpleEntry(date: Date(), text: res.text, reference: res.reference, surah: res.surahNumber, ayah: res.startAyah)
             } else {
-                entry = SimpleEntry(date: Date(), text: "Gunun Ayeti yuklenemedi. Lutfen internet baglantinizi kontrol edin.", reference: "", surah: 1, ayah: 1)
+                entry = SimpleEntry(date: Date(), text: getTranslation(for: "error"), reference: "", surah: 1, ayah: 1)
             }
             
             let nextUpdate = Calendar.current.date(byAdding: .hour, value: 12, to: Date())!
@@ -34,7 +76,8 @@ struct Provider: TimelineProvider {
     }
     
     private func fetchDailyVerse(completion: @escaping (DailyVerseResponse?) -> Void) {
-        guard let url = URL(string: "https://api.kurannediyor.com.tr/api/daily-context?lang=tr") else {
+        let lang = getSystemLanguage()
+        guard let url = URL(string: "https://api.kurannediyor.com.tr/api/daily-context?lang=\(lang)") else {
             completion(nil)
             return
         }
@@ -69,7 +112,7 @@ struct KuranKerimWidgetEntryView : View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("GUNUN AYETI")
+            Text(getTranslation(for: "title"))
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(Color(hex: "B69A73"))
                 .tracking(1)
@@ -91,7 +134,7 @@ struct KuranKerimWidgetEntryView : View {
             }
         }
         .padding()
-        .widgetURL(URL(string: "kuran-kerim-diyor://ayet/\(entry.surah):\(entry.ayah)"))
+        .widgetURL(URL(string: "kuran-kerim-diyor://ayet?id=\(entry.surah):\(entry.ayah)"))
     }
 }
 
