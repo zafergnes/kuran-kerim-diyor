@@ -47,38 +47,6 @@ export default function RootLayout() {
             SplashScreen.hideAsync();
         };
 
-        const handleDeepLink = (url: string | null) => {
-            if (!url) return;
-            const parsed = Linking.parse(url);
-            
-            let surah: string | null = null;
-            let ayah: string | null = null;
-
-            if (parsed.path === 'ayet' && parsed.queryParams?.id) {
-                const id = parsed.queryParams.id as string;
-                [surah, ayah] = id.split(':');
-            } else if (parsed.path && parsed.path.startsWith('ayet/')) {
-                const id = parsed.path.substring(5); // e.g. "36:9"
-                [surah, ayah] = id.split(':');
-            }
-
-            if (surah && ayah) {
-                // Store'u dogrudan guncelle
-                import('../store/userStore').then(({ useUserStore }) => {
-                    useUserStore.getState().setProgress(Number(surah), Number(ayah));
-                    router.replace('/(tabs)');
-                });
-            }
-        };
-
-        checkFirstLaunch();
-
-        // Uygulama acikken gelen linkler
-        const subscription = Linking.addEventListener('url', (event) => handleDeepLink(event.url));
-        
-        // Uygulama kapaliyken acilan link
-        Linking.getInitialURL().then(handleDeepLink);
-
         // Bildirim Kaydi ve Dinleyiciler (Sadece Expo Go disindaki ortamlarda)
         const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
         let notificationListener: any = null;
@@ -116,15 +84,13 @@ export default function RootLayout() {
             console.log('[RootLayout] Running inside Expo Go. Skipping push notification service.');
         }
 
+        checkFirstLaunch();
+
         return () => {
-            subscription.remove();
             if (notificationListener) {
                 notificationListener.remove();
             }
         };
-
-
-        checkFirstLaunch();
 
         // Listen to Auth State Globally using our API
         const checkAuth = async () => {
