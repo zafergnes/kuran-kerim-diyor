@@ -99,14 +99,19 @@ export const hasBismillah = (surahNumber: number): boolean => {
 };
 
 export const splitBismillah = (text: string): { bismillah: string | null; ayahText: string } => {
-    const trimmed = text.trim();
-    // Metin basindaki besmeleyi temizle (bazen basinda bosluk veya gizli karakterler olabilir)
-    if (trimmed.includes(BISMILLAH_ARABIC_UTHMANI)) {
-        const remaining = trimmed.replace(BISMILLAH_ARABIC_UTHMANI, '').trim();
+    let trimmed = text.trim();
+    // Bazi verilerde basinda sifir genislikli bosluklar (ZWNBSP/FEFF) veya diger kontrol karakterleri olabilir, temizleyelim.
+    trimmed = trimmed.replace(/^[\u200B-\u200D\uFEFF]/g, '');
+
+    if (trimmed.startsWith(BISMILLAH_ARABIC_UTHMANI)) {
+        let remaining = trimmed.substring(BISMILLAH_ARABIC_UTHMANI.length).trim();
+        // Basindaki gizli arapca bosluk veya harfleri temizle
+        remaining = remaining.replace(/^[\s\u2002\u2009\u200A\u00A0]+/g, '');
         return { bismillah: BISMILLAH_ARABIC_UTHMANI, ayahText: remaining };
     }
-    if (trimmed.includes(BISMILLAH_ARABIC)) {
-        const remaining = trimmed.replace(BISMILLAH_ARABIC, '').trim();
+    if (trimmed.startsWith(BISMILLAH_ARABIC)) {
+        let remaining = trimmed.substring(BISMILLAH_ARABIC.length).trim();
+        remaining = remaining.replace(/^[\s\u2002\u2009\u200A\u00A0]+/g, '');
         return { bismillah: BISMILLAH_ARABIC, ayahText: remaining };
     }
     return { bismillah: null, ayahText: trimmed };
