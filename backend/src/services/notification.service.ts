@@ -5,6 +5,15 @@ import { prisma } from '../utils/prisma';
 import { DailyService } from './daily.service';
 const expo = new Expo();
 
+const NOTIFICATION_TITLES: Record<string, string> = {
+  tr: 'Günün Ayeti',
+  en: 'Verse of the Day',
+  de: 'Vers des Tages',
+  fr: 'Verset du jour',
+  es: 'Versículo del día',
+  ar: 'آية اليوم'
+};
+
 const vapidEmail = process.env.VAPID_EMAIL || 'mailto:info@kuran-kerim-diyor.com';
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -103,7 +112,7 @@ export class NotificationService {
               messages.push({
                 to: pushToken,
                 sound: 'default',
-                title: lang === 'tr' ? 'Günün Ayeti' : 'Verse of the Day',
+                title: NOTIFICATION_TITLES[lang] || NOTIFICATION_TITLES['en'],
                 body: `${dailyContext.reference}\n${dailyContext.text.substring(0, 100)}...`,
                 data: { 
                   reference: dailyContext.reference
@@ -165,7 +174,7 @@ export class NotificationService {
           try {
             const dailyContext = await DailyService.getDailyContext(lang as any);
             const payload = JSON.stringify({
-              title: lang === 'tr' ? 'Günün Ayeti' : 'Verse of the Day',
+              title: NOTIFICATION_TITLES[lang] || NOTIFICATION_TITLES['en'],
               body: `${dailyContext.reference}\n${dailyContext.text.substring(0, 100)}...`,
               data: {
                 url: `/`
