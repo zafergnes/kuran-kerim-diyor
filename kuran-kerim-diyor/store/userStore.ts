@@ -96,6 +96,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@app_language', lang);
         });
+        // Sunucudaki bildirim dilini de anında güncelle
+        import('../services/notificationService').then(({ NotificationService }) => {
+            NotificationService.registerForPushNotifications().catch(() => {});
+        });
     },
     setProgress: (surah, ayah) => set({ currentSurah: surah, currentAyah: ayah }),
     addCompletedSurah: (surah) => set((state) => {
