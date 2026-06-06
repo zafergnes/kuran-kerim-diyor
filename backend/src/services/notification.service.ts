@@ -114,7 +114,25 @@ export class NotificationService {
             const chunks = expo.chunkPushNotifications(messages);
             for (const chunk of chunks) {
               const tickets = await expo.sendPushNotificationsAsync(chunk);
-              console.log('[Notification] Expo Push Tickets:', JSON.stringify(tickets));
+              for (let i = 0; i < chunk.length; i++) {
+                const ticket = tickets[i];
+                // Check if the recipient is a single string or an array of strings (chunk[i].to)
+                const recipient = chunk[i].to;
+                const tokens = Array.isArray(recipient) ? recipient : [recipient];
+                
+                if (ticket.status === 'error') {
+                  console.error(`[Notification] Error sending push to tokens ${tokens.join(', ')}:`, ticket);
+                  if (ticket.details && ticket.details.error === 'DeviceNotRegistered') {
+                    for (const token of tokens) {
+                      console.log(`[Notification] Deleting unregistered device token: ${token}`);
+                      // @ts-ignore
+                      await prisma.pushDevice.delete({ where: { token } }).catch((err: any) => {
+                        console.error(`[Notification] Failed to delete token ${token} from db:`, err);
+                      });
+                    }
+                  }
+                }
+              }
             }
           } catch (error) {
             console.error(`Error sending mobile notifications for lang ${lang}:`, error);

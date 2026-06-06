@@ -38,7 +38,7 @@ class VerseWidget : AppWidgetProvider() {
 
                 // Derin baglanti (Deep Link) Intent yapilandirmasi
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    this.data = Uri.parse("kuran-kerim-diyor://ayet/$surahNumber:$startAyah")
+                    this.data = Uri.parse("kuran-kerim-diyor://ayet?id=$surahNumber:$startAyah")
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
                 

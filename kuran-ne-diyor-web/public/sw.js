@@ -13,7 +13,7 @@ self.addEventListener('push', function (event) {
   const options = {
     body: data.body,
     icon: origin + '/icons/icon-192x192.png',
-    badge: origin + '/icons/icon-192x192.png', // using same icon for badge
+    badge: origin + '/icons/badge-96x96.png',
     vibrate: [100, 50, 100],
     data: data.data || {}
   };
