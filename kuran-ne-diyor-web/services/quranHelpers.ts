@@ -65,3 +65,50 @@ export const getPageAyahs = (pageNumber: number, language: AppLanguage = 'tr'): 
   
   return pageAyahs;
 };
+
+// 14 Tilavet Secdesi ayetinin listesi (Sure No -> Ayet No Seti)
+const SAJDAH_MAP: Record<number, Set<number>> = {
+  7: new Set([206]),   // A'raf
+  13: new Set([15]),   // Ra'd
+  16: new Set([49]),   // Nahl
+  17: new Set([109]),  // Isra
+  19: new Set([58]),   // Meryem
+  22: new Set([18]),   // Hac
+  25: new Set([60]),   // Furkan
+  27: new Set([25]),   // Neml
+  32: new Set([15]),   // Secde
+  38: new Set([24]),   // Sad
+  41: new Set([38]),   // Fussilet
+  53: new Set([62]),   // Necm
+  84: new Set([21]),   // Insikak
+  96: new Set([19]),   // Alak
+};
+
+export const isSajdahAyah = (surahNumber: number, ayahNumber: number): boolean => {
+  return SAJDAH_MAP[surahNumber]?.has(ayahNumber) || false;
+};
+
+export const BISMILLAH_ARABIC = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+export const BISMILLAH_ARABIC_UTHMANI = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
+export const hasBismillah = (surahNumber: number): boolean => {
+  return surahNumber !== 1 && surahNumber !== 9;
+};
+
+export const splitBismillah = (text: string): { bismillah: string | null; ayahText: string } => {
+  let trimmed = text.trim();
+  trimmed = trimmed.replace(/^[\u200B-\u200D\uFEFF]/g, '');
+
+  if (trimmed.startsWith(BISMILLAH_ARABIC_UTHMANI)) {
+    let remaining = trimmed.substring(BISMILLAH_ARABIC_UTHMANI.length).trim();
+    remaining = remaining.replace(/^[\s\u2002\u2009\u200A\u00A0]+/g, '');
+    return { bismillah: BISMILLAH_ARABIC_UTHMANI, ayahText: remaining };
+  }
+  if (trimmed.startsWith(BISMILLAH_ARABIC)) {
+    let remaining = trimmed.substring(BISMILLAH_ARABIC.length).trim();
+    remaining = remaining.replace(/^[\s\u2002\u2009\u200A\u00A0]+/g, '');
+    return { bismillah: BISMILLAH_ARABIC, ayahText: remaining };
+  }
+  return { bismillah: null, ayahText: trimmed };
+};
+

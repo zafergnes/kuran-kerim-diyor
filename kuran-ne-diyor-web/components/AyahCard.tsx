@@ -37,7 +37,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   const arabicFontClass = arabicFontFamily === "amiri" ? "arabic-font-amiri" : "arabic-font-noto";
   const ayahId = ayahIdOf(surahNumber, ayah.number);
   
-  const arabicText = (selectedArabicScript === "diyanet" && ayah.arabicDiyanet) ? ayah.arabicDiyanet : ayah.arabic;
+  const rawArabicText = (selectedArabicScript === "diyanet" && ayah.arabicDiyanet) ? ayah.arabicDiyanet : ayah.arabic;
 
   const { stats, setStats, refresh } = useAyahStats(ayahId);
   const displayLanguage = language === "ar" ? arabicTranslationLang : language;
@@ -45,6 +45,40 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   const isFavorited = Boolean(favorites[ayahId]);
 
   const translation = useMemo(() => ayah.translations[displayLanguage] || ayah.translations.tr, [ayah, displayLanguage]);
+
+  // Besmele ayrıştırma
+  const { splitBismillah, isSajdahAyah, hasBismillah } = require("@/services/quranHelpers");
+  let bismillahToRender: string | null = null;
+  let finalArabicText = rawArabicText;
+  
+  if (ayah.number === 1 && hasBismillah(surahNumber)) {
+    const splitResult = splitBismillah(rawArabicText);
+    bismillahToRender = splitResult.bismillah;
+    finalArabicText = splitResult.ayahText;
+  }
+
+  // Lafzatullah renklendirme (Allah ve lillah lafizlari)
+  const renderArabicText = (text: string) => {
+    const words = text.split(/\s+/);
+    return words.map((word, index) => {
+      const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
+      const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
+      
+      return (
+        <span 
+          key={index} 
+          style={{ 
+            color: isAllah ? '#D32F2F' : undefined,
+            fontWeight: isAllah ? 'bold' : undefined
+          }}
+        >
+          {word}{index < words.length - 1 ? ' ' : ''}
+        </span>
+      );
+    });
+  };
+
+  const isSajdah = isSajdahAyah(surahNumber, ayah.number);
 
   const handleFavorite = async () => {
     if (isFavorited && !hideFavoriteDeleteWarning) {
@@ -82,7 +116,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${ayah.arabic}\n\n${translation}\n\n${surahName} ${ayah.number}`);
+    await navigator.clipboard.writeText(`${finalArabicText}\n\n${translation}\n\n${surahName} ${ayah.number}`);
   };
 
   const handleShare = async () => {
@@ -103,15 +137,39 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
       onMouseEnter={() => setProgress(surahNumber, ayah.number)}
       onFocus={() => setProgress(surahNumber, ayah.number)}
     >
+      {bismillahToRender && (
+        <div className="mb-6 text-center">
+          <p
+            className={`${arabicFontClass} text-center text-2xl leading-[2] text-text sm:text-[28px] break-words`}
+            dir="rtl"
+          >
+            {bismillahToRender}
+          </p>
+        </div>
+      )}
+
+      {isSajdah && (
+        <div className="mx-auto mb-4 w-fit rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
+          ۩ {t("common.sajdah", "Secde Ayeti")}
+        </div>
+      )}
+
       <p
         className={`${arabicFontClass} text-center text-3xl leading-[2.3] text-text sm:text-[34px] break-words`}
         style={{ wordSpacing: "0.15em" }}
         dir="rtl"
       >
-        {arabicText}
+        {renderArabicText(finalArabicText.replace(/\s+/g, '\u2002'))}
       </p>
       {shouldShowTranslation && (
-        <p className="mx-auto mt-7 max-w-3xl text-center text-base leading-8 text-secondary sm:text-lg">{translation}</p>
+        <div className="flex flex-col items-center">
+          <p className="mx-auto mt-7 max-w-3xl text-center text-base leading-8 text-secondary sm:text-lg">{translation}</p>
+          {isSajdah && (
+            <p className="mt-3 text-xs italic font-semibold text-[#D32F2F] text-center">
+              ⚠️ {t("common.sajdah_warning", "Bu ayet okunduğunda veya dinlendiğinde Tilavet Secdesi yapılması gerekir.")}
+            </p>
+          )}
+        </div>
       )}
       <footer className="mt-7 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-bold text-muted">
