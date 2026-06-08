@@ -12,6 +12,7 @@ const COMPLETED_KEY = "@kuran_completed";
 const LANGUAGE_KEY = "@app_language";
 const ARABIC_SHOW_KEY = "@arabic_show_translation";
 const ARABIC_LANG_KEY = "@arabic_translation_lang";
+const RECITER_KEY = "@app_selected_reciter";
 
 type LocalCollection = {
   id: string;
@@ -38,6 +39,10 @@ type UserState = {
   hideFavoriteDeleteWarning: boolean;
   showArabicTranslation: boolean;
   arabicTranslationLang: AppLanguage;
+  selectedReciter: string;
+  readingLayout: "single" | "page";
+  arabicFontFamily: "noto-naskh" | "amiri";
+  selectedArabicScript: "uthmani" | "diyanet";
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -49,6 +54,10 @@ type UserState = {
   setShowArabicTranslation: (show: boolean) => void;
   setArabicTranslationLang: (language: AppLanguage) => void;
   setHideFavoriteDeleteWarning: (hide: boolean) => void;
+  setSelectedReciter: (reciter: string) => void;
+  setReadingLayout: (layout: "single" | "page") => void;
+  setArabicFontFamily: (font: "noto-naskh" | "amiri") => void;
+  setSelectedArabicScript: (script: "uthmani" | "diyanet") => void;
   loadRemoteData: () => Promise<void>;
   toggleFavorite: (ayahId: string, surahNumber: number, ayahNumber: number) => Promise<void>;
   createCollection: (name: string, initialAyah?: { ayahId: string; surahNumber: number; ayahNumber: number }) => Promise<void>;
@@ -115,13 +124,19 @@ export const useUserStore = create<UserState>((set, get) => ({
   hideFavoriteDeleteWarning: false,
   showArabicTranslation: false,
   arabicTranslationLang: "en",
+  selectedReciter: "ar.alafasy",
+  readingLayout: "single",
+  arabicFontFamily: "noto-naskh",
+  selectedArabicScript: "diyanet",
 
   initialize: async () => {
     if (!canUseStorage() || get().initialized) return;
 
     const progress = readJson<Progress>(PROGRESS_KEY, { surah: 1, ayah: 1 });
+    const cachedUser = readJson<ApiUser | null>("@user_profile", null);
     set({
       initialized: true,
+      user: cachedUser,
       language: (window.localStorage.getItem(LANGUAGE_KEY) as AppLanguage | null) ?? "tr",
       currentSurah: progress.surah,
       currentAyah: progress.ayah,
@@ -130,7 +145,12 @@ export const useUserStore = create<UserState>((set, get) => ({
       collections: readJson<Record<string, LocalCollection>>(COLLECTIONS_KEY, {}),
       showArabicTranslation: window.localStorage.getItem(ARABIC_SHOW_KEY) === "true",
       arabicTranslationLang: (window.localStorage.getItem(ARABIC_LANG_KEY) as AppLanguage | null) ?? "en",
+      selectedReciter: window.localStorage.getItem(RECITER_KEY) ?? "ar.alafasy",
       hideFavoriteDeleteWarning: window.localStorage.getItem("hideFavWarning") === "true",
+      readingLayout: (window.localStorage.getItem("@app_reading_layout") as "single" | "page" | null) ?? "single",
+      arabicFontFamily: (window.localStorage.getItem("@app_arabic_font") as "noto-naskh" | "amiri" | null) ?? "noto-naskh",
+      selectedArabicScript: (window.localStorage.getItem("@app_arabic_script") as "uthmani" | "diyanet" | null) ?? 
+        (((window.localStorage.getItem(LANGUAGE_KEY) as AppLanguage | null) ?? "tr") === "tr" ? "diyanet" : "uthmani"),
     });
 
     if (window.localStorage.getItem("userToken")) {
@@ -144,10 +164,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/login", { email, password });
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Giriş başarısız. Bilgileri kontrol edin." });
+      set({ loading: false, error: "auth_errors.invalid_credential" });
       throw error;
     }
   },
@@ -157,10 +178,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/register", { name, email, password });
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Kayıt başarısız. E-posta kullanılıyor olabilir." });
+      set({ loading: false, error: "auth_errors.email_in_use" });
       throw error;
     }
   },
@@ -170,10 +192,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>("/auth/guest");
       persistAuth(response.data);
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
     } catch (error) {
-      set({ loading: false, error: "Misafir oturumu açılamadı." });
+      set({ loading: false, error: "auth_errors.generic" });
       throw error;
     }
   },
@@ -184,6 +207,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       window.localStorage.removeItem("refreshToken");
       window.localStorage.removeItem(FAVORITES_KEY);
       window.localStorage.removeItem(COLLECTIONS_KEY);
+      window.localStorage.removeItem("@user_profile");
     }
     set({ user: null, favorites: {}, collections: {} });
   },
@@ -191,9 +215,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   refreshMe: async () => {
     try {
       const response = await apiClient.get<{ user: ApiUser }>("/auth/me");
+      writeJson("@user_profile", response.data.user);
       set({ user: response.data.user });
-    } catch {
-      get().logout();
+    } catch (error: any) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        get().logout();
+      }
     }
   },
 
@@ -226,6 +253,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   setHideFavoriteDeleteWarning: (hide) => {
     set({ hideFavoriteDeleteWarning: hide });
     if (canUseStorage()) window.localStorage.setItem("hideFavWarning", String(hide));
+  },
+
+  setSelectedReciter: (reciter) => {
+    set({ selectedReciter: reciter });
+    if (canUseStorage()) window.localStorage.setItem(RECITER_KEY, reciter);
   },
 
   loadRemoteData: async () => {
@@ -352,5 +384,20 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
       await get().loadRemoteData();
     }
+  },
+
+  setReadingLayout: (layout) => {
+    set({ readingLayout: layout });
+    if (canUseStorage()) window.localStorage.setItem("@app_reading_layout", layout);
+  },
+
+  setArabicFontFamily: (font) => {
+    set({ arabicFontFamily: font });
+    if (canUseStorage()) window.localStorage.setItem("@app_arabic_font", font);
+  },
+
+  setSelectedArabicScript: (script) => {
+    set({ selectedArabicScript: script });
+    if (canUseStorage()) window.localStorage.setItem("@app_arabic_script", script);
   },
 }));

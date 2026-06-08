@@ -42,7 +42,7 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
 
     const isRealUser = userId && !isAnonymous;
     const { email } = useUserStore();
-    const effectiveName = displayName || (email ? email.split('@')[0] : 'Kullanıcı');
+    const effectiveName = displayName || (email ? email.split('@')[0] : t('common.user'));
 
     // Grouping by reply structure could be done here if needed. For flat UI, replies just show up indented.
     // Filtreleme Mantigi
@@ -212,8 +212,8 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
                             <View style={styles.commentHeader}>
                                 <Text style={[styles.userName, { color: item.userId === userId ? theme.primary : (item.isAnonymous ? theme.muted : theme.text) }]}>
                                     {maskName(item.user.name)}
-                                    {item.userId === userId && <Text style={[styles.ownerBadge, { color: theme.primary }]}> (Siz)</Text>}
-                                    {isReply && <Text style={{ fontSize: 12, fontWeight: 'normal', color: theme.muted }}> (Yanıt)</Text>}
+                                    {item.userId === userId && <Text style={[styles.ownerBadge, { color: theme.primary }]}> {`(${t('common.you')})`}</Text>}
+                                    {isReply && <Text style={{ fontSize: 12, fontWeight: 'normal', color: theme.muted }}> {`(${t('comments.reply_label')})`}</Text>}
                                     {item.status === 'PENDING' && <Text style={{ fontSize: 10, color: '#f39c12' }}> • {t('comments.status_preparing')}</Text>}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: theme.muted }}>{item.language ? item.language.toUpperCase() : ''}</Text>
@@ -221,7 +221,7 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
 
                             {item.isDeletedUser ? (
                                 <Text style={[styles.commentText, { color: theme.muted, fontStyle: 'italic' }]}>
-                                    Bu yorum kullanıcı tarafından silinmiştir.
+                                    {t('comments.deleted_user')}
                                 </Text>
                             ) : item.status === 'REMOVED_BY_MODERATOR' ? (
                                 <View style={{ backgroundColor: theme.muted + '15', padding: 10, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: '#e74c3c', marginTop: 6 }}>

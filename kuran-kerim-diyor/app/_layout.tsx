@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { useFonts, Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
+import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
@@ -8,18 +9,7 @@ import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
 import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
-import * as Notifications from 'expo-notifications';
-import { NotificationService } from '../services/notificationService';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +18,8 @@ export default function RootLayout() {
     const [loaded, error] = useFonts({
         Amiri_400Regular,
         Amiri_700Bold,
+        NotoNaskhArabic_400Regular,
+        NotoNaskhArabic_700Bold,
     });
     const router = useRouter();
 
@@ -55,49 +47,59 @@ export default function RootLayout() {
             SplashScreen.hideAsync();
         };
 
-        const handleDeepLink = (url: string | null) => {
-            if (!url) return;
-            const parsed = Linking.parse(url);
-            if (parsed.path === 'ayet' && parsed.queryParams?.id) {
-                const id = parsed.queryParams.id as string;
-                const [surah, ayah] = id.split(':');
-                if (surah && ayah) {
-                    // Store'u dogrudan guncelle
-                    import('../store/userStore').then(({ useUserStore }) => {
-                        useUserStore.getState().setProgress(Number(surah), Number(ayah));
-                        router.replace('/(tabs)');
-                    });
-                }
+        // Bildirim Kaydi ve Dinleyiciler (Sadece Expo Go disindaki ortamlarda)
+        const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+        let notificationListener: any = null;
+
+        if (!isExpoGo) {
+            try {
+                const Notifications = require('expo-notifications');
+                const { NotificationService } = require('../services/notificationService');
+
+                Notifications.setNotificationHandler({
+                    handleNotification: async () => ({
+                        shouldShowAlert: true,
+                        shouldPlaySound: true,
+                        shouldSetBadge: false,
+                        shouldShowBanner: true,
+                        shouldShowList: true,
+                    }),
+                });
+
+                NotificationService.registerForPushNotifications();
+
+                notificationListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
+                    const data = response.notification.request.content.data;
+                    if (data?.showDaily === 'true') {
+                        if (data?.surah && data?.ayah) {
+                            import('../store/userStore').then(({ useUserStore }) => {
+                                useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
+                                router.replace('/(tabs)?showDaily=true');
+                            });
+                        } else {
+                            router.replace('/(tabs)?showDaily=true');
+                        }
+                    } else if (data?.surah && data?.ayah) {
+                        import('../store/userStore').then(({ useUserStore }) => {
+                            useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
+                            router.replace('/(tabs)');
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to initialize dynamic notifications:', e);
             }
-        };
+        } else {
+            console.log('[RootLayout] Running inside Expo Go. Skipping push notification service.');
+        }
 
         checkFirstLaunch();
-
-        // Uygulama acikken gelen linkler
-        const subscription = Linking.addEventListener('url', (event) => handleDeepLink(event.url));
-        
-        // Uygulama kapaliyken acilan link
-        Linking.getInitialURL().then(handleDeepLink);
-
-        // Bildirim Kaydi ve Dinleyiciler
-        NotificationService.registerForPushNotifications();
-
-        const notificationListener = Notifications.addNotificationResponseReceivedListener(response => {
-            const data = response.notification.request.content.data;
-            if (data?.surah && data?.ayah) {
-                import('../store/userStore').then(({ useUserStore }) => {
-                    useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
-                    router.replace('/(tabs)');
-                });
-            }
-        });
 
         return () => {
-            subscription.remove();
-            notificationListener.remove();
+            if (notificationListener) {
+                notificationListener.remove();
+            }
         };
-
-        checkFirstLaunch();
 
         // Listen to Auth State Globally using our API
         const checkAuth = async () => {
@@ -118,10 +120,20 @@ export default function RootLayout() {
                 } else {
                     useUserStore.getState().setAuth(null, false, null, null);
                 }
-            } catch (e) {
-                // If token is invalid or expired, clear it
-                await SecureStore.deleteItemAsync('userToken');
-                useUserStore.getState().setAuth(null, false, null, null);
+            } catch (e: any) {
+                // Sadece yetkilendirme hatası durumunda (HTTP 401 veya 403) veya 
+                // token SecureStore'dan silinmişse (örneğin yenileme başarısız olup interceptor silmişse) oturumu temizle.
+                // Bağlantı hatası, sunucu çökmesi vb. durumlarda yerel oturumu koru.
+                const isAuthError = e.response && (e.response.status === 401 || e.response.status === 403);
+                const tokenStillExists = await SecureStore.getItemAsync('userToken');
+                
+                if (isAuthError || !tokenStillExists) {
+                    await SecureStore.deleteItemAsync('userToken');
+                    await SecureStore.deleteItemAsync('refreshToken');
+                    useUserStore.getState().setAuth(null, false, null, null);
+                } else {
+                    console.log('[checkAuth] Network or server error, keeping offline session active.');
+                }
             }
         };
 

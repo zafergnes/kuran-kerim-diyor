@@ -12,9 +12,13 @@
     "slide2_desc": "Hesap oluşturduğunuzda ilerlemeniz buluta kaydedilir. Cihaz değiştirseniz bile kaldığınız yeri kaybetmezsiniz.",
     "slide3_title": "Toplulukla Paylaşın",
     "slide3_desc": "Ayetleri dinleyin, hislerinizi isimsiz (anonim) bir şekilde diğer okurlarla anında paylaşın.",
+    "slide4_title": "Okuma Düzeni",
+    "slide4_desc": "Kur'an-ı Kerim'i nasıl okumak istersiniz? Daha sonra ayarlardan değiştirebilirsiniz.",
     "btn_continue": "Devam Et",
     "btn_start": "Bismillahirrahmanirrahim",
-    "skip": "Atla"
+    "skip": "Atla",
+    "layout_single_desc": "Her ekranda tek bir ayet, tefekkür odaklı ve sade okuma.",
+    "layout_page_desc": "Geleneksel basılı sayfa yapısı, toplu okuma ve sayfa takibi."
   },
   "search": {
     "placeholder": "Kur'an'da ara...",
@@ -62,7 +66,9 @@
     "empty": "Bu listede henüz kayıtlı bir ayet bulunmuyor.",
     "ayah": "{{surah}} - {{number}}. Ayet",
     "delete_collection_title": "Koleksiyonu Sil",
-    "delete_collection_message": "Bu koleksiyonu ve içindeki tüm ayetleri silmek istediğinize emin misiniz?"
+    "delete_collection_message": "Bu koleksiyonu ve içindeki tüm ayetleri silmek istediğinize emin misiniz?",
+    "add_to_collections": "Koleksiyonlara Ekle",
+    "create_new_collection": "Yeni koleksiyon oluştur..."
   },
   "surahs": {
     "title": "Sureler",
@@ -114,7 +120,7 @@
   },
   "delete_warning": {
     "title": "Favoriden Çıkar",
-    "message": "Bu ayeti favorilerden çıkarmak istediğinizden emin misiniz?",
+    "message": "Bu ayeti favorilerden çıkardığınızda eklendiği tüm koleksiyonlardan da silinecektir. Emin misiniz?",
     "dont_ask": "Bir daha sorma",
     "cancel": "Vazgeç",
     "confirm": "Evet, Çıkar"
@@ -126,7 +132,22 @@
     "close": "Kapat",
     "go_to_verse": "Ayete Git",
     "cancel": "Vazgeç",
-    "delete": "Sil"
+    "delete": "Sil",
+    "arabic": "Arapça",
+    "translation": "Meal",
+    "share": "Paylaş",
+    "share_verse": "Ayeti Paylaş",
+    "share_message": "Kur'an-ı Kerim Diyor: {{reference}}\n\nOkumak için: {{url}}",
+    "share_as_image": "Görsel Olarak Paylaş",
+    "share_as_image_desc": "Görsel oluşturulur ve web bağlantısı panoya kopyalanır.",
+    "share_as_text": "Metin Olarak Paylaş",
+    "share_as_text_desc": "Ayet meali, referansı, web adresi ve uygulama bağlantısı metin olarak paylaşılır.",
+    "link_copied": "Bağlantı panoya kopyalandı!",
+    "sajdah": "Secde Ayeti",
+    "sajdah_warning": "Bu ayet okunduğunda veya dinlendiğinde Tilavet Secdesi yapılması gerekir.",
+    "sajdah_warning_short": "Secde Ayeti",
+    "user": "Kullanıcı",
+    "you": "Siz"
   },
   "settings": {
     "title": "Hesap Ayarları",
@@ -138,6 +159,45 @@
     "show_translation_sub": "Okurken Kur'an mealini de görüntüler",
     "translation_lang": "Meal Dili",
     "reading_no_extra": "Seçili dilinizde meal her zaman görüntülenir.",
-    "coming_soon": "Yakında aktif olacak!"
+    "coming_soon": "Yakında aktif olacak!",
+    "notification_expo_go": "Expo Go üzerinde anlık bildirimler desteklenmemektedir.",
+    "notification_already_enabled": "Bildirimler zaten etkin. Kapatmak veya yönetmek için cihaz ayarlarınızı ziyaret edebilirsiniz.",
+    "notification_granted": "Bildirim izni başarıyla verildi!",
+    "notification_denied": "Bildirim izni reddedildi. Bildirim almak için cihaz ayarlarından izin vermelisiniz.",
+    "notification_failed": "Bildirim izni istenirken bir hata oluştu.",
+    "audio_section": "Ses ve Okuyucu Ayarları",
+    "selected_reciter": "Sesli Okuyan İmam",
+    "select_reciter_title": "Okuyucu Seçin",
+    "preview_play": "Dinle",
+    "preview_stop": "Durdur",
+    "reading_layout": "Okuma Düzeni",
+    "reading_layout_sub": "Kur'an sayfalarını nasıl okumak istersiniz?",
+    "arabic_font": "Arapça Yazı Tipi",
+    "arabic_font_sub": "Arapça metinlerin hat stilini seçin",
+    "layout_single": "Ayet Ayet",
+    "layout_page": "Sayfa Sayfa",
+    "font_noto_naskh": "Diyanet Hat Stili (Nesih)",
+    "font_amiri": "Klasik Hat Stili (Amiri)",
+    "select_layout_title": "Okuma Düzeni Seçin",
+    "select_font_title": "Arapça Yazı Tipi Seçin",
+    "arabic_script": "Arapça Yazım Stili (İmla)",
+    "arabic_script_title": "Arapça Yazım Stili",
+    "script_diyanet": "Diyanet İmlası (Açık Elif)",
+    "script_uthmani": "Medine İmlası (Uthmani)",
+    "script_diyanet_short": "Diyanet İmlası",
+    "script_uthmani_short": "Medine İmlası"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Melodik ve net tilavet (Dünya favorisi)",
+    "ar_abdurrahmaansudais_name": "Abdurrahman Al-Sudais",
+    "ar_abdurrahmaansudais_style": "Kabe İmamı - Coşkulu ve hızlı tilavet",
+    "ar_mahermuaiqly_name": "Maher Al-Muaiqly",
+    "ar_mahermuaiqly_style": "Kabe İmamı - Net ve etkileyici tilavet",
+    "ar_abdulbasitmurattal_name": "Abdulbasit Abdussamed",
+    "ar_abdulbasitmurattal_style": "Klasik ve efsanevi Mısır tilaveti"
+  },
+  "daily_verse": {
+    "title": "Günün Ayeti"
   }
 }

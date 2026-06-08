@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,7 @@ import {
     useColorScheme,
     Modal,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -19,16 +20,25 @@ import {
     BookOpen,
     Globe,
     Check,
+    Headphones,
+    Play,
+    Pause,
+    Type,
+    FileText,
 } from 'lucide-react-native';
+import { Audio } from 'expo-av';
 import { Colors } from '../constants/colors';
 import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NotificationService } from '../services/notificationService';
 
 // Arapca kullanicilar icin meal dilinden hariclenenler
 const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => l !== 'ar');
 
 export default function SettingsScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const { t } = useTranslation();
@@ -39,20 +49,125 @@ export default function SettingsScreen() {
         arabicTranslationLang,
         setShowArabicTranslation,
         setArabicTranslationLang,
+        selectedReciter,
+        setSelectedReciter,
+        readingLayout,
+        setReadingLayout,
+        arabicFontFamily,
+        setArabicFontFamily,
+        selectedArabicScript,
+        setSelectedArabicScript,
     } = useUserStore();
 
     const isArabicUser = language === 'ar';
     const [showLangPicker, setShowLangPicker] = useState(false);
+    const [showReciterPicker, setShowReciterPicker] = useState(false);
+    const [showLayoutPicker, setShowLayoutPicker] = useState(false);
+    const [showFontPicker, setShowFontPicker] = useState(false);
+    const [showScriptPicker, setShowScriptPicker] = useState(false);
 
-    const handleNotificationPress = () => {
-        // Bildirim izni isteme - ilerleyen sureclerde implement edilecek
-        Alert.alert('', t('settings.coming_soon'));
+    const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
+    const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (previewSound) {
+                previewSound.unloadAsync();
+            }
+        };
+    }, [previewSound]);
+
+    const handlePreviewPlayPause = async (reciterId: string) => {
+        if (isPreviewLoading) return;
+
+        if (previewSound && playingPreviewId === reciterId) {
+            await previewSound.unloadAsync();
+            setPreviewSound(null);
+            setPlayingPreviewId(null);
+            return;
+        }
+
+        if (previewSound) {
+            await previewSound.unloadAsync();
+            setPreviewSound(null);
+            setPlayingPreviewId(null);
+        }
+
+        setIsPreviewLoading(true);
+        setPlayingPreviewId(reciterId);
+
+        try {
+            await Audio.setAudioModeAsync({
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: false,
+            });
+
+            const url = `https://cdn.islamic.network/quran/audio/64/${reciterId}/1.mp3`;
+
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: url },
+                { shouldPlay: true }
+            );
+
+            setPreviewSound(newSound);
+
+            newSound.setOnPlaybackStatusUpdate((status: any) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setPlayingPreviewId(null);
+                    setPreviewSound(null);
+                }
+            });
+        } catch (e) {
+            console.error("Preview playback error:", e);
+            setPlayingPreviewId(null);
+            setPreviewSound(null);
+        } finally {
+            setIsPreviewLoading(false);
+        }
+    };
+
+    const handleCloseReciterPicker = async () => {
+        setShowReciterPicker(false);
+        if (previewSound) {
+            await previewSound.unloadAsync();
+            setPreviewSound(null);
+            setPlayingPreviewId(null);
+        }
+    };
+
+    const RECITERS = [
+        { id: 'ar.alafasy', initials: 'MA' },
+        { id: 'ar.abdurrahmaansudais', initials: 'AS' },
+        { id: 'ar.mahermuaiqly', initials: 'MM' },
+        { id: 'ar.abdulbasitmurattal', initials: 'AB' }
+    ];
+
+    const handleNotificationPress = async () => {
+        try {
+            const result = await NotificationService.requestInteractivePermission();
+            
+            if (result === 'granted') {
+                Alert.alert('', t('settings.notification_granted'));
+            } else if (result === 'granted_already') {
+                Alert.alert('', t('settings.notification_already_enabled'));
+            } else if (result === 'denied') {
+                Alert.alert('', t('settings.notification_denied'));
+            } else if (result === 'expo_go') {
+                Alert.alert('', t('settings.notification_expo_go'));
+            } else {
+                Alert.alert('', t('settings.notification_failed'));
+            }
+        } catch (error) {
+            console.error('Failed to request notification permission:', error);
+            Alert.alert('', t('settings.notification_failed'));
+        }
     };
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.background }]}>
+            <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.background, paddingTop: insets.top > 0 ? insets.top + 12 : 24 }]}>
                 <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
                     <ChevronLeft size={24} color={theme.primary} />
                 </TouchableOpacity>
@@ -120,7 +235,7 @@ export default function SettingsScreen() {
 
                             {/* Meal dili seçici — sadece toggle açıkken aktif */}
                             <TouchableOpacity
-                                style={[styles.row, !showArabicTranslation && styles.rowDisabled]}
+                                style={[styles.row, !showArabicTranslation && styles.rowDisabled, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}
                                 onPress={() => showArabicTranslation && setShowLangPicker(true)}
                                 activeOpacity={showArabicTranslation ? 0.6 : 1}
                             >
@@ -142,14 +257,91 @@ export default function SettingsScreen() {
                         </>
                     )}
 
-                    {/* Arapça değilse bilgi mesajı */}
-                    {!isArabicUser && (
-                        <View style={[styles.row, { paddingVertical: 18 }]}>
-                            <Text style={[styles.rowSub, { color: theme.muted, textAlign: 'center', flex: 1 }]}>
-                                {t('settings.reading_no_extra')}
-                            </Text>
+                    {/* Okuma Düzeni Seçimi */}
+                    <TouchableOpacity
+                        style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}
+                        onPress={() => setShowLayoutPicker(true)}
+                    >
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}>
+                                <BookOpen size={20} color={theme.primary} />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.reading_layout')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {readingLayout === 'page' ? t('settings.layout_page') : t('settings.layout_single')}
+                                </Text>
+                            </View>
                         </View>
-                    )}
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+
+                    {/* Arapça Font Seçimi */}
+                    <TouchableOpacity
+                        style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}
+                        onPress={() => setShowFontPicker(true)}
+                    >
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(90, 200, 250, 0.12)' }]}>
+                                <Type size={20} color="#5AC8FA" />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.arabic_font')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {arabicFontFamily === 'noto-naskh' ? t('settings.font_noto_naskh') : t('settings.font_amiri')}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+
+                    {/* Arapça Yazım Stili Seçimi */}
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={() => setShowScriptPicker(true)}
+                    >
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 149, 0, 0.12)' }]}>
+                                <FileText size={20} color="#FF9500" />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.arabic_script')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {selectedArabicScript === 'diyanet' ? t('settings.script_diyanet_short') : t('settings.script_uthmani_short')}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* ── SES TERCİHLERİ ── */}
+                <Text style={[styles.sectionHeader, { color: theme.muted }]}>
+                    {t('settings.audio_section')}
+                </Text>
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => setShowReciterPicker(true)}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}>
+                                <Headphones size={20} color={theme.primary} />
+                            </View>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.selected_reciter')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {t(`reciters.${selectedReciter.replace('.', '_')}_name`)}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
                 </View>
 
             </ScrollView>
@@ -192,6 +384,252 @@ export default function SettingsScreen() {
                                 )}
                             </TouchableOpacity>
                         ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Okuyucu Seçici Modal ── */}
+            <Modal
+                visible={showReciterPicker}
+                transparent
+                animationType="fade"
+                onRequestClose={handleCloseReciterPicker}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={handleCloseReciterPicker}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card, width: 320 }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('settings.select_reciter_title')}
+                        </Text>
+                        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+                            {RECITERS.map(reciter => {
+                                const reciterKey = reciter.id.replace('.', '_');
+                                const isSelected = selectedReciter === reciter.id;
+                                const isPlayingPreview = playingPreviewId === reciter.id;
+
+                                return (
+                                    <View
+                                        key={reciter.id}
+                                        style={[styles.reciterItem, { borderBottomColor: theme.border }]}
+                                    >
+                                        <TouchableOpacity
+                                            style={styles.reciterItemLeft}
+                                            onPress={() => {
+                                                setSelectedReciter(reciter.id);
+                                                handleCloseReciterPicker();
+                                            }}
+                                        >
+                                            <View style={[styles.avatarCircle, { backgroundColor: theme.primary + '15' }]}>
+                                                <Text style={[styles.avatarText, { color: theme.primary }]}>
+                                                    {reciter.initials}
+                                                </Text>
+                                            </View>
+                                            <View style={{ flex: 1, paddingRight: 4 }}>
+                                                <Text style={[styles.langName, { color: theme.text }]} numberOfLines={1}>
+                                                    {t(`reciters.${reciterKey}_name`)}
+                                                </Text>
+                                                <Text style={[styles.langSub, { color: theme.muted, fontSize: 11 }]} numberOfLines={2}>
+                                                    {t(`reciters.${reciterKey}_style`)}
+                                                </Text>
+                                            </View>
+                                            {isSelected && (
+                                                <Check size={20} color={theme.primary} style={{ marginRight: 4 }} />
+                                            )}
+                                        </TouchableOpacity>
+
+                                        {/* Preview Button */}
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.previewButton,
+                                                { borderColor: theme.primary }
+                                            ]}
+                                            onPress={() => handlePreviewPlayPause(reciter.id)}
+                                        >
+                                            {isPlayingPreview ? (
+                                                isPreviewLoading ? (
+                                                    <ActivityIndicator size="small" color={theme.primary} />
+                                                ) : (
+                                                    <View style={[styles.stopSquare, { backgroundColor: theme.primary }]} />
+                                                )
+                                            ) : (
+                                                <Play size={12} color={theme.primary} fill={theme.primary} />
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Okuma Düzeni Seçici Modal ── */}
+            <Modal
+                visible={showLayoutPicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowLayoutPicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowLayoutPicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('settings.select_layout_title')}
+                        </Text>
+                        
+                        {/* Ayet Ayet */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomColor: theme.border }]}
+                            onPress={() => {
+                                setReadingLayout('single');
+                                setShowLayoutPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.layout_single')}
+                                </Text>
+                            </View>
+                            {readingLayout === 'single' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Sayfa Sayfa */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomWidth: 0 }]}
+                            onPress={() => {
+                                setReadingLayout('page');
+                                setShowLayoutPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.layout_page')}
+                                </Text>
+                            </View>
+                            {readingLayout === 'page' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Arapça Yazı Tipi Seçici Modal ── */}
+            <Modal
+                visible={showFontPicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowFontPicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFontPicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('settings.select_font_title')}
+                        </Text>
+                        
+                        {/* Diyanet Nesih */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomColor: theme.border }]}
+                            onPress={() => {
+                                setArabicFontFamily('noto-naskh');
+                                setShowFontPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.font_noto_naskh')}
+                                </Text>
+                            </View>
+                            {arabicFontFamily === 'noto-naskh' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Amiri */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomWidth: 0 }]}
+                            onPress={() => {
+                                setArabicFontFamily('amiri');
+                                setShowFontPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.font_amiri')}
+                                </Text>
+                            </View>
+                            {arabicFontFamily === 'amiri' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Arapça Yazım Stili Seçici Modal ── */}
+            <Modal
+                visible={showScriptPicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowScriptPicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowScriptPicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('settings.arabic_script_title')}
+                        </Text>
+                        
+                        {/* Diyanet İmlası */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomColor: theme.border }]}
+                            onPress={() => {
+                                setSelectedArabicScript('diyanet');
+                                setShowScriptPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.script_diyanet')}
+                                </Text>
+                            </View>
+                            {selectedArabicScript === 'diyanet' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Medine İmlası */}
+                        <TouchableOpacity
+                            style={[styles.langItem, { borderBottomWidth: 0 }]}
+                            onPress={() => {
+                                setSelectedArabicScript('uthmani');
+                                setShowScriptPicker(false);
+                            }}
+                        >
+                            <View>
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t('settings.script_uthmani')}
+                                </Text>
+                            </View>
+                            {selectedArabicScript === 'uthmani' && (
+                                <Check size={20} color={theme.primary} />
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </Modal>
@@ -310,5 +748,44 @@ const styles = StyleSheet.create({
     langSub: {
         fontSize: 12,
         marginTop: 2,
+    },
+    reciterItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    reciterItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        marginRight: 8,
+    },
+    avatarCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    avatarText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    previewButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 1.5,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    stopSquare: {
+        width: 10,
+        height: 10,
+        borderRadius: 1.5,
     },
 });

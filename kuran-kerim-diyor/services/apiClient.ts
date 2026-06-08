@@ -9,7 +9,7 @@ const getBaseUrl = () => {
     const ip = debuggerHost.split(':')[0];
     return `http://${ip}:3001/api`;
   }
-  return 'http://localhost:3001/api';
+  return 'https://api.kurannediyor.com.tr/api';
 };
 
 const API_URL = getBaseUrl();

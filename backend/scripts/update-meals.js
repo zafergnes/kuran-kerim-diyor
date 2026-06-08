@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const EDITIONS = {
-  tr: 'tur-diyanetisleri1',
+  tr: 'tur-diyanetisleri',
   en: 'eng-ummmuhammad',
   de: 'deu-asfbubenheimand',
   fr: 'fra-muhammadhamidul',

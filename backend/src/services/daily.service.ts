@@ -115,7 +115,8 @@ export class DailyService {
     return {
       text: combinedText,
       reference: `${surahName} ${ayahRange}`,
-      // category: theme.categoryKey // Kullanıcıya göstermiyoruz
+      surahNumber: theme.surahNumber,
+      startAyah: theme.startAyah
     };
   }
 

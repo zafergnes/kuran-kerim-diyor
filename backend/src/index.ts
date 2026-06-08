@@ -21,6 +21,9 @@ import dailyRoutes from './routes/daily.routes';
 
 const app = express();
 
+// Trust proxy header to allow rate limiter to read client IP behind reverse proxy (e.g. Nginx)
+app.set('trust proxy', 1);
+
 // Start the background worker
 startModerationWorker();
 

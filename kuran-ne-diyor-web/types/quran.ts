@@ -4,7 +4,8 @@ export type Ayah = {
   number: number;
   globalNumber: number;
   arabic: string;
-  translations: Record<AppLanguage, string>;
+  arabicDiyanet?: string;
+  translations: Record<string, string>;
 };
 
 export type Surah = {
@@ -13,6 +14,9 @@ export type Surah = {
     ar: string;
     tr: string;
     en: string;
+    de?: string;
+    fr?: string;
+    es?: string;
   };
   englishNameTranslation: string;
   revelationType: string;

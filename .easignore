@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+build/
+coverage/
+web-build/
+.vercel/
+
+# Expo / React Native generated files
+.expo/
+expo-env.d.ts
+.metro-health-check*
+/ios
+/android
+.kotlin/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Native secrets
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+*.pem
+
+# Logs and local caches
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tsbuildinfo
+.DS_Store
+*.orig.*
+
+# Local git backups
+*.git-backup/
+
+# EAS Build exceptions to allow Firebase config files
+!google-services.json
+!GoogleService-Info.plist
+!**/google-services.json
+!**/GoogleService-Info.plist

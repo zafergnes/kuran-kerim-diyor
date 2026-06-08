@@ -3,11 +3,11 @@ import axios from 'axios';
 import path from 'path';
 
 const EDITIONS = {
-  tr: 'tur-diyanetisleri-la',
+  tr: 'tur-diyanetisleri',
   en: 'eng-sahih',
-  de: 'deu-asaburdie-la',
-  fr: 'fra-muhammadhamidul-la',
-  es: 'spa-muhammadisaagar-la'
+  de: 'deu-asaburdie',
+  fr: 'fra-muhammadhamidul',
+  es: 'spa-muhammadisaagar'
 };
 
 const QURAN_FILE_PATH = path.join(process.cwd(), '../kuran-ne-diyor-web/data/quran.json');

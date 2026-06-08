@@ -12,9 +12,13 @@
     "slide2_desc": "Lorsque vous créez un compte, votre progression est enregistrée dans le cloud. Ne perdez jamais votre place, même si vous changez d'appareil.",
     "slide3_title": "Partager avec la communauté",
     "slide3_desc": "Écoutez des versets et partagez vos sentiments de manière anonyme et instantanée avec d'autres lecteurs.",
+    "slide4_title": "Mise en page de lecture",
+    "slide4_desc": "Comment souhaitez-vous lire le Coran ? Vous pourrez modifier cela plus tard dans les paramètres.",
     "btn_continue": "Continuer",
     "btn_start": "Bismillah",
-    "skip": "Passer"
+    "skip": "Passer",
+    "layout_single_desc": "Un verset par écran, lecture ciblée et simple.",
+    "layout_page_desc": "Mise en page traditionnelle de page imprimée, pages complètes et suivi facile."
   },
   "search": {
     "placeholder": "Rechercher dans le Coran...",
@@ -62,7 +66,9 @@
     "empty": "Aucun verset sauvegardé dans cette liste pour l'instant.",
     "ayah": "{{surah}} - Verset {{number}}",
     "delete_collection_title": "Supprimer la collection",
-    "delete_collection_message": "Êtes-vous sûr de vouloir supprimer cette collection et tous les versets qu'elle contient ?"
+    "delete_collection_message": "Êtes-vous sûr de vouloir supprimer cette collection et tous les versets qu'elle contient ?",
+    "add_to_collections": "Ajouter aux collections",
+    "create_new_collection": "Créer une nouvelle collection..."
   },
   "surahs": {
     "title": "Sourates",
@@ -113,8 +119,8 @@
     "surah_label": "Sourate"
   },
   "delete_warning": {
-    "title": "Retirer des favoris",
-    "message": "Êtes-vous sûr de vouloir retirer ce verset de vos favoris ?",
+    "title": "Supprimer des favoris",
+    "message": "Supprimer ce verset des favoris le supprimera également de toutes les collections auxquelles il appartient. Êtes-vous sûr ?",
     "dont_ask": "Ne plus demander",
     "cancel": "Annuler",
     "confirm": "Oui, retirer"
@@ -126,18 +132,64 @@
     "close": "Fermer",
     "go_to_verse": "Aller au verset",
     "cancel": "Annuler",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "arabic": "Arabe",
+    "translation": "Traduction",
+    "share": "Partager",
+    "share_verse": "Partager le verset",
+    "share_message": "Le Coran dit : {{reference}}\n\nPour lire : {{url}}",
+    "user": "Utilisateur",
+    "you": "Vous"
   },
   "settings": {
     "title": "Paramètres du compte",
     "notifications_section": "Notifications",
     "notification_permission": "Autorisation de notifications",
-    "notification_permission_sub": "Recevez des notifications sur les nouvelles fonctionnalités.",
+    "notification_permission_sub": "Recevez des notifications sur les nouvelles fonctionnalités et rappels.",
     "reading_section": "Préférences de lecture",
     "show_translation": "Afficher la traduction",
     "show_translation_sub": "Afficher la traduction du Coran lors de la lecture",
     "translation_lang": "Langue de traduction",
     "reading_no_extra": "La traduction est toujours affichée dans la langue sélectionnée.",
-    "coming_soon": "Bientôt disponible !"
+    "coming_soon": "Bientôt disponible !",
+    "notification_expo_go": "Les notifications push ne sont pas prises en charge dans Expo Go.",
+    "notification_already_enabled": "Les notifications sont déjà activées. Vous pouvez les désactiver dans les paramètres de votre appareil.",
+    "notification_granted": "Autorisation de notification accordée avec succès !",
+    "notification_denied": "L'autorisation de notification a été refusée. Vous devez l'activer dans les paramètres de l'appareil pour recevoir les mises à jour.",
+    "notification_failed": "Une erreur s'est produite lors de la demande d'autorisation de notification.",
+    "audio_section": "Paramètres Audio & Récitateur",
+    "selected_reciter": "Récitateur Actif",
+    "select_reciter_title": "Choisir le récitateur",
+    "preview_play": "Écouter",
+    "preview_stop": "Arrêter",
+    "reading_layout": "Mise en page de lecture",
+    "reading_layout_sub": "Comment souhaitez-vous lire les pages du Coran ?",
+    "arabic_font": "Police arabe",
+    "arabic_font_sub": "Sélectionnez le style de calligraphie pour le texte arabe",
+    "layout_single": "Verset par verset",
+    "layout_page": "Page par page",
+    "font_noto_naskh": "Calligraphie de Diyanet (Naskh)",
+    "font_amiri": "Calligraphie classique (Amiri)",
+    "select_layout_title": "Sélectionner la mise en page",
+    "select_font_title": "Sélectionner la police arabe",
+    "arabic_script": "Style d'Écriture Arabe (Orthographe)",
+    "arabic_script_title": "Style d'Écriture Arabe",
+    "script_diyanet": "Orthographe de Diyanet (Alif Ouvert)",
+    "script_uthmani": "Orthographe de Médine (Uthmani)",
+    "script_diyanet_short": "Style Diyanet",
+    "script_uthmani_short": "Style Médine"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Récitation mélodique & claire (Favori mondial)",
+    "ar_abdurrahmaansudais_name": "Abdul Rahman Al-Sudais",
+    "ar_abdurrahmaansudais_style": "Imam de la Kaaba - Récitation puissante & majestueuse",
+    "ar_mahermuaiqly_name": "Maher Al-Muaiqly",
+    "ar_mahermuaiqly_style": "Imam de la Kaaba - Récitation claire & inspirante",
+    "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
+    "ar_abdulbasitmurattal_style": "Style égyptien classique & légendaire"
+  },
+  "daily_verse": {
+    "title": "Verset du Jour"
   }
 }

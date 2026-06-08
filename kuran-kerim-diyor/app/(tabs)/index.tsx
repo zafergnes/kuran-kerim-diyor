@@ -1,19 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronLeft, Heart, Sparkles } from 'lucide-react-native';
 import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService';
 import { VerseShareCard } from '../../components/VerseShareCard';
 import { Modal, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
 import { useProgress } from '../../hooks/useProgress';
-import { useNavigation } from 'expo-router';
+import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { useUserStore } from '../../store/userStore';
 import { DeleteWarningModal } from '../../components/DeleteWarningModal';
 import { useAyahStats } from '../../hooks/useAyahStats';
+import { QuranPageCard } from '../../components/QuranPageCard';
+import { getPageFromSurahAyah } from '../../utils/quranHelpers';
+import { PAGE_START_MAP } from '../../utils/pageMapping';
+import { useTranslation } from 'react-i18next';
 
 const formatFavCount = (n: number) => {
     if (n < 1000) return n.toString();
@@ -24,23 +29,60 @@ const { width } = Dimensions.get('window');
 
 export default function MainFeedScreen() {
     const navigation = useNavigation();
+    const params = useLocalSearchParams();
+    const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
     const { currentSurah, currentAyah, setProgress } = useProgress();
     const surah = getSurah(currentSurah || 1);
     const theme = Colors.light;
+
+    const PAGES_ARRAY = useMemo(() => Array.from({ length: 604 }, (_, i) => i + 1), []);
+    const currentPage = useMemo(() => {
+        return getPageFromSurahAyah(currentSurah || 1, currentAyah || 1);
+    }, [currentSurah, currentAyah]);
 
     const [containerHeight, setContainerHeight] = useState(Dimensions.get('window').height);
     const [showSwipeHint, setShowSwipeHint] = useState(false);
     const [uiAyah, setUiAyah] = useState(currentAyah);
     const [barHeight, setBarHeight] = useState(0);
     const [isScrubbing, setIsScrubbing] = useState(false);
-    const { favorites, toggleFavorite, hideFavoriteDeleteWarning, setHideFavoriteDeleteWarning } = useUserStore();
+    const { 
+        favorites, 
+        toggleFavorite, 
+        hideFavoriteDeleteWarning, 
+        setHideFavoriteDeleteWarning,
+        readingLayout,
+        arabicFontFamily,
+    } = useUserStore();
     const [showDeleteWarning, setShowDeleteWarning] = useState(false);
     const [dailyVerse, setDailyVerse] = useState<DailyVerse | null>(null);
     const [showDailyModal, setShowDailyModal] = useState(false);
+    const [activePageMode, setActivePageMode] = useState<'arabic' | 'translation'>('arabic');
+    const [highlightedAyahId, setHighlightedAyahId] = useState<string | null>(null);
 
     useEffect(() => {
+        setHighlightedAyahId(`${currentSurah}_${currentAyah}`);
+        const timer = setTimeout(() => {
+            setHighlightedAyahId(null);
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [currentSurah, currentAyah]);
+
+    useEffect(() => {
+        // Cihaz internetsiz veya yavaşken önbellekteki veriyi anında göster
+        DailyVerseService.getCachedDailyVerse().then(cached => {
+            if (cached) setDailyVerse(cached);
+        });
+
+        // Güncel veriyi arka planda çekip arayüzü güncelle
         DailyVerseService.getDailyVerse().then(setDailyVerse).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        if (params.showDaily === 'true') {
+            setShowDailyModal(true);
+        }
+    }, [params.showDaily]);
 
     const flatListRef = useRef<FlatList>(null);
     const scrubTimer = useRef<NodeJS.Timeout | null>(null);
@@ -106,30 +148,46 @@ export default function MainFeedScreen() {
     // SENKRON olarak günceller, bu yüzden swipe trigger’ında currentIndexRef zaten
     // doğru değerddedir ve aşağıdaki kontrol false döner → duplicate scroll olmaz.
     useEffect(() => {
-        const surahObj = surah;
-        if (!surahObj || !surahObj.ayahs.length) return;
+        if (readingLayout === 'page') {
+            const targetPage = getPageFromSurahAyah(currentSurah || 1, currentAyah || 1);
+            const targetIndex = targetPage - 1;
+            
+            if (currentIndexRef.current === targetIndex) return;
+            currentIndexRef.current = targetIndex;
+            
+            setTimeout(() => {
+                try {
+                    flatListRef.current?.scrollToIndex({ index: targetIndex, animated: false });
+                } catch (e) {
+                    console.log('Page scroll error:', e);
+                }
+            }, 100);
+        } else {
+            const surahObj = surah;
+            if (!surahObj || !surahObj.ayahs.length) return;
 
-        // Hedef indexi ayet numarasından doğru bul
-        let targetIndex = surahObj.ayahs.findIndex(a => a.number === currentAyah);
-        if (targetIndex < 0) {
-            targetIndex = Math.min(Math.max(0, (currentAyah || 1) - 1), surahObj.ayahs.length - 1);
-        }
-
-        // onViewableItemsChanged swipe sırasında ref'i önceden güncellediyse
-        // bu iki değer eşittir ve scroll tetiklenmez. Dışarıdan navigasyonda
-        // ref eski yerdedir → scroll gerçekleşir.
-        if (currentIndexRef.current === targetIndex) return;
-
-        currentIndexRef.current = targetIndex;
-        setUiAyah(currentAyah);
-        setTimeout(() => {
-            try {
-                flatListRef.current?.scrollToIndex({ index: targetIndex, animated: false });
-            } catch (e) {
-                console.log('Scroll sınır hatası engellendi:', e);
+            // Hedef indexi ayet numarasından doğru bul
+            let targetIndex = surahObj.ayahs.findIndex(a => a.number === currentAyah);
+            if (targetIndex < 0) {
+                targetIndex = Math.min(Math.max(0, (currentAyah || 1) - 1), surahObj.ayahs.length - 1);
             }
-        }, 100);
-    }, [currentSurah, currentAyah]);
+
+            // onViewableItemsChanged swipe sırasında ref'i önceden güncellediyse
+            // bu iki değer eşittir ve scroll tetiklenmez. Dışarıdan navigasyonda
+            // ref eski yerdedir → scroll gerçekleşir.
+            if (currentIndexRef.current === targetIndex) return;
+
+            currentIndexRef.current = targetIndex;
+            setUiAyah(currentAyah);
+            setTimeout(() => {
+                try {
+                    flatListRef.current?.scrollToIndex({ index: targetIndex, animated: false });
+                } catch (e) {
+                    console.log('Scroll sınır hatası engellendi:', e);
+                }
+            }, 100);
+        }
+    }, [currentSurah, currentAyah, readingLayout]);
 
     useEffect(() => {
         AsyncStorage.getItem('hasSeenSwipeHint').then(val => {
@@ -224,16 +282,27 @@ export default function MainFeedScreen() {
             const centerItem = viewableItems[0];
             if (centerItem && typeof centerItem.index === 'number') {
                 const newIndex = centerItem.index;
-                const currentSurahObj = storeRef.current.surah;
+                const layout = useUserStore.getState().readingLayout;
                 
-                if (currentSurahObj && currentSurahObj.ayahs[newIndex]) {
-                    if (currentIndexRef.current !== newIndex) {
+                if (layout === 'page') {
+                    const startRef = PAGE_START_MAP[newIndex];
+                    if (startRef && currentIndexRef.current !== newIndex) {
                         currentIndexRef.current = newIndex;
-                        const visibleAyahNumber = currentSurahObj.ayahs[newIndex].number;
-                        setUiAyah(visibleAyahNumber);
-                        // isProgrammaticJump'u false bırak: bu kullanıcı swipe'i,
-                        // useEffect bu değişikliğe tepki VERMEYECEK.
-                        setProgress(currentSurahObj.number, visibleAyahNumber);
+                        setProgress(startRef.surah, startRef.ayah);
+                        setUiAyah(startRef.ayah);
+                    }
+                } else {
+                    const currentSurahObj = storeRef.current.surah;
+                    
+                    if (currentSurahObj && currentSurahObj.ayahs[newIndex]) {
+                        if (currentIndexRef.current !== newIndex) {
+                            currentIndexRef.current = newIndex;
+                            const visibleAyahNumber = currentSurahObj.ayahs[newIndex].number;
+                            setUiAyah(visibleAyahNumber);
+                            // isProgrammaticJump'u false bırak: bu kullanıcı swipe'i,
+                            // useEffect bu değişikliğe tepki VERMEYECEK.
+                            setProgress(currentSurahObj.number, visibleAyahNumber);
+                        }
                     }
                 }
             }
@@ -249,16 +318,30 @@ export default function MainFeedScreen() {
         >
             <FlatList
                 ref={flatListRef}
-                data={surah.ayahs}
-                keyExtractor={(item) => item.globalNumber.toString()}
+                data={readingLayout === 'page' ? PAGES_ARRAY : surah.ayahs}
+                keyExtractor={(item) => readingLayout === 'page' ? item.toString() : (item as any).globalNumber.toString()}
                 renderItem={({ item }) => {
-                    const { language } = useUserStore.getState();
-                    const surahName = language === 'ar' ? surah.name.ar : language === 'tr' ? surah.name.tr : surah.name.en;
-                    return (
-                        <View style={{ height: containerHeight, width }}>
-                            <AyahCard ayah={item} surahName={surahName} surahNumber={surah.number} />
-                        </View>
-                    );
+                    if (readingLayout === 'page') {
+                        return (
+                            <View style={{ height: containerHeight, width }}>
+                                <QuranPageCard
+                                    pageNumber={item as number}
+                                    containerHeight={containerHeight}
+                                    highlightedAyahId={highlightedAyahId}
+                                    activeMode={activePageMode}
+                                    onToggleMode={setActivePageMode}
+                                />
+                            </View>
+                        );
+                    } else {
+                        const { language } = useUserStore.getState();
+                        const surahName = language === 'ar' ? surah.name.ar : language === 'tr' ? surah.name.tr : surah.name.en;
+                        return (
+                            <View style={{ height: containerHeight, width }}>
+                                <AyahCard ayah={item as any} surahName={surahName} surahNumber={surah.number} />
+                            </View>
+                        );
+                    }
                 }}
                 horizontal
                 pagingEnabled
@@ -270,7 +353,7 @@ export default function MainFeedScreen() {
                 scrollEventThrottle={16}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
-                initialScrollIndex={Math.max(0, currentAyah - 1)}
+                initialScrollIndex={readingLayout === 'page' ? Math.max(0, currentPage - 1) : Math.max(0, currentAyah - 1)}
                 onScrollToIndexFailed={(info) => {
                     setTimeout(() => {
                         flatListRef.current?.scrollToIndex({ index: info.index, animated: false });
@@ -281,24 +364,26 @@ export default function MainFeedScreen() {
                 )}
             />
             {/* Vertical Progress Bar */}
-            <View style={[styles.progressContainer, { top: '25%', bottom: '25%', opacity: isScrubbing ? 1 : 0.8 }]} {...panResponder.panHandlers}>
-                <View
-                    style={[styles.progressBarBg, { backgroundColor: 'rgba(182, 154, 115, 0.2)', width: isScrubbing ? 10 : 4, borderRadius: isScrubbing ? 5 : 2 }]}
-                    onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}
-                    pointerEvents="none"
-                >
-                    <View style={[styles.progressBarFill, { height: `${(uiAyah / surah.ayahs.length) * 100}%`, backgroundColor: theme.primary, borderRadius: isScrubbing ? 5 : 2 }]} />
+            {readingLayout === 'single' && (
+                <View style={[styles.progressContainer, { top: '25%', bottom: '25%', opacity: isScrubbing ? 1 : 0.8 }]} {...panResponder.panHandlers}>
+                    <View
+                        style={[styles.progressBarBg, { backgroundColor: 'rgba(182, 154, 115, 0.2)', width: isScrubbing ? 10 : 4, borderRadius: isScrubbing ? 5 : 2 }]}
+                        onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}
+                        pointerEvents="none"
+                    >
+                        <View style={[styles.progressBarFill, { height: `${(uiAyah / surah.ayahs.length) * 100}%`, backgroundColor: theme.primary, borderRadius: isScrubbing ? 5 : 2 }]} />
+                    </View>
+                    <View style={[styles.progressPill, { backgroundColor: theme.card, borderColor: theme.border, transform: [{ scale: isScrubbing ? 1.1 : 1 }] }]} pointerEvents="none">
+                        <Text style={[styles.progressText, { color: theme.text }]}>{uiAyah}</Text>
+                        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                        <Text style={[styles.progressText, { color: theme.muted }]}>{surah.ayahs.length}</Text>
+                    </View>
                 </View>
-                <View style={[styles.progressPill, { backgroundColor: theme.card, borderColor: theme.border, transform: [{ scale: isScrubbing ? 1.1 : 1 }] }]} pointerEvents="none">
-                    <Text style={[styles.progressText, { color: theme.text }]}>{uiAyah}</Text>
-                    <View style={[styles.divider, { backgroundColor: theme.border }]} />
-                    <Text style={[styles.progressText, { color: theme.muted }]}>{surah.ayahs.length}</Text>
-                </View>
-            </View>
+            )}
             {showSwipeHint && (
                 <View style={styles.swipeHintOverlay} pointerEvents="none">
                     <ChevronLeft size={48} color="#fff" style={{ marginBottom: 16 }} />
-                    <Text style={styles.swipeHintText}>Sıradaki ayet için{'\n'}sola kaydırın</Text>
+                    <Text style={styles.swipeHintText}>{t('common.swipe_hint')}</Text>
                 </View>
             )}
             <DeleteWarningModal 
@@ -317,12 +402,12 @@ export default function MainFeedScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
                         <View style={styles.modalHeader}>
-                            <Text style={[styles.modalTitle, { color: theme.text }]}>Günün Ayeti</Text>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('daily_verse.title')}</Text>
                             <TouchableOpacity onPress={() => setShowDailyModal(false)}>
-                                <Text style={{ color: theme.primary, fontWeight: 'bold' }}>Kapat</Text>
+                                <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{t('common.close')}</Text>
                             </TouchableOpacity>
                         </View>
-                        <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                        <ScrollView contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 20) }}>
                             {dailyVerse && (
                                 <VerseShareCard 
                                     text={dailyVerse.text} 

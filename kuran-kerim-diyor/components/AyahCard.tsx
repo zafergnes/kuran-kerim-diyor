@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'rea
 import { Colors } from '../constants/colors';
 import { Ayah } from '../services/quranData';
 import { useUserStore } from '../store/userStore';
-import { MessageSquare } from 'lucide-react-native';
+import { MessageSquare, Share2, HelpCircle } from 'lucide-react-native';
 import { CommentSheet } from './CommentSheet';
 import { AudioPlayer } from './AudioPlayer';
+import { VerseShareCard } from './VerseShareCard';
 import { useTranslation } from 'react-i18next';
 import { useAyahStats } from '../hooks/useAyahStats';
+import { splitBismillah, isSajdahAyah, hasBismillah } from '../utils/quranHelpers';
 
 interface AyahCardProps {
     ayah: Ayah;
@@ -16,10 +18,11 @@ interface AyahCardProps {
 }
 
 export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
-    const { language, showArabicTranslation, arabicTranslationLang } = useUserStore();
+    const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
     const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
     const theme = Colors.light;
     const [showComments, setShowComments] = useState(false);
+    const [showShare, setShowShare] = useState(false);
     const { t } = useTranslation();
 
     // Arapca kullanici: meal tercihine gore goster/gizle
@@ -28,6 +31,42 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
     const translationText = ayah.translations[displayLang];
     const shouldShowTranslation = !isArabicUser || showArabicTranslation;
 
+    const rawArabicText = (selectedArabicScript === 'diyanet' && ayah.arabicDiyanet) ? ayah.arabicDiyanet : ayah.arabic;
+
+    // Besmele ayrıştırma
+    let bismillahToRender: string | null = null;
+    let finalArabicText = rawArabicText;
+    
+    if (ayah.number === 1 && hasBismillah(surahNumber)) {
+        const splitResult = splitBismillah(rawArabicText);
+        bismillahToRender = splitResult.bismillah;
+        finalArabicText = splitResult.ayahText;
+    }
+
+    // Lafzatullah renklendirme (Allah ve lillah lafizlari)
+    const renderArabicText = (text: string) => {
+        const words = text.split(/\s+/);
+        return words.map((word, index) => {
+            // Arapcadaki Allah ve Lillah kelimeleri (farkli harekelere ve harflere gore)
+            const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
+            const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
+            
+            return (
+                <Text 
+                    key={index} 
+                    style={{ 
+                        color: isAllah ? '#D32F2F' : theme.text,
+                        fontWeight: isAllah ? 'bold' : 'normal'
+                    }}
+                >
+                    {word}{index < words.length - 1 ? ' ' : ''}
+                </Text>
+            );
+        });
+    };
+
+    const isSajdah = isSajdahAyah(surahNumber, ayah.number);
+
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <ScrollView
@@ -35,13 +74,37 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                 contentContainerStyle={styles.contentInner}
                 showsVerticalScrollIndicator={false}
             >
+                {bismillahToRender && (
+                    <View style={styles.bismillahContainer}>
+                        <Text style={[styles.bismillahText, { color: theme.text }]}>
+                            {bismillahToRender}
+                        </Text>
+                    </View>
+                )}
+
+                {isSajdah && (
+                    <View style={[styles.sajdahBadge, { backgroundColor: 'rgba(182, 154, 115, 0.15)', borderColor: theme.primary }]}>
+                        <Text style={[styles.sajdahBadgeText, { color: theme.primary }]}>
+                            ۩ {t('common.sajdah', 'Secde Ayeti')}
+                        </Text>
+                    </View>
+                )}
+
                 <Text style={[styles.arabicText, { color: theme.text }]}>
-                    {ayah.arabic}
+                    {renderArabicText(finalArabicText.replace(/\s+/g, '\u2002'))}
                 </Text>
+
                 {shouldShowTranslation && translationText ? (
-                    <Text style={[styles.translationText, { color: theme.secondary }]}>
-                        {translationText}
-                    </Text>
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={[styles.translationText, { color: theme.secondary }]}>
+                            {translationText}
+                        </Text>
+                        {isSajdah && (
+                            <Text style={styles.sajdahWarningText}>
+                                ⚠️ {t('common.sajdah_warning', 'Bu ayet okunduğunda veya dinlendiğinde Tilavet Secdesi yapılması gerekir.')}
+                            </Text>
+                        )}
+                    </View>
                 ) : null}
             </ScrollView>
 
@@ -52,16 +115,23 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                     {surahName} • {t('common.ayah')} {ayah.number}
                 </Text>
 
-                <TouchableOpacity style={styles.commentBtn} onPress={() => setShowComments(true)}>
-                    <View style={styles.commentBadgeContainer}>
-                        <MessageSquare size={24} color={theme.primary} />
-                        {stats && stats.commentCount > 0 && (
-                            <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                                <Text style={styles.badgeText}>{stats.commentCount}</Text>
-                            </View>
-                        )}
-                    </View>
-                </TouchableOpacity>
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => setShowShare(true)}>
+
+                        <Share2 size={24} color={theme.primary} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => setShowComments(true)}>
+                        <View style={styles.commentBadgeContainer}>
+                            <MessageSquare size={24} color={theme.primary} />
+                            {stats && stats.commentCount > 0 && (
+                                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+                                    <Text style={styles.badgeText}>{stats.commentCount}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <Modal visible={showComments} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => {
@@ -81,6 +151,23 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                         setShowComments(false);
                         refresh();
                     }} />
+                </View>
+            </Modal>
+
+            <Modal visible={showShare} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowShare(false)}>
+                <View style={{ flex: 1, backgroundColor: theme.background }}>
+                    <View style={styles.sheetHeader}>
+                        <TouchableOpacity onPress={() => setShowShare(false)}>
+                            <Text style={{ color: theme.primary, fontSize: 16, padding: 16, fontWeight: 'bold' }}>{t('common.close')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+                        <VerseShareCard 
+                            text={translationText || rawArabicText} 
+                            reference={`${surahName} ${surahNumber}:${ayah.number}`}
+                            onClose={() => setShowShare(false)}
+                        />
+                    </ScrollView>
                 </View>
             </Modal>
         </View>
@@ -105,10 +192,45 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 40,
     },
+    bismillahContainer: {
+        marginBottom: 20,
+        alignItems: 'center',
+        width: '100%',
+    },
+    bismillahText: {
+        fontFamily: 'Amiri_700Bold',
+        fontSize: 28,
+        lineHeight: 48,
+        textAlign: 'center',
+        writingDirection: 'rtl',
+    },
+    sajdahBadge: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        marginBottom: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    sajdahBadgeText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        letterSpacing: 0.5,
+    },
+    sajdahWarningText: {
+        fontSize: 12,
+        color: '#D32F2F',
+        textAlign: 'center',
+        marginTop: 12,
+        fontStyle: 'italic',
+        fontWeight: '600',
+        paddingHorizontal: 20,
+    },
     arabicText: {
         fontFamily: 'Amiri_700Bold',
-        fontSize: 42,
-        lineHeight: 80,
+        fontSize: 34,
+        lineHeight: 78,
         textAlign: 'center',
         writingDirection: 'rtl',
         marginBottom: 40,
@@ -128,7 +250,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    commentBtn: {
+    actionButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    actionBtn: {
         padding: 8,
     },
     commentBadgeContainer: {

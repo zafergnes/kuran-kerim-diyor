@@ -12,9 +12,13 @@
     "slide2_desc": "عند إنشاء حساب، يتم حفظ تقدمك في القراءة في السحابة. لن تفقد مكانك حتى لو قمت بتغيير جهازك.",
     "slide3_title": "شارك مع المجتمع",
     "slide3_desc": "استمع إلى الآيات وشارك مشاعرك مع القراء الآخرين بشكل مجهول وفوري.",
+    "slide4_title": "طريقة العرض",
+    "slide4_desc": "كيف ترغب في قراءة القرآن؟ يمكنك تغيير هذا لاحقًا من الإعدادات.",
     "btn_continue": "متابعة",
     "btn_start": "بسم الله الرحمن الرحيم",
-    "skip": "تخطي"
+    "skip": "تخطي",
+    "layout_single_desc": "آية واحدة في كل شاشة، قراءة مركزة وبسيطة للتفكر.",
+    "layout_page_desc": "شكل الصفحة المطبوعة التقليدية، قراءة مجمعة وسهلة التتبع."
   },
   "search": {
     "placeholder": "ابحث في القرآن...",
@@ -62,7 +66,9 @@
     "empty": "لا توجد آيات محفوظة في هذه القائمة بعد.",
     "ayah": "{{surah}} - الآية {{number}}",
     "delete_collection_title": "حذف المجموعة",
-    "delete_collection_message": "هل أنت متأكد أنك تريد حذف هذه المجموعة وجميع الآيات الموجودة فيها؟"
+    "delete_collection_message": "هل أنت متأكد أنك تريد حذف هذه المجموعة وجميع الآيات الموجودة فيها؟",
+    "add_to_collections": "إضافة إلى المجموعات",
+    "create_new_collection": "إنشاء مجموعة جديدة..."
   },
   "surahs": {
     "title": "السور",
@@ -114,8 +120,8 @@
   },
   "delete_warning": {
     "title": "إزالة من المفضلة",
-    "message": "هل أنت متأكد من إزالة هذه الآية من المفضلة؟",
-    "dont_ask": "لا تسأل مجددًا",
+    "message": "سيؤدي حذف هذه الآية من المفضلة إلى حذفها أيضًا من جميع المجموعات التي تنتمي إليها. هل أنت متأكد؟",
+    "dont_ask": "لا تسألني مرة أخرى",
     "cancel": "إلغاء",
     "confirm": "نعم، إزالة"
   },
@@ -126,7 +132,14 @@
     "close": "إغلاق",
     "go_to_verse": "انتقل إلى الآية",
     "cancel": "إلغاء",
-    "delete": "حذف"
+    "delete": "حذف",
+    "arabic": "العربية",
+    "translation": "الترجمة",
+    "share": "مشاركة",
+    "share_verse": "مشاركة الآية",
+    "share_message": "القرآن الكريم يقول: {{reference}}\n\nللقراءة: {{url}}",
+    "user": "مستخدم",
+    "you": "أنت"
   },
   "settings": {
     "title": "إعدادات الحساب",
@@ -138,6 +151,45 @@
     "show_translation_sub": "عرض ترجمة القرآن أثناء القراءة",
     "translation_lang": "لغة الترجمة",
     "reading_no_extra": "تظهر الترجمة دائمًا باللغة المختارة.",
-    "coming_soon": "قريباً!"
+    "coming_soon": "قريباً!",
+    "notification_expo_go": "الإشعارات غير مدعومة في Expo Go.",
+    "notification_already_enabled": "الإشعارات مفعّلة بالفعل. يمكنك إيقافها من إعدادات الجهاز.",
+    "notification_granted": "تم منح إذن الإشعارات بنجاح!",
+    "notification_denied": "تم رفض إذن الإشعارات. يجب تمكينه من إعدادات الجهاز لتلقي التحديثات.",
+    "notification_failed": "حدث خطأ أثناء طلب إذن الإشعارات.",
+    "audio_section": "إعدادات الصوت والقارئ",
+    "selected_reciter": "القارئ الحالي",
+    "select_reciter_title": "اختر القارئ",
+    "preview_play": "استمع",
+    "preview_stop": "إيقاف",
+    "reading_layout": "طريقة العرض",
+    "reading_layout_sub": "كيف ترغب في قراءة صفحات القرآن؟",
+    "arabic_font": "الخط العربي",
+    "arabic_font_sub": "اختر نوع خط النص العربي",
+    "layout_single": "آية آية",
+    "layout_page": "صفحة صفحة",
+    "font_noto_naskh": "خط ديانت (نسخ)",
+    "font_amiri": "الخط الأميري الكلاسيكي",
+    "select_layout_title": "اختر طريقة العرض",
+    "select_font_title": "اختر الخط العربي",
+    "arabic_script": "رسم المصحف (الإملاء)",
+    "arabic_script_title": "رسم المصحف",
+    "script_diyanet": "رسم ديانت (الألف الخنجرية)",
+    "script_uthmani": "الرسم العثماني (المدينة)",
+    "script_diyanet_short": "رسم ديانت",
+    "script_uthmani_short": "الرسم العثماني"
+  },
+  "reciters": {
+    "ar_alafasy_name": "مشاري راشد العفاسي",
+    "ar_alafasy_style": "تلاوة عذبة وواضحة (الأكثر شعبية)",
+    "ar_abdurrahmaansudais_name": "عبد الرحمن السديس",
+    "ar_abdurrahmaansudais_style": "إمام الكعبة - تلاوة خاشعة وقوية",
+    "ar_mahermuaiqly_name": "ماهر المعيقلي",
+    "ar_mahermuaiqly_style": "إمام الكعبة - تلاوة خاشعة ومؤثرة",
+    "ar_abdulbasitmurattal_name": "عبد الباسط عبد الصمد",
+    "ar_abdulbasitmurattal_style": "الأسلوب المصري الكلاسيكي والأسطوري"
+  },
+  "daily_verse": {
+    "title": "آية اليوم"
   }
 }

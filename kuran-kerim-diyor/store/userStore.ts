@@ -19,6 +19,14 @@ interface UserState {
     showArabicTranslation: boolean;
     arabicTranslationLang: AppLanguage;
 
+    // Okuyucu ayari
+    selectedReciter: string;
+
+    // Okuma düzeni ve font ayarları
+    readingLayout: 'single' | 'page';
+    arabicFontFamily: 'noto-naskh' | 'amiri';
+    selectedArabicScript: 'uthmani' | 'diyanet';
+
     // Auth state
     userId: string | null;
     isAnonymous: boolean;
@@ -39,6 +47,10 @@ interface UserState {
     setHideFavoriteDeleteWarning: (hide: boolean) => void;
     setShowArabicTranslation: (show: boolean) => void;
     setArabicTranslationLang: (lang: AppLanguage) => void;
+    setSelectedReciter: (reciter: string) => void;
+    setReadingLayout: (layout: 'single' | 'page') => void;
+    setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => void;
+    setSelectedArabicScript: (script: 'uthmani' | 'diyanet') => void;
     addCollection: (name: string, initialAyahId?: string) => void;
     deleteCollection: (colId: string) => void;
     addAyahToCollection: (ayahId: string, colId: string) => void;
@@ -64,6 +76,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     hideFavoriteDeleteWarning: false,
     showArabicTranslation: false,
     arabicTranslationLang: 'en',
+    selectedReciter: 'ar.alafasy',
+    readingLayout: 'single',
+    arabicFontFamily: 'noto-naskh',
+    selectedArabicScript: 'diyanet',
 
     userId: null,
     isAnonymous: false,
@@ -80,6 +96,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@app_language', lang);
         });
+        // Sunucudaki bildirim dilini de anında güncelle
+        import('../services/notificationService').then(({ NotificationService }) => {
+            NotificationService.registerForPushNotifications().catch(() => {});
+        });
     },
     setProgress: (surah, ayah) => set({ currentSurah: surah, currentAyah: ayah }),
     addCompletedSurah: (surah) => set((state) => {
@@ -90,7 +110,16 @@ export const useUserStore = create<UserState>((set, get) => ({
         return state;
     }),
     setCompletedSurahs: (surahs) => set({ completedSurahs: surahs }),
-    setAuth: (userId, isAnonymous, displayName, email) => set({ userId, isAnonymous, displayName, email }),
+    setAuth: (userId, isAnonymous, displayName, email) => {
+        set({ userId, isAnonymous, displayName, email });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            if (userId) {
+                AsyncStorage.setItem('@user_profile', JSON.stringify({ userId, isAnonymous, displayName, email }));
+            } else {
+                AsyncStorage.removeItem('@user_profile');
+            }
+        }).catch(err => console.error("Failed to save auth to AsyncStorage:", err));
+    },
     
     toggleFavorite: (id: string) => {
         set((state) => {
@@ -155,6 +184,21 @@ export const useUserStore = create<UserState>((set, get) => ({
             const storedCols = await AsyncStorage.getItem('userCollections');
             if (storedCols) set({ collections: JSON.parse(storedCols) });
 
+            const storedProfile = await AsyncStorage.getItem('@user_profile');
+            if (storedProfile) {
+                try {
+                    const parsed = JSON.parse(storedProfile);
+                    set({ 
+                        userId: parsed.userId, 
+                        isAnonymous: parsed.isAnonymous, 
+                        displayName: parsed.displayName, 
+                        email: parsed.email 
+                    });
+                } catch (pe) {
+                    console.error('Failed to parse user profile', pe);
+                }
+            }
+
             const storedWarn = await AsyncStorage.getItem('hideFavWarning');
             if (storedWarn) set({ hideFavoriteDeleteWarning: storedWarn === 'true' });
 
@@ -163,6 +207,23 @@ export const useUserStore = create<UserState>((set, get) => ({
 
             const storedArabicLang = await AsyncStorage.getItem('@arabic_translation_lang');
             if (storedArabicLang) set({ arabicTranslationLang: storedArabicLang as AppLanguage });
+
+            const storedReciter = await AsyncStorage.getItem('@app_selected_reciter');
+            if (storedReciter) set({ selectedReciter: storedReciter });
+
+            const storedLayout = await AsyncStorage.getItem('@app_reading_layout');
+            if (storedLayout) set({ readingLayout: storedLayout as 'single' | 'page' });
+
+            const storedFont = await AsyncStorage.getItem('@app_arabic_font');
+            if (storedFont) set({ arabicFontFamily: storedFont as 'noto-naskh' | 'amiri' });
+
+            const storedScript = await AsyncStorage.getItem('@app_arabic_script');
+            if (storedScript) {
+                set({ selectedArabicScript: storedScript as 'uthmani' | 'diyanet' });
+            } else {
+                const currentLang = await AsyncStorage.getItem('@app_language') || 'tr';
+                set({ selectedArabicScript: currentLang === 'tr' ? 'diyanet' : 'uthmani' });
+            }
 
         } catch (e) {
             console.error('Failed to load favorites/collections', e);
@@ -185,6 +246,34 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ arabicTranslationLang: lang });
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@arabic_translation_lang', lang);
+        });
+    },
+
+    setSelectedReciter: (reciter: string) => {
+        set({ selectedReciter: reciter });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_selected_reciter', reciter);
+        });
+    },
+
+    setReadingLayout: (layout: 'single' | 'page') => {
+        set({ readingLayout: layout });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_reading_layout', layout);
+        });
+    },
+
+    setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => {
+        set({ arabicFontFamily: font });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_arabic_font', font);
+        });
+    },
+
+    setSelectedArabicScript: (script: 'uthmani' | 'diyanet') => {
+        set({ selectedArabicScript: script });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_arabic_script', script);
         });
     },
 

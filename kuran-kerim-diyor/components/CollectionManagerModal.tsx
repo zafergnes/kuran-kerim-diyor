@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, useColorScheme, TextIn
 import { Colors } from '../constants/colors';
 import { Check, Plus, X } from 'lucide-react-native';
 import { useUserStore } from '../store/userStore';
+import { useTranslation } from 'react-i18next';
 
 interface CollectionManagerModalProps {
     visible: boolean;
@@ -11,6 +12,7 @@ interface CollectionManagerModalProps {
 }
 
 export function CollectionManagerModal({ visible, ayahId, onClose }: CollectionManagerModalProps) {
+    const { t } = useTranslation();
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const { collections, addCollection, addAyahToCollection, removeAyahFromCollection } = useUserStore();
@@ -45,7 +47,7 @@ export function CollectionManagerModal({ visible, ayahId, onClose }: CollectionM
                 <View style={[styles.bottomSheet, { backgroundColor: theme.background }]}>
                         
                         <View style={styles.header}>
-                            <Text style={[styles.title, { color: theme.text }]}>Koleksiyonlara Ekle</Text>
+                            <Text style={[styles.title, { color: theme.text }]}>{t('favorites.add_to_collections')}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                                 <X size={24} color={theme.text} />
                             </TouchableOpacity>
@@ -72,7 +74,7 @@ export function CollectionManagerModal({ visible, ayahId, onClose }: CollectionM
                         <View style={[styles.newColContainer, { borderTopColor: theme.border, backgroundColor: theme.card }]}>
                             <TextInput
                                 style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
-                                placeholder="Yeni koleksiyon oluştur..."
+                                placeholder={t('favorites.create_new_collection')}
                                 placeholderTextColor={theme.muted}
                                 value={newColName}
                                 onChangeText={setNewColName}

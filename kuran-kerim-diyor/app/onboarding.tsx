@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useColorScheme, FlatList, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useColorScheme, FlatList, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BookOpen, Cloud, Heart, ArrowRight, Check, Globe } from 'lucide-react-native';
@@ -19,26 +20,36 @@ export default function OnboardingScreen() {
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     const { t } = useTranslation();
-    const { language, setLanguage } = useUserStore();
+    const { language, setLanguage, readingLayout, setReadingLayout } = useUserStore();
 
     const SLIDES = useMemo(() => [
         {
             id: '1',
             title: t('onboarding.slide1_title'),
             description: t('onboarding.slide1_desc'),
-            icon: <BookOpen size={100} color={theme.primary} strokeWidth={1.5} />
+            icon: <BookOpen size={100} color={theme.primary} strokeWidth={1.5} />,
+            type: 'intro'
         },
         {
             id: '2',
             title: t('onboarding.slide2_title'),
             description: t('onboarding.slide2_desc'),
-            icon: <Cloud size={100} color={theme.primary} strokeWidth={1.5} />
+            icon: <Cloud size={100} color={theme.primary} strokeWidth={1.5} />,
+            type: 'cloud'
         },
         {
             id: '3',
             title: t('onboarding.slide3_title'),
             description: t('onboarding.slide3_desc'),
-            icon: <Heart size={100} color={theme.primary} strokeWidth={1.5} />
+            icon: <Heart size={100} color={theme.primary} strokeWidth={1.5} />,
+            type: 'social'
+        },
+        {
+            id: '4',
+            title: t('onboarding.slide4_title'),
+            description: t('onboarding.slide4_desc'),
+            icon: null,
+            type: 'layout_choice'
         }
     ], [t, theme.primary]);
 
@@ -97,15 +108,87 @@ export default function OnboardingScreen() {
                 keyExtractor={(item) => item.id}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
-                renderItem={({ item }) => (
-                    <View style={[styles.slideContainer, { width }]}>
-                        <View style={styles.iconContainer}>
-                            {item.icon}
+                renderItem={({ item }) => {
+                    if (item.type === 'layout_choice') {
+                        return (
+                            <View style={[styles.slideContainer, { width, justifyContent: 'center' }]}>
+                                <Text style={[styles.title, { color: theme.text, marginBottom: 8 }]}>{item.title}</Text>
+                                <Text style={[styles.description, { color: theme.muted, marginBottom: 30 }]}>{item.description}</Text>
+                                
+                                <View style={styles.choiceContainer}>
+                                    {/* Single Choice Card */}
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.choiceCard,
+                                            {
+                                                backgroundColor: theme.card,
+                                                borderColor: readingLayout === 'single' ? theme.primary : theme.border,
+                                                borderWidth: readingLayout === 'single' ? 2 : 1
+                                            }
+                                        ]}
+                                        onPress={() => setReadingLayout('single')}
+                                    >
+                                        <View style={[styles.choiceIconWrap, { backgroundColor: 'rgba(182, 154, 115, 0.1)' }]}>
+                                            <BookOpen size={32} color={theme.primary} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[styles.choiceTitle, { color: theme.text }]}>
+                                                {t('settings.layout_single')}
+                                            </Text>
+                                            <Text style={[styles.choiceDesc, { color: theme.muted }]}>
+                                            {t('onboarding.layout_single_desc')}
+                                            </Text>
+                                        </View>
+                                        {readingLayout === 'single' && (
+                                            <View style={[styles.choiceCheck, { backgroundColor: theme.primary }]}>
+                                                <Check size={12} color="#fff" />
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+
+                                    {/* Page Choice Card */}
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.choiceCard,
+                                            {
+                                                backgroundColor: theme.card,
+                                                borderColor: readingLayout === 'page' ? theme.primary : theme.border,
+                                                borderWidth: readingLayout === 'page' ? 2 : 1
+                                            }
+                                        ]}
+                                        onPress={() => setReadingLayout('page')}
+                                    >
+                                        <View style={[styles.choiceIconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.1)' }]}>
+                                            <BookOpen size={32} color="#0A84FF" />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[styles.choiceTitle, { color: theme.text }]}>
+                                                {t('settings.layout_page')}
+                                            </Text>
+                                            <Text style={[styles.choiceDesc, { color: theme.muted }]}>
+                                            {t('onboarding.layout_page_desc')}
+                                            </Text>
+                                        </View>
+                                        {readingLayout === 'page' && (
+                                            <View style={[styles.choiceCheck, { backgroundColor: theme.primary }]}>
+                                                <Check size={12} color="#fff" />
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        );
+                    }
+                    return (
+                        <View style={[styles.slideContainer, { width }]}>
+                            <View style={styles.iconContainer}>
+                                {item.icon}
+                            </View>
+                            <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
+                            <Text style={[styles.description, { color: theme.muted }]}>{item.description}</Text>
                         </View>
-                        <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
-                        <Text style={[styles.description, { color: theme.muted }]}>{item.description}</Text>
-                    </View>
-                )}
+                    );
+                }}
             />
 
             <View style={styles.footer}>
@@ -290,5 +373,48 @@ const styles = StyleSheet.create({
     langSub: {
         fontSize: 12,
         marginTop: 2,
+    },
+    choiceContainer: {
+        width: '100%',
+        gap: 16,
+        paddingHorizontal: 10,
+        marginTop: 10,
+    },
+    choiceCard: {
+        width: '100%',
+        borderRadius: 16,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'relative',
+        gap: 16,
+    },
+    choiceIconWrap: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    choiceTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    choiceDesc: {
+        fontSize: 12,
+        marginTop: 4,
+        lineHeight: 16,
+        flex: 1,
+        flexWrap: 'wrap',
+    },
+    choiceCheck: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

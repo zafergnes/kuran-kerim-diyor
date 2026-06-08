@@ -5,6 +5,7 @@ import { useColorScheme } from 'react-native';
 import apiClient from '../services/apiClient';
 import { useUserStore } from '../store/userStore';
 import { useRouter, Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MessageSquare } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -26,6 +27,7 @@ export default function MyCommentsScreen() {
     const { userId } = useUserStore();
     const router = useRouter();
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
 
     const [comments, setComments] = useState<MyComment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function MyCommentsScreen() {
                 <FlatList
                     data={comments}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: Math.max(24, insets.bottom + 16) }}
                     renderItem={({ item }) => (
                         <TouchableOpacity 
                             style={[styles.commentCard, { backgroundColor: theme.card, borderColor: theme.border }]}

@@ -1,20 +1,25 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Share2, BookOpen, Search } from "lucide-react";
 import { DailyVerseService, DailyVerse } from "@/services/dailyVerseService";
+import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export function DailyVerseSection() {
   const [verse, setVerse] = useState<DailyVerse | null>(null);
   const [loading, setLoading] = useState(true);
+  const language = useUserStore((state) => state.language);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    DailyVerseService.getDailyVerse()
+    setLoading(true);
+    DailyVerseService.getDailyVerse(language)
       .then(setVerse)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (
@@ -31,10 +36,10 @@ export function DailyVerseSection() {
       <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-primary">
         <span className="inline-flex items-center gap-2">
           <Sparkles size={18} />
-          Günün Ayeti
+          {t("daily_verse.title", "Günün Ayeti")}
         </span>
         <span className="rounded-full border border-border px-3 py-1 text-muted">
-          Senkronize
+          {t("common.sync", "Senkronize")}
         </span>
       </div>
 
@@ -53,7 +58,7 @@ export function DailyVerseSection() {
           className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-bold text-white transition hover:opacity-90"
         >
           <BookOpen size={18} />
-          Kuran'ı Oku
+          {t("onboarding.btn_start", "Kuran'ı Oku")}
         </Link>
         <button
           onClick={() => {
@@ -68,7 +73,7 @@ export function DailyVerseSection() {
           className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-border bg-card px-5 text-sm font-bold text-text transition hover:bg-background"
         >
           <Share2 size={18} />
-          Paylaş
+          {t("common.share", "Paylaş")}
         </button>
       </div>
     </div>

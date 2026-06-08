@@ -12,9 +12,13 @@
     "slide2_desc": "When you create an account, your progress is saved to the cloud. Never lose your place even if you change devices.",
     "slide3_title": "Share with the Community",
     "slide3_desc": "Listen to verses and share your feelings anonymously with other readers instantly.",
+    "slide4_title": "Reading Layout",
+    "slide4_desc": "How would you like to read the Quran? You can change this later in settings.",
     "btn_continue": "Continue",
     "btn_start": "Bismillah",
-    "skip": "Skip"
+    "skip": "Skip",
+    "layout_single_desc": "One verse per screen, focused and simple reading.",
+    "layout_page_desc": "Traditional printed page layout, complete pages and easy tracking."
   },
   "search": {
     "placeholder": "Search the Quran...",
@@ -59,10 +63,12 @@
   },
   "favorites": {
     "title": "My Favorites",
-    "empty": "No verses saved to this list yet.",
+    "empty": "No verses saved in this list yet.",
     "ayah": "{{surah}} - Verse {{number}}",
     "delete_collection_title": "Delete Collection",
-    "delete_collection_message": "Are you sure you want to delete this collection and all the verses in it?"
+    "delete_collection_message": "Are you sure you want to delete this collection and all verses in it?",
+    "add_to_collections": "Add to Collections",
+    "create_new_collection": "Create new collection..."
   },
   "surahs": {
     "title": "Surahs",
@@ -114,7 +120,7 @@
   },
   "delete_warning": {
     "title": "Remove from Favorites",
-    "message": "Are you sure you want to remove this verse from favorites?",
+    "message": "Removing this verse from favorites will also delete it from all collections it belongs to. Are you sure?",
     "dont_ask": "Don't ask again",
     "cancel": "Cancel",
     "confirm": "Yes, Remove"
@@ -126,7 +132,22 @@
     "close": "Close",
     "go_to_verse": "Go to Verse",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "arabic": "Arabic",
+    "translation": "Translation",
+    "share": "Share",
+    "share_verse": "Share Verse",
+    "share_message": "Quran Says: {{reference}}\n\nTo read: {{url}}",
+    "share_as_image": "Share as Image",
+    "share_as_image_desc": "An image is generated and the web link is copied to the clipboard.",
+    "share_as_text": "Share as Text",
+    "share_as_text_desc": "Verse translation, reference, web URL and app link are shared as text.",
+    "link_copied": "Link copied to clipboard!",
+    "sajdah": "Prostration Verse",
+    "sajdah_warning": "Prostration (Tilavet Secdesi) is required when this verse is read or heard.",
+    "sajdah_warning_short": "Prostration Verse",
+    "user": "User",
+    "you": "You"
   },
   "settings": {
     "title": "Account Settings",
@@ -138,6 +159,45 @@
     "show_translation_sub": "Display Quran translation while reading",
     "translation_lang": "Translation Language",
     "reading_no_extra": "Translation is always displayed in your selected language.",
-    "coming_soon": "Coming soon!"
+    "coming_soon": "Coming soon!",
+    "notification_expo_go": "Push notifications are not supported in Expo Go.",
+    "notification_already_enabled": "Notifications are already enabled. You can disable them in your device settings.",
+    "notification_granted": "Notification permission granted successfully!",
+    "notification_denied": "Notification permission was denied. You must enable it in device settings to receive updates.",
+    "notification_failed": "An error occurred while requesting notification permission.",
+    "audio_section": "Audio & Reciter Settings",
+    "selected_reciter": "Active Reciter",
+    "select_reciter_title": "Select Reciter",
+    "preview_play": "Listen",
+    "preview_stop": "Stop",
+    "reading_layout": "Reading Layout",
+    "reading_layout_sub": "How would you like to read the Quran pages?",
+    "arabic_font": "Arabic Font",
+    "arabic_font_sub": "Select the calligraphy style for Arabic text",
+    "layout_single": "Verse by Verse",
+    "layout_page": "Page by Page",
+    "font_noto_naskh": "Diyanet Calligraphy (Naskh)",
+    "font_amiri": "Classical Calligraphy (Amiri)",
+    "select_layout_title": "Select Reading Layout",
+    "select_font_title": "Select Arabic Font",
+    "arabic_script": "Arabic Writing Style (Orthography)",
+    "arabic_script_title": "Arabic Writing Style",
+    "script_diyanet": "Diyanet Orthography (Open Alif)",
+    "script_uthmani": "Medina Orthography (Uthmani)",
+    "script_diyanet_short": "Diyanet Style",
+    "script_uthmani_short": "Medina Style"
+  },
+  "reciters": {
+    "ar_alafasy_name": "Mishary Rashid Al-Afasy",
+    "ar_alafasy_style": "Melodic & clear recitation (Global favorite)",
+    "ar_abdurrahmaansudais_name": "Abdul Rahman Al-Sudais",
+    "ar_abdurrahmaansudais_style": "Kaaba Imam - Powerful & majestic recitation",
+    "ar_mahermuaiqly_name": "Maher Al-Muaiqly",
+    "ar_mahermuaiqly_style": "Kaaba Imam - Clear & inspiring recitation",
+    "ar_abdulbasitmurattal_name": "Abdul Basit Abdul Samad",
+    "ar_abdulbasitmurattal_style": "Classic & legendary Egyptian style"
+  },
+  "daily_verse": {
+    "title": "Verse of the Day"
   }
 }

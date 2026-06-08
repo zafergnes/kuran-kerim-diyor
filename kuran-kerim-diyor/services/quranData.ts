@@ -10,6 +10,7 @@ export interface Ayah {
     number: number;
     globalNumber: number;
     arabic: string;
+    arabicDiyanet?: string;
     translations: Record<AppLanguage, string>;
 }
 
@@ -19,13 +20,60 @@ export interface Surah {
         ar: string;
         tr: string;
         en: string;
+        de: string;
+        fr: string;
+        es: string;
     };
     englishNameTranslation: string;
     revelationType: string;
     ayahs: Ayah[];
 }
 
-export const quranData = quranDataJson as Surah[];
+const TURKISH_NAMES = [
+  "Fatiha", "Bakara", "Âl-i İmrân", "Nisâ", "Mâide", "En'âm", "A'râf", "Enfâl", "Tevbe", "Yûnus",
+  "Hûd", "Yûsuf", "Ra'd", "İbrâhîm", "Hicr", "Nahl", "İsrâ", "Kehf", "Meryem", "Tâhâ",
+  "Enbiyâ", "Hac", "Mü'minûn", "Nûr", "Furkân", "Şuarâ", "Neml", "Kasas", "Ankebût", "Rûm",
+  "Lokmân", "Secde", "Ahzâb", "Sebe'", "Fâtır", "Yâsîn", "Sâffât", "Sâd", "Zümer", "Mü'min (Gāfir)",
+  "Fussilet", "Şûrâ", "Zuhruf", "Duhân", "Câsiye", "Ahkâf", "Muhammed", "Fetih", "Hucurât", "Kâf",
+  "Zâriyât", "Tûr", "Necm", "Kamer", "Rahmân", "Vâkıa", "Hadîd", "Mücâdele", "Haşr", "Mümtehine",
+  "Saf", "Cuma", "Münâfikûn", "Tegābün", "Talâk", "Tahrîm", "Mülk", "Kalem", "Hâkka", "Meâric",
+  "Nûh", "Cin", "Müzzemmil", "Müddessir", "Kıyâmet", "İnsân", "Mürselât", "Nebe'", "Nâziât", "Abese",
+  "Tekvîr", "İnfitâr", "Mutaffifîn", "İnşikâk", "Bürûc", "Târık", "A'lâ", "Gâşiye", "Fecr", "Beled",
+  "Şems", "Leyl", "Duhâ", "İnşirâh", "Tîn", "Alak", "Kadr", "Beyyine", "Zilzâl", "Âdiyât",
+  "Kâria", "Tekâsür", "Asr", "Hümeze", "Fîl", "Kureyş", "Mâûn", "Kevser", "Kâfirûn", "Nasr",
+  "Tebbet", "İhlâs", "Felak", "Nâs"
+];
+
+const LATIN_NAMES = [
+  "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa'", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
+  "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra'", "Al-Kahf", "Maryam", "Ta-Ha",
+  "Al-Anbiya'", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara'", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum",
+  "Luqman", "As-Sajdah", "Al-Ahzab", "Saba'", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir",
+  "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf",
+  "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah",
+  "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij",
+  "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba'", "An-Nazi'at", "'Abasa",
+  "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad",
+  "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat",
+  "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kauthar", "Al-Kafirun", "An-Nasr",
+  "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
+];
+
+export const quranData = (quranDataJson as Surah[]).map((surah) => {
+  const trName = TURKISH_NAMES[surah.number - 1];
+  const latinName = LATIN_NAMES[surah.number - 1];
+  return {
+    ...surah,
+    name: {
+      ar: surah.name.ar,
+      tr: trName || surah.name.tr,
+      en: latinName || surah.name.en,
+      de: latinName || surah.name.en,
+      fr: latinName || surah.name.en,
+      es: latinName || surah.name.en,
+    },
+  };
+}) as Surah[];
 
 export const getAllSurahs = () => {
     return quranData.map(surah => ({
@@ -47,16 +95,6 @@ export const getAyah = (surahNumber: number, ayahNumber: number): Ayah | undefin
     return surah.ayahs.find(a => a.number === ayahNumber);
 };
 
-/**
- * Kapsamlı normalize fonksiyonu – fonetik eşleştirme için:
- *  1. lowercase
- *  2. Türkçe / diacritic → ASCII  (ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u …)
- *  3. Arapça yazı karakterlerini sil
- *  4. Fonetik digraph düzleştirme  (sh→s, kh→h, gh→g, th→t, dh→d)
- *  5. Doubled vowel kısaltma       (aa→a, ee→e, oo→o, ii→i, uu→u)
- *  6. Yaygın transliterasyon prefix'lerini sil (al-, ash-, adh-, …)
- *  7. Tire, apostrof, boşluk sil
- */
 const CHAR_MAP: Record<string, string> = {
     'ş': 's', 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ü': 'u',
     'â': 'a', 'î': 'i', 'û': 'u', 'é': 'e', 'è': 'e', 'ê': 'e',
@@ -65,36 +103,27 @@ const CHAR_MAP: Record<string, string> = {
 
 const normalize = (s: string): string => {
     let o = s.toLowerCase();
-    // 2 – Türkçe / diacritic
     o = o.replace(/[^\x00-\x7F]/g, ch => CHAR_MAP[ch] || ch);
-    // 3 – Arapça Unicode bloklarını sil
     o = o.replace(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g, '');
-    // 6 – Prefix sil  (adh-, ash-, al-, an-, ar-, ad-, at-, az-, aal-)
-    o = o.replace(/^(adh|ash|al|an|ar|ad|at|az|aal)[-\s]*/i, '');
-    // 7 – Tire, apostrof, boşluk sil
+    o = o.replace(/^(adh|ash|al|an|ar|ad|at|az|aal)(?=[-'\s]|$)/i, '');
     o = o.replace(/[-'\s]/g, '');
-    // 4 – Fonetik digraph düzleştirme
     o = o.replace(/sh/g, 's');
     o = o.replace(/kh/g, 'h');
     o = o.replace(/gh/g, 'g');
     o = o.replace(/th/g, 't');
     o = o.replace(/dh/g, 'd');
-    // 5 – Doubled vowel kısalt
     o = o.replace(/(.)\1+/g, '$1');
     return o;
 };
 
-/* ── Türkçe / alternatif sure isim haritası ────────────────────── */
 const SURAH_ALIASES: Record<string, number> = {};
 
-// Alias ekle (normalize ederek key olarak kullan)
 const addAlias = (names: string[], surahNo: number) => {
     for (const n of names) {
         SURAH_ALIASES[normalize(n)] = surahNo;
     }
 };
 
-// 114 sure – Türkçe yaygın isimler + alternatifler
 addAlias(['fatiha', 'el-fatiha'], 1);
 addAlias(['bakara', 'bekara'], 2);
 addAlias(['ali imran', 'al-i imran', 'imran'], 3);
@@ -163,7 +192,7 @@ addAlias(['talak', 'talâk'], 65);
 addAlias(['tahrim', 'tahrîm'], 66);
 addAlias(['mülk', 'mulk'], 67);
 addAlias(['kalem'], 68);
-addAlias(['hakka', 'hâkka', 'hâkka'], 69);
+addAlias(['hakka', 'hâkka'], 69);
 addAlias(['mearic', 'meâric', 'me\'aric'], 70);
 addAlias(['nuh', 'nûh'], 71);
 addAlias(['cin', 'cinn'], 72);
@@ -202,7 +231,7 @@ addAlias(['hümeze', 'humeze', 'hümaza'], 104);
 addAlias(['fil'], 105);
 addAlias(['kureyş', 'kureys', 'kureyis'], 106);
 addAlias(['maun', 'mâûn', 'mâ\'ûn'], 107);
-addAlias(['kevser', 'kövsêr'], 108);
+addAlias(['kevser', 'kevser'], 108);
 addAlias(['kafirun', 'kâfirûn', 'kâfirun'], 109);
 addAlias(['nasr'], 110);
 addAlias(['tebbet', 'mesed', 'leheb'], 111);
@@ -210,15 +239,10 @@ addAlias(['ihlas', 'ihlâs'], 112);
 addAlias(['felak', 'felâk'], 113);
 addAlias(['nas', 'nâs'], 114);
 
-/**
- * Alias haritasından sure numarası bul.
- * Girdiyi normalize edip SURAH_ALIASES'ta arar.
- */
-const findSurahByAlias = (name: string): number | null => {
+const findSurahByNameOrAlias = (name: string): number | null => {
     const key = normalize(name);
     if (SURAH_ALIASES[key] !== undefined) return SURAH_ALIASES[key];
 
-    // Partial match: alias key starts with input or input starts with alias key
     if (key.length >= 3) {
         for (const [aliasKey, num] of Object.entries(SURAH_ALIASES)) {
             if (aliasKey.startsWith(key) || key.startsWith(aliasKey)) {
@@ -226,160 +250,100 @@ const findSurahByAlias = (name: string): number | null => {
             }
         }
     }
-    return null;
-};
 
-/* ── Sure adı ile ayet bulmak için parseReference ──────────────── */
-
-const parseReference = (
-    query: string,
-): { surahNumber: number; ayahNumber: number } | null => {
-    const trimmed = query.trim();
-
-    if (trimmed.length < 3) return null;
-
-    // Sondaki sayıyı bul  (ör: "sebe 50" → "50",  "34:50" → "50")
-    const tailDigits = trimmed.match(/(\d{1,3})$/);
-
-    if (!tailDigits) return null;
-
-    const ayahNumber = parseInt(tailDigits[1], 10);
-
-
-    // Sayıdan önceki kısmı al ve separator'ları temizle
-    let before = trimmed.substring(0, tailDigits.index!).trim();
-    // Sondaki : . - gibi ayırıcıları sil
-    before = before.replace(/[:\.\-]+$/, '').trim();
-
-
-    if (!before) return null;
-
-    // Eğer öndeki kısım da saf sayı ise → sure numarası + ayet numarası
-    if (/^\d{1,3}$/.test(before)) {
-
-        return {
-            surahNumber: parseInt(before, 10),
-            ayahNumber,
-        };
-    }
-
-    // ── İlk önce alias haritasından ara (Türkçe isimler) ──
-    const aliasMatch = findSurahByAlias(before);
-    if (aliasMatch) {
-
-        return { surahNumber: aliasMatch, ayahNumber };
-    }
-
-    // ── Sonra normalize tabanlı eşleştirme (data.json isimleri) ──
-    const ni = normalize(before);
-
-    if (!ni) return null;
-
+    // Live lookup check
     for (const surah of quranData) {
         const candidates = [
             surah.name.tr,
             surah.name.en,
-            surah.name.ar,
-            surah.englishNameTranslation,
+            surah.name.de,
+            surah.name.fr,
+            surah.name.es,
         ];
-
-        // a) Tam eşleşme
         for (const c of candidates) {
-            if (normalize(c) === ni) {
-
-                return { surahNumber: surah.number, ayahNumber };
-            }
-        }
-
-        // b) startsWith / includes  (min 3 karakter)
-        if (ni.length >= 3) {
-            for (const c of candidates) {
+            if (c) {
                 const nc = normalize(c);
-                if (nc.length === 0) continue; // Arapça isimler boş string olur, atla
-                if (
-                    nc.startsWith(ni) ||
-                    ni.startsWith(nc) ||
-                    nc.includes(ni)
-                ) {
-
-                    return { surahNumber: surah.number, ayahNumber };
+                if (nc === key || (key.length >= 3 && (nc.startsWith(key) || key.startsWith(nc)))) {
+                    return surah.number;
                 }
             }
         }
+    }
 
-        // c) Ünsüz iskelet eşleştirmesi  (min 3 karakter)
-        //    "sebe"→sb  ===  "Saba"→sb   ✓
-        //    "nisa"→ns  ===  "Nisaa"→ns   ✓
-        if (ni.length >= 3) {
-            const ic = ni.replace(/[aeiou]/g, '');
-            if (ic.length >= 2) {
-                for (const c of candidates) {
-                    const cc = normalize(c).replace(/[aeiou]/g, '');
-                    if (cc.length >= 2 && (
-                        cc === ic ||
-                        cc.startsWith(ic) ||
-                        ic.startsWith(cc)
-                    )) {
+    return null;
+};
 
-                        return { surahNumber: surah.number, ayahNumber };
+const getLocalizedSurahName = (surah: Surah, language: AppLanguage) => {
+    return surah.name[language] || surah.name.tr;
+};
+
+export const searchAyahs = (query: string, language: AppLanguage = "tr") => {
+    const cleaned = query.trim();
+    if (cleaned.length < 3) return [];
+
+    const results: { surahName: string; surahNumber: number; ayah: Ayah }[] = [];
+
+    const constructItem = (surah: Surah, ayah: Ayah) => ({
+        surahName: getLocalizedSurahName(surah, language),
+        surahNumber: surah.number,
+        ayah,
+    });
+
+    // 1. Ayah reference search (ends with number, e.g. "nisa 26", "3:5")
+    const tailDigits = cleaned.match(/(\d{1,3})$/);
+    if (tailDigits) {
+        const ayahNumber = parseInt(tailDigits[1], 10);
+        let surahPart = cleaned.substring(0, tailDigits.index).trim();
+        surahPart = surahPart.replace(/[:.\-\s]+$/, '').trim();
+
+        if (surahPart) {
+            let surahNumber: number | null = null;
+            if (/^\d{1,3}$/.test(surahPart)) {
+                surahNumber = parseInt(surahPart, 10);
+            } else {
+                surahNumber = findSurahByNameOrAlias(surahPart);
+            }
+
+            if (surahNumber) {
+                const surah = getSurah(surahNumber);
+                if (surah) {
+                    const ayah = surah.ayahs.find((a) => a.number === ayahNumber);
+                    if (ayah) {
+                        results.push(constructItem(surah, ayah));
+                        return results; // Return single specific ayah
                     }
                 }
             }
         }
     }
 
-    return null;
-};
+    // 2. Surah name search (lists all verses of the matched Surah)
+    let singleSurahNumber: number | null = null;
+    if (/^\d{1,3}$/.test(cleaned)) {
+        singleSurahNumber = parseInt(cleaned, 10);
+    } else {
+        singleSurahNumber = findSurahByNameOrAlias(cleaned);
+    }
 
-/* ── Ana arama fonksiyonu ──────────────────────────────────────── */
-
-export const searchAyahs = (query: string, language: AppLanguage) => {
-    const results: { surahName: string; surahNumber: number; ayah: Ayah }[] = [];
-
-    // 1) Referans tabanlı arama  (34:50, sebe 50 …)
-    const ref = parseReference(query);
-
-    if (ref) {
-        const surah = getSurah(ref.surahNumber);
+    if (singleSurahNumber) {
+        const surah = getSurah(singleSurahNumber);
         if (surah) {
-            const ayah = surah.ayahs.find(a => a.number === ref.ayahNumber);
-            if (ayah) {
-                const sName =
-                    language === 'ar'
-                        ? surah.name.ar
-                        : language === 'en'
-                            ? surah.name.en
-                            : surah.name.tr;
-                results.push({
-                    surahName: sName || surah.name.ar,
-                    surahNumber: surah.number,
-                    ayah,
-                });
-                return results;
-            }
+            surah.ayahs.forEach((ayah) => {
+                results.push(constructItem(surah, ayah));
+            });
+            return results;
         }
     }
 
-    // 2) Mevcut metin araması (en az 3 karakter, meal + Arapça)
-    const lowerQuery = query.toLowerCase();
-
-    quranData.forEach(surah => {
-        surah.ayahs.forEach(ayah => {
+    // 3. Fallback: Full-text translation/arabic search
+    const lowerQuery = cleaned.toLowerCase();
+    quranData.forEach((surah) => {
+        surah.ayahs.forEach((ayah) => {
             if (
                 ayah.translations[language]?.toLowerCase().includes(lowerQuery) ||
-                ayah.arabic.includes(query)
+                ayah.arabic.includes(cleaned)
             ) {
-                const sName =
-                    language === 'ar'
-                        ? surah.name.ar
-                        : language === 'en'
-                            ? surah.name.en
-                            : surah.name.tr;
-                results.push({
-                    surahName: sName || surah.name.ar,
-                    surahNumber: surah.number,
-                    ayah,
-                });
+                results.push(constructItem(surah, ayah));
             }
         });
     });
