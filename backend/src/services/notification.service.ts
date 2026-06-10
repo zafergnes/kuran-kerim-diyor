@@ -112,6 +112,8 @@ export class NotificationService {
               messages.push({
                 to: pushToken,
                 sound: 'default',
+                priority: 'high',
+                channelId: 'default',
                 title: NOTIFICATION_TITLES[lang] || NOTIFICATION_TITLES['en'],
                 body: `${dailyContext.reference}\n${dailyContext.text.substring(0, 100)}...`,
                 data: { 
