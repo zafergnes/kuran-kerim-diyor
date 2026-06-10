@@ -16,6 +16,22 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [formError, setFormError] = useState<string | null>(null);
 
+  const maskName = (name: string): string => {
+    if (!name) return 'A***';
+    const parts = name.trim().split(' ');
+    
+    if (parts.length === 1) {
+      const first = parts[0];
+      if (first.length <= 1) return first + '***';
+      return first[0] + '***';
+    }
+
+    const first = parts[0];
+    const last = parts[parts.length - 1];
+
+    return `${first[0]}*** ${last[0]}***`;
+  };
+
   const availableLanguages = useMemo(
     () => [
       "all",
@@ -52,6 +68,14 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
     await apiClient.post("/reports", { commentId, reason: reason.trim() });
   };
 
+  const handleLikeClick = (commentId: number) => {
+    if (!user || user.isGuest) {
+      alert(t("comments.login_to_like", "Yorumları beğenmek için giriş yapmalısınız."));
+      return;
+    }
+    void toggleLike(commentId);
+  };
+
   const renderComment = (commentId: number, depth = 0) => {
     const comment = filteredComments.find((item) => item.id === commentId);
     if (!comment) return null;
@@ -64,7 +88,7 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
         <div className="rounded-md border border-border bg-background p-4">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-text">{comment.user?.name || t("comments.anonymous", "Anonim")}</p>
+              <p className="text-sm font-bold text-text">{maskName(comment.user?.name || t("comments.anonymous", "Anonim"))}</p>
               <p className="text-xs font-semibold text-muted">
                 {new Date(comment.createdAt).toLocaleDateString("tr-TR")}
                 {comment.language ? ` · ${comment.language.toUpperCase()}` : ""}
@@ -81,8 +105,8 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
           {comment.moderationReason && <p className="mt-2 text-xs font-semibold text-primary">{comment.moderationReason}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button
-              onClick={() => void toggleLike(comment.id)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+              onClick={() => handleLikeClick(comment.id)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary disabled:opacity-75"
             >
               <Heart size={15} fill={comment.isLikedByMe ? "currentColor" : "none"} />
               {comment.likeCount ?? 0}

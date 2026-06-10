@@ -235,6 +235,10 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
 
                             <View style={styles.commentActions}>
                                 <TouchableOpacity disabled={item.isDeletedUser || item.isDeletedMod} style={styles.actionBtn} onPress={() => {
+                                    if (!isRealUser) {
+                                        Alert.alert(t('comments.login_prompt_title', 'Giriş Gerekli'), t('comments.login_to_like', 'Yorumları beğenmek için giriş yapmalısınız.'));
+                                        return;
+                                    }
                                     toggleLike(item.id);
                                 }}>
                                     <Heart
