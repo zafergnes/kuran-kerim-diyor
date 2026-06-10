@@ -131,7 +131,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   return (
     <article
       id={`ayah-${ayah.number}`}
-      className={`rounded-lg border bg-card p-4 shadow-sm sm:p-7 transition-all duration-300 ${
+      className={`w-full max-w-full overflow-hidden rounded-lg border bg-card p-4 shadow-sm sm:p-7 transition-all duration-300 ${
         highlighted ? "border-primary ring-1 ring-primary bg-primary/5 shadow-md scale-[1.01]" : "border-border"
       }`}
       onMouseEnter={() => setProgress(surahNumber, ayah.number)}

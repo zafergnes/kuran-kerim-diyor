@@ -448,8 +448,8 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
               })
             ) : (
               surah.ayahs.map((ayah) => (
-                <section key={ayah.globalNumber} className="min-w-full snap-start">
-                  <div className="min-h-[calc(100vh-260px)] px-1">
+                <section key={ayah.globalNumber} className="w-full max-w-full flex-shrink-0 snap-start">
+                  <div className="min-h-[calc(100vh-260px)] px-1 w-full max-w-full">
                     <AyahCard ayah={ayah} surahName={surah.name[lang] || surah.name.tr} surahNumber={surah.number} />
                   </div>
                 </section>
