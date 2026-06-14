@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X } from "lucide-react";
+import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
@@ -23,6 +23,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/profile", label: t("tabs.profile", "Profil"), icon: User },
     { href: "/settings", label: t("profile.settings", "Ayarlar"), icon: Settings },
   ];
+
+  if (user?.role === "ADMIN") {
+    navItems.push({ href: "/admin", label: t("admin.title", "Admin Paneli"), icon: Shield });
+  }
 
   return (
     <div className="min-h-screen bg-background text-text">
