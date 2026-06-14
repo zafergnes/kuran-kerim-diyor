@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, TokenPayload } from '../utils/jwt';
+import { prisma } from '../utils/prisma';
 
 // Extend Express Request object to include the user payload
 declare global {
@@ -42,3 +43,26 @@ export const optionalAuthenticate = (req: Request, res: Response, next: NextFunc
   
   next();
 };
+
+export const checkBanned = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return next();
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isBanned: true }
+    });
+
+    if (user?.isBanned) {
+      return res.status(403).json({ message: 'Forbidden: Your account has been banned' });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
