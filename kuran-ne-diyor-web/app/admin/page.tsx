@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import apiClient from "@/services/apiClient";
 import { MessageSquare, AlertOctagon, CheckCircle2, XCircle, Users, RefreshCw } from "lucide-react";
 
@@ -62,37 +63,43 @@ export default function AdminDashboard() {
       title: "Toplam Yorum",
       value: stats.totalComments,
       icon: MessageSquare,
-      color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+      color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:border-blue-500/40",
+      href: "/admin/comments",
     },
     {
       title: "Aktif Şikayetler",
       value: stats.totalReports,
       icon: AlertOctagon,
-      color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+      color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:border-amber-500/40",
+      href: "/admin/reports",
     },
     {
       title: "Onaylanan Yorumlar",
       value: stats.approvedComments,
       icon: CheckCircle2,
-      color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+      color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:border-emerald-500/40",
+      href: "/admin/comments?status=APPROVED",
     },
     {
       title: "Kaldırılan Yorumlar",
       value: stats.removedComments,
       icon: XCircle,
-      color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+      color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:border-rose-500/40",
+      href: "/admin/comments?status=REMOVED_BY_MODERATOR",
     },
     {
       title: "İncelenmeyi Bekleyenler",
       value: stats.pendingComments,
       icon: RefreshCw,
-      color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+      color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:border-purple-500/40",
+      href: "/admin/comments?status=PENDING",
     },
     {
       title: "Engellenen Kullanıcılar",
       value: stats.bannedUsers,
       icon: Users,
-      color: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
+      color: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 hover:border-slate-500/40",
+      href: "/admin/users?filter=BANNED",
     },
   ];
 
@@ -113,9 +120,10 @@ export default function AdminDashboard() {
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
-            <div
+            <Link
               key={idx}
-              className={`rounded-xl border p-5 flex items-center justify-between shadow-sm transition hover:translate-y-[-2px] hover:shadow-md ${card.color}`}
+              href={card.href}
+              className={`rounded-xl border p-5 flex items-center justify-between shadow-sm transition hover:translate-y-[-2px] hover:shadow-md cursor-pointer ${card.color}`}
             >
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-secondary/70">
@@ -128,7 +136,7 @@ export default function AdminDashboard() {
               <div className="rounded-lg p-2.5 bg-white/50 dark:bg-black/10">
                 <Icon size={24} />
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

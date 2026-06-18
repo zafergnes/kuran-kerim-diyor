@@ -155,3 +155,119 @@ export const getPendingDeletions = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getUsers = async (req: Request, res: Response) => {
+  try {
+    const search = req.query.search as string || '';
+    const filter = req.query.filter as string || '';
+
+    const whereClause: any = {};
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { id: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    if (filter === 'BANNED') {
+      whereClause.isBanned = true;
+    } else if (filter === 'GUEST') {
+      whereClause.isGuest = true;
+    } else if (filter === 'REGISTERED') {
+      whereClause.isGuest = false;
+    }
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isGuest: true,
+        isBanned: true,
+        role: true,
+        invalidReportCount: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getComments = async (req: Request, res: Response) => {
+  try {
+    const search = req.query.search as string || '';
+    const status = req.query.status as string || '';
+
+    const whereClause: any = {
+      isDeleted: false
+    };
+
+    if (search) {
+      whereClause.text = { contains: search, mode: 'insensitive' };
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const comments = await prisma.comment.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, isBanned: true }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const approveComment = async (req: Request, res: Response) => {
+  try {
+    const commentId = parseInt(req.params.id as string);
+
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId }
+    });
+
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        status: 'APPROVED',
+        moderationReason: null
+      }
+    });
+
+    if (comment.status === 'REMOVED_BY_MODERATOR') {
+      await prisma.ayahStat.update({
+        where: { ayahId: comment.ayahId },
+        data: { commentCount: { increment: 1 } }
+      }).catch(() => {
+        // Ignore if stat record does not exist
+      });
+    }
+
+    res.json({ message: 'Comment approved successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

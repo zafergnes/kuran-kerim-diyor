@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
-import { BarChart2, AlertTriangle, Shield, ArrowLeft, UserX } from "lucide-react";
+import { BarChart2, AlertTriangle, Shield, ArrowLeft, UserX, MessageSquare, Users } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,6 +33,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isStatsActive = pathname === "/admin";
   const isReportsActive = pathname === "/admin/reports";
   const isDeletionsActive = pathname === "/admin/pending-deletions";
+  const isCommentsActive = pathname === "/admin/comments";
+  const isUsersActive = pathname === "/admin/users";
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-6">
@@ -73,6 +75,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Genel Durum
           </Link>
           <Link
+            href="/admin/comments"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              isCommentsActive
+                ? "bg-primary text-white shadow-sm"
+                : "text-secondary hover:bg-card hover:text-text"
+            }`}
+          >
+            <MessageSquare size={18} />
+            Tüm Yorumlar
+          </Link>
+          <Link
             href="/admin/reports"
             className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${
               isReportsActive
@@ -82,6 +95,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <AlertTriangle size={18} />
             Şikayet Edilenler
+          </Link>
+          <Link
+            href="/admin/users"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              isUsersActive
+                ? "bg-primary text-white shadow-sm"
+                : "text-secondary hover:bg-card hover:text-text"
+            }`}
+          >
+            <Users size={18} />
+            Kullanıcılar
           </Link>
           <Link
             href="/admin/pending-deletions"
