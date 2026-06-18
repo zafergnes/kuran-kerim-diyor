@@ -34,13 +34,31 @@ export const deleteAccount = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    // Cascade delete is handled by Prisma schema (onDelete: Cascade)
-    // We just need to delete the user
-    await prisma.user.delete({
-      where: { id: userId }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { reactivatedAt: true }
     });
 
-    res.json({ message: 'Account and all data deleted successfully' });
+    if (user && user.reactivatedAt) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      if (user.reactivatedAt > oneDayAgo) {
+        return res.status(400).json({
+          code: 'DELETE_COOLDOWN',
+          message: 'Hesabınız yeni aktif edildiği için 24 saat geçmeden tekrar silme talebinde bulunamazsınız.'
+        });
+      }
+    }
+
+    // Soft delete: Mark account as deleted and store the timestamp
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date()
+      }
+    });
+
+    res.json({ message: 'Account deletion scheduled. You have 14 days to cancel by logging in.' });
   } catch (error) {
     console.error('deleteAccount error:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -87,12 +87,18 @@ export default function ProfileScreen() {
                 email: emailInput,
                 password: passwordInput
             });
-            const { accessToken, refreshToken, user } = res.data;
+            const { accessToken, refreshToken, user, reactivated } = res.data;
             await SecureStore.setItemAsync('userToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
             setAuth(user.id, user.isGuest, user.email, user.email);
             if (!user.isGuest) {
                 useUserStore.getState().syncAllLocalData();
+            }
+            if (reactivated) {
+                Alert.alert(
+                    t('common.success') || "Başarılı",
+                    t('profile.reactivation_success') || "Hesabınızın silme işlemi iptal edildi ve hesabınız başarıyla tekrar aktif hale getirildi!"
+                );
             }
         } catch (e: any) {
             setError(translateAuthError(e.response?.data?.message || e.message));
@@ -170,7 +176,7 @@ export default function ProfileScreen() {
     const handleDeleteAccount = async () => {
         Alert.alert(
             t('profile.delete_confirm_title'),
-            t('profile.delete_confirm_message'),
+            t('profile.delete_account_grace_warning') || "Hesabınızı silme talebiniz alınacaktır. Yasal haklarınız (KVKK/GDPR/PDPL) gereği tüm verileriniz 14 gün boyunca dondurulacak, bu süre sonunda kalıcı ve geri alınamaz olarak silinecektir. 14 gün içinde tekrar giriş yaparsanız silme talebi iptal edilecektir.",
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 { 
@@ -179,7 +185,7 @@ export default function ProfileScreen() {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            await apiClient.delete('/user');
+                            await apiClient.delete('/users');
                             await SecureStore.deleteItemAsync('userToken');
                             await SecureStore.deleteItemAsync('refreshToken');
                             // Clear all local data as well
@@ -187,7 +193,14 @@ export default function ProfileScreen() {
                             setAuth(null, false, null, null);
                             router.replace('/onboarding');
                         } catch (e: any) {
-                            Alert.alert("Error", e.response?.data?.message || e.message);
+                            if (e.response?.status === 400 && e.response?.data?.code === 'DELETE_COOLDOWN') {
+                                Alert.alert(
+                                    "Error",
+                                    t('profile.delete_cooldown_error') || "Hesabınız yeni aktif edildiği için güvenlik sebebiyle 24 saat geçmeden tekrar silme talebinde bulunamazsınız."
+                                );
+                            } else {
+                                Alert.alert("Error", e.response?.data?.message || e.message);
+                            }
                         }
                         setLoading(false);
                     }

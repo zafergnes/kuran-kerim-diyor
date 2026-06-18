@@ -128,3 +128,30 @@ export const banUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getPendingDeletions = async (req: Request, res: Response) => {
+  try {
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const pendingDeletions = await prisma.user.findMany({
+      where: {
+        isDeleted: true,
+        deletedAt: {
+          gt: fourteenDaysAgo
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        deletedAt: true,
+      },
+      orderBy: {
+        deletedAt: 'asc'
+      }
+    });
+
+    res.json(pendingDeletions);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

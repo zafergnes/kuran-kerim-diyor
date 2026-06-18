@@ -21,6 +21,7 @@
     "layout_page_desc": "Diseño tradicional de página impresa, páginas completas y fácil seguimiento."
   },
   "search": {
+    "desc": "Búsqueda rápida por texto, nombre de sura o referencia.",
     "placeholder": "Buscar en el Corán...",
     "min_chars": "Introduce al menos 3 caracteres para buscar.",
     "no_results": "No se encontraron resultados.",
@@ -37,6 +38,9 @@
     "language": "Idioma de la aplicación",
     "logout": "Cerrar sesión",
     "delete_account": "Eliminar cuenta",
+    "delete_account_grace_warning": "Se procesará su solicitud de eliminación de cuenta. De acuerdo con sus derechos legales de privacidad (RGPD/KVKK/PDPL), todos sus datos se congelarán durante 14 días, después de los cuales se eliminarán de forma permanente e irreversible. Iniciar sesión dentro de los 14 días cancelará la solicitud de eliminación.",
+    "delete_cooldown_error": "Dado que su cuenta fue reactivada recientemente, por razones de seguridad no puede solicitar la eliminación nuevamente durante 24 horas.",
+    "reactivation_success": "¡Su solicitud de eliminación de cuenta ha sido cancelada y su cuenta fue reactivada con éxito!",
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "email": "Correo electrónico",
@@ -62,19 +66,22 @@
     "min_password": "La contraseña debe tener al menos 6 caracteres."
   },
   "favorites": {
+    "create_new_collection": "Nuevo nombre de colección...",
+    "create": "Crear",
+    "desc": "Tus versos guardados se sincronizan con el servidor si has iniciado sesión.",
     "title": "Mis favoritos",
     "empty": "Aún no hay versículos guardados en esta lista.",
     "ayah": "{{surah}} - Versículo {{number}}",
     "delete_collection_title": "Eliminar colección",
     "delete_collection_message": "¿Estás seguro de que deseas eliminar esta colección y todos los versículos que contiene?",
-    "add_to_collections": "Añadir a colecciones",
-    "create_new_collection": "Crear nueva colección..."
+    "add_to_collections": "Añadir a colecciones"
   },
   "surahs": {
     "title": "Suras",
     "ayah_count": "{{count}} Versículos"
   },
   "comments": {
+    "my_comments_desc": "Tus comentarios y estado de moderación.",
     "title": "Comentarios",
     "status_preparing": "Preparación para la publicación...",
     "status_removed": "Eliminado por el moderador",
@@ -126,6 +133,7 @@
     "confirm": "Sí, quitar"
   },
   "common": {
+    "last_read": "Última lectura",
     "swipe_hint": "Desliza a la izquierda\npara el siguiente versículo",
     "person": "personas",
     "ayah": "Versículo",
@@ -142,6 +150,9 @@
     "you": "Tú"
   },
   "settings": {
+    "font_size_desc": "Preferencias de idioma y lectura.",
+    "arabic_user_settings": "Configuración de usuario árabe",
+    "audio_reciter_desc": "Selecciona un imán para escuchar los versos. Presiona el botón de reproducción para escuchar una vista previa de su voz.",
     "title": "Configuración de la cuenta",
     "notifications_section": "Notificaciones",
     "notification_permission": "Permiso de notificaciones",
@@ -191,5 +202,30 @@
   },
   "daily_verse": {
     "title": "Versículo del Día"
+  },
+  "web": {
+    "install_title": "El Corán Dice",
+    "install_desc_ios": "Añadir a la pantalla de inicio para una mejor experiencia.",
+    "install_desc_android": "Instala la aplicación para un acceso rápido y notificaciones.",
+    "install_ios_guide": "Toca Compartir > Añadir a la pantalla de inicio.",
+    "install_button": "Instalar aplicación",
+    "notification_title": "Notificaciones del Verso del Día",
+    "notification_desc": "Habilita las notificaciones diarias en tu navegador.",
+    "notification_toggle": "Recibir notificaciones del Verso del Día",
+    "notification_toggle_sub": "Notificaciones Web",
+    "notification_not_supported": "Este navegador no soporta notificaciones push.",
+    "notification_ios_hint": "Añade este sitio a tu pantalla de inicio primero.",
+    "notification_error": "Permiso denegado o ha ocurrido un error.",
+    "quick_look": "Vistazo rápido",
+    "lang_support": "Soporte de idioma añadido",
+    "surah_list_local": "Lista de suras leída desde datos locales",
+    "verse_search": "Infraestructura de búsqueda de versos",
+    "go_to_search": "Ir a la búsqueda"
+  },
+  "collections": {
+    "title": "Colecciones",
+    "desc": "Agrupa los versos por tema o plan de lectura.",
+    "empty_title": "Sin colecciones",
+    "empty_desc": "Puedes crear una colección aquí o desde la tarjeta de un verso."
   }
 }

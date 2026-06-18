@@ -264,6 +264,35 @@ export class NotificationService {
       }
     });
 
+    // Her gün gece 03:00'te çalışan kalıcı silme Cron Job'ı
+    cron.schedule('0 3 * * *', async () => {
+      console.log('[Cron] Checking for expired soft-deleted accounts...');
+      try {
+        const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        const expiredUsers = await prisma.user.findMany({
+          where: {
+            isDeleted: true,
+            deletedAt: {
+              lte: fourteenDaysAgo
+            }
+          },
+          select: { id: true, email: true }
+        });
+
+        if (expiredUsers.length > 0) {
+          console.log(`[Cron] Found ${expiredUsers.length} expired accounts to delete permanently.`);
+          for (const user of expiredUsers) {
+            await prisma.user.delete({
+              where: { id: user.id }
+            });
+            console.log(`[Cron] Permanently deleted user: ${user.email} (${user.id})`);
+          }
+        }
+      } catch (error) {
+        console.error('[Cron] Error permanently deleting expired accounts:', error);
+      }
+    });
+
     console.log('[Notification] Cron job initialized.');
   }
 }

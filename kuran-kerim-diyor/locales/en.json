@@ -21,6 +21,7 @@
     "layout_page_desc": "Traditional printed page layout, complete pages and easy tracking."
   },
   "search": {
+    "desc": "Quick search by verse text, surah name, or reference.",
     "placeholder": "Search the Quran...",
     "min_chars": "Enter at least 3 characters to search.",
     "no_results": "No results found.",
@@ -37,6 +38,9 @@
     "language": "App Language",
     "logout": "Log Out",
     "delete_account": "Delete Account",
+    "delete_account_grace_warning": "Your account deletion request will be processed. In accordance with your legal privacy rights (GDPR/KVKK/PDPL), all your data will be frozen for 14 days, after which it will be permanently and irreversibly deleted. Logging in within 14 days will cancel the deletion request.",
+    "delete_cooldown_error": "Since your account was recently reactivated, for security reasons you cannot request deletion again for 24 hours.",
+    "reactivation_success": "Your account deletion request has been cancelled and your account was successfully reactivated!",
     "login": "Log In",
     "register": "Sign Up",
     "email": "Email",
@@ -62,19 +66,22 @@
     "min_password": "Password must be at least 6 characters."
   },
   "favorites": {
+    "create_new_collection": "New collection name...",
+    "create": "Create",
+    "desc": "Your saved verses are stored locally and synced with backend if logged in.",
     "title": "My Favorites",
     "empty": "No verses saved in this list yet.",
     "ayah": "{{surah}} - Verse {{number}}",
     "delete_collection_title": "Delete Collection",
     "delete_collection_message": "Are you sure you want to delete this collection and all verses in it?",
-    "add_to_collections": "Add to Collections",
-    "create_new_collection": "Create new collection..."
+    "add_to_collections": "Add to Collections"
   },
   "surahs": {
     "title": "Surahs",
     "ayah_count": "{{count}} Verses"
   },
   "comments": {
+    "my_comments_desc": "Your comments and moderation status.",
     "title": "Comments",
     "status_preparing": "Preparing for publication...",
     "status_removed": "Removed by moderator",
@@ -127,6 +134,7 @@
     "confirm": "Yes, Remove"
   },
   "common": {
+    "last_read": "Last Read",
     "swipe_hint": "Swipe left for\nthe next verse",
     "person": "people",
     "ayah": "Verse",
@@ -139,18 +147,13 @@
     "share": "Share",
     "share_verse": "Share Verse",
     "share_message": "Quran Says: {{reference}}\n\nTo read: {{url}}",
-    "share_as_image": "Share as Image",
-    "share_as_image_desc": "An image is generated and the web link is copied to the clipboard.",
-    "share_as_text": "Share as Text",
-    "share_as_text_desc": "Verse translation, reference, web URL and app link are shared as text.",
-    "link_copied": "Link copied to clipboard!",
-    "sajdah": "Prostration Verse",
-    "sajdah_warning": "Prostration (Tilavet Secdesi) is required when this verse is read or heard.",
-    "sajdah_warning_short": "Prostration Verse",
     "user": "User",
     "you": "You"
   },
   "settings": {
+    "font_size_desc": "Language and reading preferences.",
+    "arabic_user_settings": "Arabic User Settings",
+    "audio_reciter_desc": "Select an imam to listen to the verses. Press the play button to preview their voice.",
     "title": "Account Settings",
     "notifications_section": "Notifications",
     "notification_permission": "Notification Permission",
@@ -200,5 +203,30 @@
   },
   "daily_verse": {
     "title": "Verse of the Day"
+  },
+  "web": {
+    "install_title": "Quran Says",
+    "install_desc_ios": "Add to Home Screen for a better experience.",
+    "install_desc_android": "Install the app for quick access and notifications.",
+    "install_ios_guide": "Tap Share > Add to Home Screen.",
+    "install_button": "Install App",
+    "notification_title": "Verse of the Day Notifications",
+    "notification_desc": "Enable daily Verse of the Day notifications on your browser.",
+    "notification_toggle": "Receive Verse of the Day Notifications",
+    "notification_toggle_sub": "Web Push Notifications",
+    "notification_not_supported": "This browser does not support push notifications.",
+    "notification_ios_hint": "Please add this site to your home screen first to receive notifications.",
+    "notification_error": "Notification permission was denied or an error occurred.",
+    "quick_look": "Quick Look",
+    "lang_support": "Language support added",
+    "surah_list_local": "Surah list read from local data",
+    "verse_search": "Verse search infrastructure",
+    "go_to_search": "Go to Search"
+  },
+  "collections": {
+    "title": "Collections",
+    "desc": "Group verses by topic or reading plan.",
+    "empty_title": "No Collections",
+    "empty_desc": "You can create a collection here or from a verse card."
   }
 }

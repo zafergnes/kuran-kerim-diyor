@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
-import { BarChart2, AlertTriangle, Shield, ArrowLeft } from "lucide-react";
+import { BarChart2, AlertTriangle, Shield, ArrowLeft, UserX } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -32,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isStatsActive = pathname === "/admin";
   const isReportsActive = pathname === "/admin/reports";
+  const isDeletionsActive = pathname === "/admin/pending-deletions";
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-6">
@@ -81,6 +82,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <AlertTriangle size={18} />
             Şikayet Edilenler
+          </Link>
+          <Link
+            href="/admin/pending-deletions"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              isDeletionsActive
+                ? "bg-primary text-white shadow-sm"
+                : "text-secondary hover:bg-card hover:text-text"
+            }`}
+          >
+            <UserX size={18} />
+            Silinme Talepleri
           </Link>
         </aside>
 

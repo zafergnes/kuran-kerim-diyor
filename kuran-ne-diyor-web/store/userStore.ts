@@ -44,7 +44,7 @@ type UserState = {
   arabicFontFamily: "noto-naskh" | "amiri";
   selectedArabicScript: "uthmani" | "diyanet";
   initialize: () => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthResponse | undefined>;
   register: (name: string, email: string, password: string) => Promise<void>;
   guestLogin: () => Promise<void>;
   logout: () => void;
@@ -167,6 +167,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       writeJson("@user_profile", response.data.user);
       set({ user: response.data.user, loading: false });
       await get().loadRemoteData();
+      return response.data;
     } catch (error) {
       set({ loading: false, error: "auth_errors.invalid_credential" });
       throw error;

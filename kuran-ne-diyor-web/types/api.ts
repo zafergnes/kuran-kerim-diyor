@@ -11,6 +11,7 @@ export type AuthResponse = {
   user: ApiUser;
   accessToken: string;
   refreshToken: string;
+  reactivated?: boolean;
 };
 
 export type Favorite = {

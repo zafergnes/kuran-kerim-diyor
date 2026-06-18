@@ -16,6 +16,7 @@ model User {
   deviceId           String?
   isDeleted          Boolean      @default(false)
   deletedAt          DateTime?
+  reactivatedAt      DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   role               String       @default("USER") // USER, ADMIN

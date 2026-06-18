@@ -19,10 +19,28 @@ export function ProfileClient() {
   const { t } = useTranslation();
 
   const deleteAccount = async () => {
-    if (!window.confirm(t("profile.delete_confirm_message", "Hesabınız ve tüm verileriniz silinsin mi?"))) return;
-    await apiClient.delete("/users");
-    logout();
-    router.push("/");
+    const confirmMessage = t(
+      "profile.delete_account_grace_warning",
+      "Hesabınızı silme talebiniz alınacaktır. Yasal haklarınız (KVKK/GDPR/PDPL) gereği tüm verileriniz 14 gün boyunca dondurulacak, bu süre sonunda kalıcı ve geri alınamaz olarak silinecektir. 14 gün içinde tekrar giriş yaparsanız silme talebi iptal edilecektir."
+    );
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await apiClient.delete("/users");
+      logout();
+      router.push("/");
+    } catch (err: any) {
+      if (err.response?.status === 400 && err.response?.data?.code === "DELETE_COOLDOWN") {
+        alert(
+          t(
+            "profile.delete_cooldown_error",
+            "Hesabınız yeni aktif edildiği için güvenlik sebebiyle 24 saat geçmeden tekrar silme talebinde bulunamazsınız."
+          )
+        );
+      } else {
+        alert(t("auth_errors.generic", "Bir hata oluştu: {{message}}", { message: err.message }));
+      }
+    }
   };
 
   if (!user) {
