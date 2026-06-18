@@ -227,5 +227,29 @@
     "desc": "Agrupa los versos por tema o plan de lectura.",
     "empty_title": "Sin colecciones",
     "empty_desc": "Puedes crear una colección aquí o desde la tarjeta de un verso."
+  },
+  "achievements": {
+    "title": "Logros e Insignias",
+    "most_read_ayah": "Aleya más leída",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} veces",
+    "total_hatims": "Hatims totales",
+    "unlocked_badges": "Insignias desbloqueadas",
+    "badge_first_step_title": "Primer paso",
+    "badge_first_step_desc": "¡Leíste tu primera aleya!",
+    "badge_first_surah_title": "Primera sura",
+    "badge_first_surah_desc": "¡Completaste al menos 1 sura!",
+    "badge_regular_title": "Lector perseverante",
+    "badge_regular_desc": "¡Completaste al menos 30 suras!",
+    "badge_faithful_reader_title": "Lector fiel",
+    "badge_faithful_reader_desc": "¡Leíste una aleya 10 veces o más!",
+    "badge_hatim_title": "Primer Hatim",
+    "badge_hatim_desc": "¡Completaste el Corán una vez!",
+    "badge_double_hatim_title": "Doble Hatim",
+    "badge_double_hatim_desc": "¡Completaste el Corán dos veces!",
+    "badge_hatim_guardian_title": "Guardián del Hatim",
+    "badge_hatim_guardian_desc": "¡Completaste el Corán 5 veces!",
+    "modal_title": "¡Felicitaciones!",
+    "modal_subtitle": "¡Has desbloqueado un nuevo logro!",
+    "modal_close": "Estupendo"
   }
 }

@@ -227,5 +227,29 @@
     "desc": "Regroupez les versets par sujet ou plan de lecture.",
     "empty_title": "Aucune collection",
     "empty_desc": "Vous pouvez créer une collection ici ou depuis une carte de verset."
+  },
+  "achievements": {
+    "title": "Succès & Badges",
+    "most_read_ayah": "Ayah la plus lue",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} fois",
+    "total_hatims": "Hatims totaux",
+    "unlocked_badges": "Badges débloqués",
+    "badge_first_step_title": "Premier pas",
+    "badge_first_step_desc": "Vous avez lu votre premier verset!",
+    "badge_first_surah_title": "Première sourate",
+    "badge_first_surah_desc": "Vous avez complété au moins 1 sourate!",
+    "badge_regular_title": "Lecteur régulier",
+    "badge_regular_desc": "Vous avez complété au moins 30 sourates!",
+    "badge_faithful_reader_title": "Lecteur fidèle",
+    "badge_faithful_reader_desc": "Vous avez lu un verset 10 fois ou plus!",
+    "badge_hatim_title": "Premier Hatim",
+    "badge_hatim_desc": "Vous avez terminé le Coran une fois!",
+    "badge_double_hatim_title": "Double Hatim",
+    "badge_double_hatim_desc": "Vous avez terminé le Coran deux fois!",
+    "badge_hatim_guardian_title": "Gardien du Hatim",
+    "badge_hatim_guardian_desc": "Vous avez terminé le Coran 5 fois!",
+    "modal_title": "Félicitations!",
+    "modal_subtitle": "Un nouveau succès a été débloqué!",
+    "modal_close": "Génial"
   }
 }

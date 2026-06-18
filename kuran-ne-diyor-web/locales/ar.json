@@ -227,5 +227,29 @@
     "desc": "تجميع الآيات حسب الموضوع أو خطة القراءة.",
     "empty_title": "لا توجد مجموعات",
     "empty_desc": "يمكنك إنشاء مجموعة هنا أو من بطاقة الآية."
+  },
+  "achievements": {
+    "title": "الإنجازات والأوسمة",
+    "most_read_ayah": "الآية الأكثر قراءة",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} مرات",
+    "total_hatims": "إجمالي الختمات",
+    "unlocked_badges": "الأوسمة المفتوحة",
+    "badge_first_step_title": "الخطوة الأولى",
+    "badge_first_step_desc": "لقد قرأت أول آية لك!",
+    "badge_first_surah_title": "السورة الأولى",
+    "badge_first_surah_desc": "لقد أتممت سورة واحدة على الأقل!",
+    "badge_regular_title": "القارئ المواظب",
+    "badge_regular_desc": "لقد أتممت ٣٠ سورة على الأقل!",
+    "badge_faithful_reader_title": "القارئ الوفي",
+    "badge_faithful_reader_desc": "لقد قرأت أي آية ١٠ مرات أو أكثر!",
+    "badge_hatim_title": "الخِتمة الأولى",
+    "badge_hatim_desc": "لقد ختمت القرآن مرة واحدة!",
+    "badge_double_hatim_title": "الختمتين",
+    "badge_double_hatim_desc": "لقد ختمت القرآن مرتين!",
+    "badge_hatim_guardian_title": "حافظ الختمات",
+    "badge_hatim_guardian_desc": "لقد ختمت القرآن ٥ مرات!",
+    "modal_title": "تهانينا!",
+    "modal_subtitle": "تم فتح إنجاز جديد!",
+    "modal_close": "رائع"
   }
 }

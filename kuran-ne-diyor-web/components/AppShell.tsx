@@ -6,6 +6,7 @@ import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Me
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
+import { CelebrationModal } from "./CelebrationModal";
 import { useTranslation } from "react-i18next";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -157,6 +158,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main>{children}</main>
       </div>
       <InstallPrompt />
+      <CelebrationModal />
     </div>
   );
 }

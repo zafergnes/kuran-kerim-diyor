@@ -12,10 +12,11 @@ import { LANGUAGES, AppLanguage } from '../../constants/languages';
 
 WebBrowser.maybeCompleteAuthSession();
 
-import { BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star, Settings, LogOut, UserX, ChevronRight, Globe, Check } from 'lucide-react-native';
+import { BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star, Settings, LogOut, UserX, ChevronRight, Globe, Check, Award } from 'lucide-react-native';
 import { useColorScheme, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
+import { quranData } from '../../services/quranData';
 
 const ICON_MAP: Record<string, any> = {
     BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star
@@ -24,11 +25,60 @@ const ICON_MAP: Record<string, any> = {
 export default function ProfileScreen() {
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
-    const { userId, isAnonymous, email, setAuth, language, setLanguage } = useUserStore();
+    const { 
+        userId, 
+        isAnonymous, 
+        email, 
+        setAuth, 
+        language, 
+        setLanguage, 
+        seenAchievements, 
+        hatimCount, 
+        readCounts, 
+        completedSurahs, 
+        favorites 
+    } = useUserStore();
+    const collections = useUserStore((state) => state.collections || {});
     const router = useRouter();
     const navigation = useNavigation();
     const { t } = useTranslation();
     const [showLangModal, setShowLangModal] = useState(false);
+
+    const favoritesCount = Object.keys(favorites || {}).length;
+    const collectionsCount = Object.keys(collections || {}).length;
+    const completedSurahsCount = completedSurahs?.length || 0;
+
+    // Calculate most read ayah
+    let mostReadKey = "";
+    let mostReadCount = 0;
+    Object.entries(readCounts || {}).forEach(([key, count]) => {
+        if (count > mostReadCount) {
+            mostReadCount = count;
+            mostReadKey = key;
+        }
+    });
+
+    let mostReadAyahText = "";
+    if (mostReadKey && mostReadCount > 0) {
+        const [surahNum, ayahNum] = mostReadKey.split(":").map(Number);
+        const surah = quranData.find((s) => s.number === surahNum);
+        const surahName = surah ? (surah.name[language] || surah.name.tr) : "";
+        mostReadAyahText = t("achievements.most_read_ayah_val", {
+            surahName,
+            ayahNumber: ayahNum,
+            count: mostReadCount,
+        });
+    }
+
+    const badgesList = [
+        { id: "first_step", icon: "🌱" },
+        { id: "first_surah", icon: "📖" },
+        { id: "regular", icon: "⚡" },
+        { id: "faithful_reader", icon: "💖" },
+        { id: "hatim", icon: "👑" },
+        { id: "double_hatim", icon: "✨" },
+        { id: "hatim_guardian", icon: "🛡️" },
+    ];
 
     useEffect(() => {
         navigation.setOptions({
@@ -222,6 +272,68 @@ export default function ProfileScreen() {
                     <Text style={{ color: theme.secondary, marginBottom: 16 }}>
                         {t('profile.account_type')}: {isAnonymous ? t('profile.account_type_guest') : t('profile.account_type_registered')}
                     </Text>
+                </View>
+
+                <View style={styles.statsRow}>
+                    <View style={[styles.statBox, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.statValue, { color: theme.text }]}>{favoritesCount}</Text>
+                        <Text style={[styles.statLabel, { color: theme.secondary }]}>{t('profile.favorites', 'Favori')}</Text>
+                    </View>
+                    <View style={[styles.statBox, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.statValue, { color: theme.text }]}>{collectionsCount}</Text>
+                        <Text style={[styles.statLabel, { color: theme.secondary }]}>{t('tabs.collections', 'Koleksiyon')}</Text>
+                    </View>
+                    <View style={[styles.statBox, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.statValue, { color: theme.text }]}>{completedSurahsCount}</Text>
+                        <Text style={[styles.statLabel, { color: theme.secondary }]}>{t('profile.completed_surahs', 'Sure')}</Text>
+                    </View>
+                    <View style={[styles.statBox, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.statValue, { color: theme.text }]}>{hatimCount}</Text>
+                        <Text style={[styles.statLabel, { color: theme.secondary }]}>{t('achievements.total_hatims', 'Hatim')}</Text>
+                    </View>
+                </View>
+
+                {mostReadAyahText ? (
+                    <View style={[styles.mostReadCard, { backgroundColor: theme.primary + '10', borderColor: theme.primary + '20' }]}>
+                        <Text style={[styles.mostReadLabel, { color: theme.primary }]}>{t('achievements.most_read_ayah', 'En Çok Okuduğunuz Ayet')}</Text>
+                        <Text style={[styles.mostReadValue, { color: theme.text }]}>{mostReadAyahText}</Text>
+                    </View>
+                ) : null}
+
+                <View style={[styles.achievementsCard, { backgroundColor: theme.card }]}>
+                    <View style={styles.achievementsHeader}>
+                        <Award size={20} color={theme.primary} />
+                        <Text style={[styles.achievementsTitle, { color: theme.text }]}>
+                            {t('achievements.title', 'Başarılar ve Rozetler')}
+                        </Text>
+                    </View>
+                    <View style={styles.badgesGrid}>
+                        {badgesList.map((badge) => {
+                            const isUnlocked = (seenAchievements || []).includes(badge.id);
+                            return (
+                                <View 
+                                    key={badge.id} 
+                                    style={[
+                                        styles.badgeItem, 
+                                        { borderBottomColor: theme.border },
+                                        isUnlocked ? null : styles.badgeLocked
+                                    ]}
+                                >
+                                    <View style={[styles.badgeIconWrapper, { backgroundColor: isUnlocked ? theme.primary + '15' : '#f5f5f5' }]}>
+                                        <Text style={{ fontSize: 18 }}>{isUnlocked ? badge.icon : '🔒'}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 12 }}>
+                                        <Text style={[styles.badgeName, { color: isUnlocked ? theme.text : theme.muted }]}>
+                                            {t(`achievements.badge_${badge.id}_title`)}
+                                        </Text>
+                                        <Text style={[styles.badgeDesc, { color: theme.secondary }]}>
+                                            {t(`achievements.badge_${badge.id}_desc`)}
+                                        </Text>
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
                 </View>
 
                 <View style={[styles.menuCard, { backgroundColor: theme.card }]}>
@@ -495,6 +607,7 @@ const styles = StyleSheet.create({
     badgeLocked: {
         borderColor: '#eee',
         backgroundColor: '#fafafa',
+        opacity: 0.55,
     },
     modalOverlay: {
         flex: 1,
@@ -524,5 +637,94 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    statsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    statBox: {
+        flex: 1,
+        borderRadius: 12,
+        padding: 12,
+        alignItems: 'center',
+        marginHorizontal: 3,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    statValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    statLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    mostReadCard: {
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 16,
+        marginBottom: 16,
+    },
+    mostReadLabel: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    mostReadValue: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginTop: 4,
+    },
+    achievementsCard: {
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    achievementsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    achievementsTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
+    badgesGrid: {
+        flexDirection: 'column',
+    },
+    badgeItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+
+    badgeIconWrapper: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badgeName: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    badgeDesc: {
+        fontSize: 11,
+        marginTop: 2,
     },
 });
