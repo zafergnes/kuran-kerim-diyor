@@ -21,6 +21,7 @@
     "layout_page_desc": "Traditionelles gedrucktes Seitenlayout, vollständige Seiten und einfache Verfolgung."
   },
   "search": {
+    "desc": "Schnellsuche nach Verstext, Surenname oder Referenz.",
     "placeholder": "Im Koran suchen...",
     "min_chars": "Geben Sie mindestens 3 Zeichen ein.",
     "no_results": "Keine Ergebnisse gefunden.",
@@ -37,6 +38,9 @@
     "language": "App-Sprache",
     "logout": "Abmelden",
     "delete_account": "Konto löschen",
+    "delete_account_grace_warning": "Ihr Antrag auf Kontolöschung wird bearbeitet. Gemäß Ihren gesetzlichen Datenschutzrechten (DS-GVO/KVKK/PDPL) werden alle Ihre Daten 14 Tage lang gesperrt, danach werden sie dauerhaft und unwiderruflich gelöscht. Eine Anmeldung innerhalb von 14 Tagen storniert den Löschantrag.",
+    "delete_cooldown_error": "Da Ihr Konto kürzlich reaktiviert wurde, können Sie aus Sicherheitsgründen 24 Stunden lang keine erneute Löschung beantragen.",
+    "reactivation_success": "Ihr Antrag auf Kontolöschung wurde storniert und Ihr Konto wurde erfolgreich reaktiviert!",
     "login": "Anmelden",
     "register": "Registrieren",
     "email": "E-Mail",
@@ -62,19 +66,22 @@
     "min_password": "Das Passwort muss mindestens 6 Zeichen lang sein."
   },
   "favorites": {
+    "create_new_collection": "Neuer Sammlungsname...",
+    "create": "Erstellen",
+    "desc": "Ihre gespeicherten Verse werden lokal und bei Anmeldung mit dem Server synchronisiert.",
     "title": "Meine Favoriten",
     "empty": "Noch keine Verse in dieser Liste gespeichert.",
     "ayah": "{{surah}} - Vers {{number}}",
     "delete_collection_title": "Sammlung löschen",
     "delete_collection_message": "Sind Sie sicher, dass Sie diese Sammlung und alle darin enthaltenen Verse löschen möchten?",
-    "add_to_collections": "Zu Sammlungen hinzufügen",
-    "create_new_collection": "Neue Sammlung erstellen..."
+    "add_to_collections": "Zu Sammlungen hinzufügen"
   },
   "surahs": {
     "title": "Suren",
     "ayah_count": "{{count}} Verse"
   },
   "comments": {
+    "my_comments_desc": "Ihre Kommentare und deren Moderationsstatus.",
     "title": "Kommentare",
     "status_preparing": "Vorbereitung der Veröffentlichung...",
     "status_removed": "Vom Moderator entfernt",
@@ -126,6 +133,7 @@
     "confirm": "Ja, entfernen"
   },
   "common": {
+    "last_read": "Zuletzt gelesen",
     "swipe_hint": "Nach links wischen\nfür den nächsten Vers",
     "person": "Personen",
     "ayah": "Vers",
@@ -142,6 +150,9 @@
     "you": "Du"
   },
   "settings": {
+    "font_size_desc": "Sprach- und Leseeinstellungen.",
+    "arabic_user_settings": "Arabische Benutzereinstellungen",
+    "audio_reciter_desc": "Wählen Sie einen Imam aus, um die Verse anzuhören. Drücken Sie die Wiedergabetaste, um die Stimme vorzuhören.",
     "title": "Kontoeinstellungen",
     "notifications_section": "Benachrichtigungen",
     "notification_permission": "Benachrichtigungserlaubnis",
@@ -191,5 +202,54 @@
   },
   "daily_verse": {
     "title": "Vers des Tages"
+  },
+  "web": {
+    "install_title": "Koran Sagt",
+    "install_desc_ios": "Zum Startbildschirm hinzufügen für ein besseres Erlebnis.",
+    "install_desc_android": "App installieren für Schnellzugriff und Benachrichtigungen.",
+    "install_ios_guide": "Tippen Sie auf Teilen > Zum Startbildschirm hinzufügen.",
+    "install_button": "App installieren",
+    "notification_title": "Vers des Tages Benachrichtigungen",
+    "notification_desc": "Aktivieren Sie die täglichen Vers-Benachrichtigungen in Ihrem Browser.",
+    "notification_toggle": "Vers des Tages Benachrichtigungen erhalten",
+    "notification_toggle_sub": "Web Push-Benachrichtigungen",
+    "notification_not_supported": "Dieser Browser unterstützt keine Push-Benachrichtigungen.",
+    "notification_ios_hint": "Fügen Sie diese Seite zuerst zum Startbildschirm hinzu.",
+    "notification_error": "Berechtigung verweigert oder Fehler aufgetreten.",
+    "quick_look": "Schnellübersicht",
+    "lang_support": "Sprachunterstützung hinzugefügt",
+    "surah_list_local": "Surenliste aus lokalen Daten gelesen",
+    "verse_search": "Vers-Suchinfrastruktur",
+    "go_to_search": "Zur Suche gehen"
+  },
+  "collections": {
+    "title": "Sammlungen",
+    "desc": "Gruppieren Sie Verse nach Thema oder Leseplan.",
+    "empty_title": "Keine Sammlungen",
+    "empty_desc": "Sie können hier oder auf einer Verskarte eine Sammlung erstellen."
+  },
+  "achievements": {
+    "title": "Erfolge & Abzeichen",
+    "most_read_ayah": "Meistgelesener Vers",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} Mal",
+    "total_hatims": "Gesamte Hatims",
+    "unlocked_badges": "Freigeschaltete Abzeichen",
+    "badge_first_step_title": "Erster Schritt",
+    "badge_first_step_desc": "Du hast deinen ersten Vers gelesen!",
+    "badge_first_surah_title": "Erste Sure",
+    "badge_first_surah_desc": "Du hast mindestens 1 Sure abgeschlossen!",
+    "badge_regular_title": "Regelmäßiger Leser",
+    "badge_regular_desc": "Du hast mindestens 30 Suren abgeschlossen!",
+    "badge_faithful_reader_title": "Treuer Leser",
+    "badge_faithful_reader_desc": "Du hast einen Vers 10 Mal oder öfter gelesen!",
+    "badge_hatim_title": "Erster Hatim",
+    "badge_hatim_desc": "Du hast den Koran einmal vollständig beendet!",
+    "badge_double_hatim_title": "Doppel-Hatim",
+    "badge_double_hatim_desc": "Du hast den Koran zweimal vollständig beendet!",
+    "badge_hatim_guardian_title": "Hatim-Wächter",
+    "badge_hatim_guardian_desc": "Du hast den Koran fünfmal vollständig beendet!",
+    "modal_title": "Herzlichen Glückwunsch!",
+    "modal_subtitle": "Ein neuer Erfolg wurde freigeschaltet!",
+    "modal_close": "Großartig"
   }
 }

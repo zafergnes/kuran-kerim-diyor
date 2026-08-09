@@ -22,7 +22,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (mode === "login") {
-      await login(email, password);
+      const data = await login(email, password);
+      if (data?.reactivated) {
+        alert(
+          t(
+            "profile.reactivation_success",
+            "Hesabınızın silme işlemi iptal edildi ve hesabınız başarıyla tekrar aktif hale getirildi!"
+          )
+        );
+      }
     } else {
       await register(name, email, password);
     }

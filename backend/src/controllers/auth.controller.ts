@@ -36,7 +36,14 @@ export const register = async (req: Request, res: Response) => {
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: { id: user.id, email: user.email, name: user.name },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isGuest: user.isGuest,
+        role: user.role,
+        isBanned: user.isBanned
+      },
       ...tokens,
     });
   } catch (error) {
@@ -60,8 +67,8 @@ export const login = async (req: Request, res: Response) => {
       where: { email: parsedData.email },
     });
 
-    if (!user || user.isDeleted) {
-      return res.status(401).json({ message: 'Invalid credentials or deleted account' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isPasswordValid = await bcrypt.compare(parsedData.password, user.password);
@@ -70,11 +77,44 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    let reactivated = false;
+
+    if (user.isDeleted) {
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      if (user.deletedAt && user.deletedAt > fourteenDaysAgo) {
+        // Reactivate the account
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            isDeleted: false,
+            deletedAt: null,
+            reactivatedAt: new Date()
+          }
+        });
+        reactivated = true;
+      } else {
+        return res.status(401).json({ message: 'Invalid credentials or deleted account' });
+      }
+    }
+
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Forbidden: Your account has been banned' });
+    }
+
     const tokens = generateTokens({ userId: user.id, isGuest: user.isGuest });
 
     res.json({
       message: 'Login successful',
-      user: { id: user.id, email: user.email, name: user.name, isGuest: user.isGuest },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isGuest: user.isGuest,
+        role: user.role,
+        isBanned: user.isBanned,
+        reactivated
+      },
+      reactivated,
       ...tokens,
     });
   } catch (error) {
@@ -138,7 +178,14 @@ export const getMe = async (req: Request, res: Response) => {
     }
 
     res.json({
-      user: { id: user.id, email: user.email, name: user.name, isGuest: user.isGuest }
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isGuest: user.isGuest,
+        role: user.role,
+        isBanned: user.isBanned
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });

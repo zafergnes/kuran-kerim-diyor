@@ -21,6 +21,7 @@
     "layout_page_desc": "Geleneksel basılı sayfa yapısı, toplu okuma ve sayfa takibi."
   },
   "search": {
+    "desc": "Ayet metni, sure adı veya referans ile hızlı arama.",
     "placeholder": "Kur'an'da ara...",
     "min_chars": "Aramak için en az 3 harf girin.",
     "no_results": "Sonuç bulunamadı.",
@@ -37,6 +38,9 @@
     "language": "Uygulama Dili",
     "logout": "Çıkış Yap",
     "delete_account": "Hesabı Sil",
+    "delete_account_grace_warning": "Hesabınızı silme talebiniz alınacaktır. Yasal haklarınız (KVKK/GDPR/PDPL) gereği tüm verileriniz 14 gün boyunca dondurulacak, bu süre sonunda kalıcı ve geri alınamaz olarak silinecektir. 14 gün içinde tekrar giriş yaparsanız silme talebi iptal edilecektir.",
+    "delete_cooldown_error": "Hesabınız yeni aktif edildiği için güvenlik sebebiyle 24 saat geçmeden tekrar silme talebinde bulunamazsınız.",
+    "reactivation_success": "Hesabınızın silme işlemi iptal edildi ve hesabınız başarıyla tekrar aktif hale getirildi!",
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "email": "E-posta",
@@ -62,19 +66,22 @@
     "min_password": "Şifre en az 6 karakter olmalıdır."
   },
   "favorites": {
+    "create_new_collection": "Yeni koleksiyon adı...",
+    "create": "Oluştur",
+    "desc": "Kaydettiğin ayetler yerel olarak ve giriş yaptıysan backend ile senkron tutulur.",
     "title": "Favorilerim",
     "empty": "Bu listede henüz kayıtlı bir ayet bulunmuyor.",
     "ayah": "{{surah}} - {{number}}. Ayet",
     "delete_collection_title": "Koleksiyonu Sil",
     "delete_collection_message": "Bu koleksiyonu ve içindeki tüm ayetleri silmek istediğinize emin misiniz?",
-    "add_to_collections": "Koleksiyonlara Ekle",
-    "create_new_collection": "Yeni koleksiyon oluştur..."
+    "add_to_collections": "Koleksiyonlara Ekle"
   },
   "surahs": {
     "title": "Sureler",
     "ayah_count": "{{count}} Ayet"
   },
   "comments": {
+    "my_comments_desc": "Yorumların ve moderasyon durumları.",
     "title": "Yorumlar",
     "status_preparing": "Yayına hazırlanıyor...",
     "status_removed": "Moderatör tarafından kaldırıldı",
@@ -127,6 +134,7 @@
     "confirm": "Evet, Çıkar"
   },
   "common": {
+    "last_read": "Kaldığın yer",
     "swipe_hint": "Sıradaki ayet için\nsola kaydırın",
     "person": "kişi",
     "ayah": "Ayet",
@@ -139,18 +147,13 @@
     "share": "Paylaş",
     "share_verse": "Ayeti Paylaş",
     "share_message": "Kur'an-ı Kerim Diyor: {{reference}}\n\nOkumak için: {{url}}",
-    "share_as_image": "Görsel Olarak Paylaş",
-    "share_as_image_desc": "Görsel oluşturulur ve web bağlantısı panoya kopyalanır.",
-    "share_as_text": "Metin Olarak Paylaş",
-    "share_as_text_desc": "Ayet meali, referansı, web adresi ve uygulama bağlantısı metin olarak paylaşılır.",
-    "link_copied": "Bağlantı panoya kopyalandı!",
-    "sajdah": "Secde Ayeti",
-    "sajdah_warning": "Bu ayet okunduğunda veya dinlendiğinde Tilavet Secdesi yapılması gerekir.",
-    "sajdah_warning_short": "Secde Ayeti",
     "user": "Kullanıcı",
     "you": "Siz"
   },
   "settings": {
+    "font_size_desc": "Dil ve okuma tercihleri.",
+    "arabic_user_settings": "Arapça kullanıcı ayarı",
+    "audio_reciter_desc": "Ayetleri dinlerken okuyacak imamı seçin. Oynat tuşuna basarak seslerini önizleyebilirsiniz.",
     "title": "Hesap Ayarları",
     "notifications_section": "Bildirimler",
     "notification_permission": "Bildirim İzni",
@@ -200,5 +203,54 @@
   },
   "daily_verse": {
     "title": "Günün Ayeti"
+  },
+  "web": {
+    "install_title": "Kuran Ne Diyor",
+    "install_desc_ios": "Daha iyi bir deneyim için ana ekrana ekleyin.",
+    "install_desc_android": "Hızlı erişim ve bildirimler için uygulamayı yükleyin.",
+    "install_ios_guide": "Paylaş > Ana Ekrana Ekle seçeneğine dokunun.",
+    "install_button": "Uygulamayı Yükle",
+    "notification_title": "Günün Ayeti Bildirimleri",
+    "notification_desc": "Her gün Günün Ayeti bildirimlerini tarayıcınıza almak için aktifleştirin.",
+    "notification_toggle": "Günün Ayeti Bildirimlerini Al",
+    "notification_toggle_sub": "Web Push Bildirimleri",
+    "notification_not_supported": "Bu tarayıcı push bildirimlerini desteklememektedir.",
+    "notification_ios_hint": "Bildirim alabilmek için önce bu siteyi ana ekrana ekleyin.",
+    "notification_error": "Bildirim izni reddedildi veya bir hata oluştu.",
+    "quick_look": "Hızlı Bakış",
+    "lang_support": "Dil desteği hazırlandı",
+    "surah_list_local": "Sure listesi yerel veriden okunuyor",
+    "verse_search": "Ayet arama altyapısı",
+    "go_to_search": "Aramaya git"
+  },
+  "collections": {
+    "title": "Koleksiyonlar",
+    "desc": "Ayetleri konu veya okuma planına göre gruplandır.",
+    "empty_title": "Koleksiyon yok",
+    "empty_desc": "Ayet kartından veya buradan koleksiyon oluşturabilirsin."
+  },
+  "achievements": {
+    "title": "Başarılar ve Rozetler",
+    "most_read_ayah": "En Çok Okuduğunuz Ayet",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} kez",
+    "total_hatims": "Toplam Hatim",
+    "unlocked_badges": "Kazanılan Rozetler",
+    "badge_first_step_title": "İlk Adım",
+    "badge_first_step_desc": "İlk ayeti okudun!",
+    "badge_first_surah_title": "İlk Sure",
+    "badge_first_surah_desc": "En az 1 sure tamamladın!",
+    "badge_regular_title": "Azimli Okuyucu",
+    "badge_regular_desc": "En az 30 sure tamamladın!",
+    "badge_faithful_reader_title": "Sadık Okuyucu",
+    "badge_faithful_reader_desc": "Herhangi bir ayeti 10 veya daha fazla kez okudun!",
+    "badge_hatim_title": "Hatim",
+    "badge_hatim_desc": "Kur'an'ı 1 kez tamamen bitirdin!",
+    "badge_double_hatim_title": "Çifte Hatim",
+    "badge_double_hatim_desc": "Kur'an'ı 2 kez tamamen bitirdin!",
+    "badge_hatim_guardian_title": "Hatim Muhafızı",
+    "badge_hatim_guardian_desc": "Kur'an'ı 5 kez tamamen bitirdin!",
+    "modal_title": "Tebrikler!",
+    "modal_subtitle": "Yeni bir başarı kilidi açıldı!",
+    "modal_close": "Harika"
   }
 }

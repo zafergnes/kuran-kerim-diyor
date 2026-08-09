@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
 import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
+import { CelebrationModal } from '../components/CelebrationModal';
 
 import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -145,10 +146,13 @@ export default function RootLayout() {
     }
 
     return (
-        <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-        </Stack>
+        <>
+            <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                <Stack.Screen name="settings" options={{ headerShown: false }} />
+            </Stack>
+            <CelebrationModal />
+        </>
     );
 }
