@@ -16,9 +16,13 @@ model User {
   deviceId           String?
   isDeleted          Boolean      @default(false)
   deletedAt          DateTime?
+  reactivatedAt      DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
+  role               String       @default("USER") // USER, ADMIN
+  isBanned           Boolean      @default(false)
   invalidReportCount Int          @default(0)
+  progress           UserProgress?
   collections        Collection[]
   comments           Comment[]
   favorites          Favorite[]
@@ -144,3 +148,16 @@ model WebPushSubscription {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model UserProgress {
+  userId           String   @id
+  currentSurah     Int      @default(1)
+  currentAyah      Int      @default(1)
+  completedSurahs  String   @default("[]") // JSON number array: [1, 2]
+  seenAchievements String   @default("[]") // JSON string array: ["first_step", "faithful_reader"]
+  hatimCount       Int      @default(0)    // Toplam bitirilen Hatim sayısı
+  readCounts       String   @default("{}") // JSON map: { "1:1": 10, "2:255": 3 }
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

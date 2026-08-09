@@ -34,15 +34,113 @@ export const deleteAccount = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    // Cascade delete is handled by Prisma schema (onDelete: Cascade)
-    // We just need to delete the user
-    await prisma.user.delete({
-      where: { id: userId }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { reactivatedAt: true }
     });
 
-    res.json({ message: 'Account and all data deleted successfully' });
+    if (user && user.reactivatedAt) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      if (user.reactivatedAt > oneDayAgo) {
+        return res.status(400).json({
+          code: 'DELETE_COOLDOWN',
+          message: 'Hesabınız yeni aktif edildiği için 24 saat geçmeden tekrar silme talebinde bulunamazsınız.'
+        });
+      }
+    }
+
+    // Soft delete: Mark account as deleted and store the timestamp
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date()
+      }
+    });
+
+    res.json({ message: 'Account deletion scheduled. You have 14 days to cancel by logging in.' });
   } catch (error) {
     console.error('deleteAccount error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getProgress = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const progress = await prisma.userProgress.findUnique({
+      where: { userId }
+    });
+
+    if (!progress) {
+      return res.json({
+        currentSurah: 1,
+        currentAyah: 1,
+        completedSurahs: [],
+        seenAchievements: [],
+        hatimCount: 0,
+        readCounts: {}
+      });
+    }
+
+    res.json({
+      currentSurah: progress.currentSurah,
+      currentAyah: progress.currentAyah,
+      completedSurahs: JSON.parse(progress.completedSurahs || '[]'),
+      seenAchievements: JSON.parse(progress.seenAchievements || '[]'),
+      hatimCount: progress.hatimCount,
+      readCounts: JSON.parse(progress.readCounts || '{}')
+    });
+  } catch (error) {
+    console.error('getProgress error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const saveProgress = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const {
+      currentSurah,
+      currentAyah,
+      completedSurahs,
+      seenAchievements,
+      hatimCount,
+      readCounts
+    } = req.body;
+
+    const progress = await prisma.userProgress.upsert({
+      where: { userId },
+      create: {
+        userId,
+        currentSurah: currentSurah ?? 1,
+        currentAyah: currentAyah ?? 1,
+        completedSurahs: JSON.stringify(completedSurahs ?? []),
+        seenAchievements: JSON.stringify(seenAchievements ?? []),
+        hatimCount: hatimCount ?? 0,
+        readCounts: JSON.stringify(readCounts ?? {})
+      },
+      update: {
+        currentSurah: currentSurah ?? undefined,
+        currentAyah: currentAyah ?? undefined,
+        completedSurahs: completedSurahs ? JSON.stringify(completedSurahs) : undefined,
+        seenAchievements: seenAchievements ? JSON.stringify(seenAchievements) : undefined,
+        hatimCount: hatimCount !== undefined ? hatimCount : undefined,
+        readCounts: readCounts ? JSON.stringify(readCounts) : undefined
+      }
+    });
+
+    res.json({
+      currentSurah: progress.currentSurah,
+      currentAyah: progress.currentAyah,
+      completedSurahs: JSON.parse(progress.completedSurahs),
+      seenAchievements: JSON.parse(progress.seenAchievements),
+      hatimCount: progress.hatimCount,
+      readCounts: JSON.parse(progress.readCounts)
+    });
+  } catch (error) {
+    console.error('saveProgress error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+

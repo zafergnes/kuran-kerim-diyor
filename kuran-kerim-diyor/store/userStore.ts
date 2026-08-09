@@ -33,8 +33,15 @@ interface UserState {
     displayName: string | null;
     email: string | null;
 
+    isInitialProgressLoad: boolean;
+    seenAchievements: string[];
+    hatimCount: number;
+    readCounts: Record<string, number>;
+    activeCelebration: string | null;
+    setActiveCelebration: (badge: string | null) => void;
+
     setLanguage: (lang: AppLanguage) => void;
-    setProgress: (surah: number, ayah: number) => void;
+    setProgress: (surah: number, ayah: number, ayahCount?: number) => Promise<void>;
     addCompletedSurah: (surah: number) => void;
     setCompletedSurahs: (surahs: number[]) => void;
     setAuth: (userId: string | null, isAnonymous: boolean, displayName: string | null, email: string | null) => void;
@@ -66,6 +73,39 @@ const saveLocal = (key: string, data: any) => {
     });
 };
 
+const calculateUnlockedAchievements = (state: {
+    currentSurah: number;
+    currentAyah: number;
+    completedSurahs: number[];
+    readCounts: Record<string, number>;
+    hatimCount: number;
+}) => {
+    const unlocked: string[] = [];
+    if (state.currentSurah > 1 || state.currentAyah > 1 || state.completedSurahs.length > 0 || state.hatimCount > 0) {
+        unlocked.push("first_step");
+    }
+    if (state.completedSurahs.length >= 1 || state.hatimCount > 0) {
+        unlocked.push("first_surah");
+    }
+    if (state.completedSurahs.length >= 30 || state.hatimCount > 0) {
+        unlocked.push("regular");
+    }
+    const hasFaithful = Object.values(state.readCounts).some((count) => count >= 10);
+    if (hasFaithful) {
+        unlocked.push("faithful_reader");
+    }
+    if (state.hatimCount >= 1) {
+        unlocked.push("hatim");
+    }
+    if (state.hatimCount >= 2) {
+        unlocked.push("double_hatim");
+    }
+    if (state.hatimCount >= 5) {
+        unlocked.push("hatim_guardian");
+    }
+    return unlocked;
+};
+
 export const useUserStore = create<UserState>((set, get) => ({
     language: 'tr', // Default
     currentSurah: 1,
@@ -80,6 +120,13 @@ export const useUserStore = create<UserState>((set, get) => ({
     readingLayout: 'single',
     arabicFontFamily: 'noto-naskh',
     selectedArabicScript: 'diyanet',
+
+    isInitialProgressLoad: true,
+    seenAchievements: [],
+    hatimCount: 0,
+    readCounts: {},
+    activeCelebration: null,
+    setActiveCelebration: (badge) => set({ activeCelebration: badge }),
 
     userId: null,
     isAnonymous: false,
@@ -101,7 +148,84 @@ export const useUserStore = create<UserState>((set, get) => ({
             NotificationService.registerForPushNotifications().catch(() => {});
         });
     },
-    setProgress: (surah, ayah) => set({ currentSurah: surah, currentAyah: ayah }),
+    setProgress: async (surah, ayah, ayahCount) => {
+        const state = get();
+        
+        // Guard 1: If it's the initial progress load, we DO NOT increment counts, just update position.
+        // Guard 2: If we are calling setProgress with the same position as before, we DO NOT increment read counts.
+        const isSamePosition = state.currentSurah === surah && state.currentAyah === ayah;
+        const shouldIncrement = !state.isInitialProgressLoad && !isSamePosition;
+
+        const nextReadCounts = { ...state.readCounts };
+        if (shouldIncrement) {
+            const key = `${surah}:${ayah}`;
+            nextReadCounts[key] = (nextReadCounts[key] || 0) + 1;
+        }
+
+        // Determine completion of Surah
+        let nextCompletedSurahs = [...state.completedSurahs];
+        let nextHatimCount = state.hatimCount;
+
+        if (ayahCount && ayah === ayahCount && !nextCompletedSurahs.includes(surah)) {
+            nextCompletedSurahs.push(surah);
+            
+            // If we finished all 114 surahs, increment hatim count and reset completedSurahs!
+            if (nextCompletedSurahs.length === 114) {
+                nextHatimCount += 1;
+                nextCompletedSurahs = [];
+            }
+        }
+
+        // Now calculate unlocked achievements
+        const unlocked = calculateUnlockedAchievements({
+            currentSurah: surah,
+            currentAyah: ayah,
+            completedSurahs: nextCompletedSurahs,
+            readCounts: nextReadCounts,
+            hatimCount: nextHatimCount,
+        });
+
+        // Find new achievements that aren't marked seen yet
+        const newCelebration = unlocked.find(badge => !state.seenAchievements.includes(badge)) || null;
+        const nextSeenAchievements = [...state.seenAchievements];
+        
+        if (newCelebration) {
+            nextSeenAchievements.push(newCelebration);
+        }
+
+        set({
+            currentSurah: surah,
+            currentAyah: ayah,
+            completedSurahs: nextCompletedSurahs,
+            hatimCount: nextHatimCount,
+            readCounts: nextReadCounts,
+            seenAchievements: nextSeenAchievements,
+            activeCelebration: newCelebration ? newCelebration : state.activeCelebration,
+        });
+
+        saveLocal('@kuran_progress', { surah, ayah });
+        saveLocal('@kuran_completed', nextCompletedSurahs);
+        saveLocal('@seen_achievements', nextSeenAchievements);
+        saveLocal('@hatim_count', nextHatimCount);
+        saveLocal('@read_counts', nextReadCounts);
+
+        // Sync to remote if logged in
+        if (state.userId && !state.isAnonymous) {
+            try {
+                const { default: apiClient } = await import('../services/apiClient');
+                await apiClient.post("/users/progress", {
+                    currentSurah: surah,
+                    currentAyah: ayah,
+                    completedSurahs: nextCompletedSurahs,
+                    seenAchievements: nextSeenAchievements,
+                    hatimCount: nextHatimCount,
+                    readCounts: nextReadCounts,
+                });
+            } catch (err) {
+                console.error("Failed to sync progress to remote:", err);
+            }
+        }
+    },
     addCompletedSurah: (surah) => set((state) => {
         const list = state.completedSurahs || [];
         if (!list.includes(surah)) {
@@ -184,6 +308,29 @@ export const useUserStore = create<UserState>((set, get) => ({
             const storedCols = await AsyncStorage.getItem('userCollections');
             if (storedCols) set({ collections: JSON.parse(storedCols) });
 
+            // Load achievements and progress fields
+            const storedProg = await AsyncStorage.getItem('@kuran_progress');
+            if (storedProg) {
+                const { surah, ayah } = JSON.parse(storedProg);
+                set({ currentSurah: surah, currentAyah: ayah });
+            }
+            const storedComp = await AsyncStorage.getItem('@kuran_completed');
+            if (storedComp) {
+                set({ completedSurahs: JSON.parse(storedComp) || [] });
+            }
+            const storedSeen = await AsyncStorage.getItem('@seen_achievements');
+            if (storedSeen) {
+                set({ seenAchievements: JSON.parse(storedSeen) || [] });
+            }
+            const storedHatim = await AsyncStorage.getItem('@hatim_count');
+            if (storedHatim) {
+                set({ hatimCount: parseInt(storedHatim) || 0 });
+            }
+            const storedCounts = await AsyncStorage.getItem('@read_counts');
+            if (storedCounts) {
+                set({ readCounts: JSON.parse(storedCounts) || {} });
+            }
+
             const storedProfile = await AsyncStorage.getItem('@user_profile');
             if (storedProfile) {
                 try {
@@ -194,8 +341,30 @@ export const useUserStore = create<UserState>((set, get) => ({
                         displayName: parsed.displayName, 
                         email: parsed.email 
                     });
+
+                    // Sync remote progress if logged in
+                    if (parsed.userId && !parsed.isAnonymous) {
+                        const { default: apiClient } = await import('../services/apiClient');
+                        const progressResponse = await apiClient.get('/users/progress').catch(() => null);
+                        if (progressResponse && progressResponse.data) {
+                            const data = progressResponse.data;
+                            set({
+                                currentSurah: data.currentSurah ?? 1,
+                                currentAyah: data.currentAyah ?? 1,
+                                completedSurahs: data.completedSurahs ?? [],
+                                seenAchievements: data.seenAchievements ?? [],
+                                hatimCount: data.hatimCount ?? 0,
+                                readCounts: data.readCounts ?? {}
+                            });
+                            saveLocal('@kuran_progress', { surah: data.currentSurah, ayah: data.currentAyah });
+                            saveLocal('@kuran_completed', data.completedSurahs);
+                            saveLocal('@seen_achievements', data.seenAchievements);
+                            saveLocal('@hatim_count', data.hatimCount);
+                            saveLocal('@read_counts', data.readCounts);
+                        }
+                    }
                 } catch (pe) {
-                    console.error('Failed to parse user profile', pe);
+                    console.error('Failed to parse user profile or sync progress', pe);
                 }
             }
 
@@ -225,8 +394,10 @@ export const useUserStore = create<UserState>((set, get) => ({
                 set({ selectedArabicScript: currentLang === 'tr' ? 'diyanet' : 'uthmani' });
             }
 
+            set({ isInitialProgressLoad: false });
         } catch (e) {
             console.error('Failed to load favorites/collections', e);
+            set({ isInitialProgressLoad: false });
         }
     },
 

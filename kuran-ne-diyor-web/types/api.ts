@@ -3,12 +3,15 @@ export type ApiUser = {
   email?: string;
   name?: string | null;
   isGuest?: boolean;
+  role?: string;
+  isBanned?: boolean;
 };
 
 export type AuthResponse = {
   user: ApiUser;
   accessToken: string;
   refreshToken: string;
+  reactivated?: boolean;
 };
 
 export type Favorite = {

@@ -38,6 +38,9 @@
     "language": "Uygulama Dili",
     "logout": "Çıkış Yap",
     "delete_account": "Hesabı Sil",
+    "delete_account_grace_warning": "Hesabınızı silme talebiniz alınacaktır. Yasal haklarınız (KVKK/GDPR/PDPL) gereği tüm verileriniz 14 gün boyunca dondurulacak, bu süre sonunda kalıcı ve geri alınamaz olarak silinecektir. 14 gün içinde tekrar giriş yaparsanız silme talebi iptal edilecektir.",
+    "delete_cooldown_error": "Hesabınız yeni aktif edildiği için güvenlik sebebiyle 24 saat geçmeden tekrar silme talebinde bulunamazsınız.",
+    "reactivation_success": "Hesabınızın silme işlemi iptal edildi ve hesabınız başarıyla tekrar aktif hale getirildi!",
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "email": "E-posta",
@@ -113,6 +116,7 @@
     "login_prompt_title": "Düşüncelerinizi Paylaşmak İster Misiniz?",
     "login_prompt_desc": "Devam etmek için ücretsiz giriş yapmanız veya saniyeler içinde hesap oluşturmanız gerekiyor.",
     "login_button": "Hesap Oluştur / Giriş Yap",
+    "login_to_like": "Yorumları beğenmek için giriş yapmalısınız.",
     "delete_confirm_title": "Yorumu Sil",
     "delete_confirm_message": "Bu yorumu silmek istediğinize emin misiniz?"
   },
@@ -224,5 +228,29 @@
     "desc": "Ayetleri konu veya okuma planına göre gruplandır.",
     "empty_title": "Koleksiyon yok",
     "empty_desc": "Ayet kartından veya buradan koleksiyon oluşturabilirsin."
+  },
+  "achievements": {
+    "title": "Başarılar ve Rozetler",
+    "most_read_ayah": "En Çok Okuduğunuz Ayet",
+    "most_read_ayah_val": "{{surahName}} {{ayahNumber}} - {{count}} kez",
+    "total_hatims": "Toplam Hatim",
+    "unlocked_badges": "Kazanılan Rozetler",
+    "badge_first_step_title": "İlk Adım",
+    "badge_first_step_desc": "İlk ayeti okudun!",
+    "badge_first_surah_title": "İlk Sure",
+    "badge_first_surah_desc": "En az 1 sure tamamladın!",
+    "badge_regular_title": "Azimli Okuyucu",
+    "badge_regular_desc": "En az 30 sure tamamladın!",
+    "badge_faithful_reader_title": "Sadık Okuyucu",
+    "badge_faithful_reader_desc": "Herhangi bir ayeti 10 veya daha fazla kez okudun!",
+    "badge_hatim_title": "Hatim",
+    "badge_hatim_desc": "Kur'an'ı 1 kez tamamen bitirdin!",
+    "badge_double_hatim_title": "Çifte Hatim",
+    "badge_double_hatim_desc": "Kur'an'ı 2 kez tamamen bitirdin!",
+    "badge_hatim_guardian_title": "Hatim Muhafızı",
+    "badge_hatim_guardian_desc": "Kur'an'ı 5 kez tamamen bitirdin!",
+    "modal_title": "Tebrikler!",
+    "modal_subtitle": "Yeni bir başarı kilidi açıldı!",
+    "modal_close": "Harika"
   }
 }
