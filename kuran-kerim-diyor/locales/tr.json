@@ -109,6 +109,7 @@
     "login_prompt_title": "Düşüncelerinizi Paylaşmak İster Misiniz?",
     "login_prompt_desc": "Devam etmek için ücretsiz giriş yapmanız veya saniyeler içinde hesap oluşturmanız gerekiyor.",
     "login_button": "Hesap Oluştur / Giriş Yap",
+    "login_to_like": "Yorumları beğenmek için giriş yapmalısınız.",
     "delete_confirm_title": "Yorumu Sil",
     "delete_confirm_message": "Bu yorumu silmek istediğinize emin misiniz?"
   },
