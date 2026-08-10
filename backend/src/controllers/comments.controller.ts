@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../utils/prisma';
-import { moderateComment } from '../services/moderation.service';
 
 export const getComments = async (req: Request, res: Response) => {
   try {
@@ -9,12 +8,15 @@ export const getComments = async (req: Request, res: Response) => {
     console.log(`[Comments]: Fetching for Ayah ID: ${ayahId}`);
     
     const userId = req.user?.userId;
+    const blockedUsers = userId ? await prisma.userBlock.findMany({ where: { blockerId: userId }, select: { blockedId: true } }) : [];
+    const blockedUserIds = blockedUsers.map((item) => item.blockedId);
 
     // We only fetch comments that are NOT deleted and match visibility rules
     const comments = await prisma.comment.findMany({
       where: { 
         ayahId, 
         isDeleted: false,
+        ...(blockedUserIds.length ? { userId: { notIn: blockedUserIds } } : {}),
         OR: [
           { status: 'APPROVED' },
           { AND: [{ userId: userId || 'GUEST' }, { status: 'PENDING' }] }, // Sadece PENDING olan kendi yorumunu görsün, REJECTED olanı burada görmesin
@@ -99,10 +101,13 @@ export const getMyComments = async (req: Request, res: Response) => {
 };
 
 const addCommentSchema = z.object({
-  ayahId: z.string(),
-  text: z.string().min(1).max(1000),
-  language: z.string().optional().default('tr'),
-  replyToId: z.number().optional()
+  ayahId: z.string().regex(/^\d{1,3}_\d{1,3}$/).refine((value) => {
+    const [surah, ayah] = value.split('_').map(Number);
+    return surah >= 1 && surah <= 114 && ayah >= 1 && ayah <= 286;
+  }),
+  text: z.string().trim().min(1).max(1000),
+  language: z.enum(['tr', 'en', 'ar', 'de', 'fr', 'es']).default('tr'),
+  replyToId: z.number().int().positive().optional()
 });
 
 export const addComment = async (req: Request, res: Response) => {
@@ -115,13 +120,17 @@ export const addComment = async (req: Request, res: Response) => {
     }
 
     const data = addCommentSchema.parse(req.body);
-    let finalLanguage = data.language; 
-    
+    if (data.replyToId) {
+      const parent = await prisma.comment.findUnique({ where: { id: data.replyToId }, select: { ayahId: true, isDeleted: true } });
+      if (!parent || parent.isDeleted || parent.ayahId !== data.ayahId) {
+        return res.status(400).json({ message: 'Invalid parent comment' });
+      }
+    }
     const comment = await prisma.comment.create({
       data: { 
         ayahId: data.ayahId,
         text: data.text,
-        language: finalLanguage,
+        language: data.language,
         userId: userId,
         status: 'PENDING',
         ...(data.replyToId ? { replyToId: data.replyToId } : {})
@@ -155,10 +164,11 @@ export const deleteComment = async (req: Request, res: Response) => {
       data: { isDeleted: true }
     });
 
-    // Decrement AyahStat
-    await prisma.ayahStat.update({
+    const commentCount = await prisma.comment.count({ where: { ayahId: comment.ayahId, isDeleted: false, status: 'APPROVED' } });
+    await prisma.ayahStat.upsert({
       where: { ayahId: comment.ayahId },
-      data: { commentCount: { decrement: 1 } }
+      update: { commentCount },
+      create: { ayahId: comment.ayahId, commentCount },
     });
 
     res.json({ message: 'Comment deleted successfully' });

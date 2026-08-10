@@ -4,9 +4,10 @@ import { useRef, useState, useEffect } from "react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import type { AppLanguage } from "@/types/quran";
-import { Loader2, Pause, Play, Headphones, Check, Bell } from "lucide-react";
+import { Loader2, Play, Headphones, Check, Bell } from "lucide-react";
 import { WebNotificationService } from "@/services/webNotificationService";
 import { useTranslation } from "react-i18next";
+import Link from "next/link";
 
 const languages: { value: AppLanguage; label: string }[] = [
   { value: "tr", label: "Türkçe" },
@@ -52,7 +53,7 @@ export function SettingsClient() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
-      setIsNotificationsSupported(true);
+      queueMicrotask(() => setIsNotificationsSupported(true));
       navigator.serviceWorker.ready.then((registration) => {
         registration.pushManager.getSubscription().then((subscription) => {
           setIsSubscribed(!!subscription && Notification.permission === "granted");
@@ -137,6 +138,15 @@ export function SettingsClient() {
 
   return (
     <div className="grid gap-5">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-text">{t("settings.legal_section", "Gizlilik ve Kaynaklar")}</h2>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href={`/privacy?lang=${language}`} className="rounded-md border border-border px-4 py-2 text-sm font-bold text-primary">{t("settings.privacy_policy", "Gizlilik Politikası")}</Link>
+          <Link href={`/sources?lang=${language}`} className="rounded-md border border-border px-4 py-2 text-sm font-bold text-primary">{t("settings.sources", "Kaynaklar ve Atıflar")}</Link>
+          <Link href={`/support?lang=${language}`} className="rounded-md border border-border px-4 py-2 text-sm font-bold text-primary">{t("settings.support", "Destek")}</Link>
+        </div>
+      </section>
+
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-text">{t("profile.language", "Dil")}</h1>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">

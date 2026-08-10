@@ -53,11 +53,15 @@ export const checkBanned = async (req: Request, res: Response, next: NextFunctio
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { isBanned: true }
+      select: { isBanned: true, isDeleted: true }
     });
 
     if (user?.isBanned) {
       return res.status(403).json({ message: 'Forbidden: Your account has been banned' });
+    }
+
+    if (!user || user.isDeleted) {
+      return res.status(401).json({ message: 'Unauthorized: Account is unavailable' });
     }
 
     next();
@@ -65,4 +69,3 @@ export const checkBanned = async (req: Request, res: Response, next: NextFunctio
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-

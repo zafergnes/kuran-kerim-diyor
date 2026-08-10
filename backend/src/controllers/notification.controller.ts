@@ -1,50 +1,43 @@
 import { Request, Response } from 'express';
 import { NotificationService } from '../services/notification.service';
+import { z } from 'zod';
+
+const language = z.enum(['tr', 'en', 'ar', 'de', 'fr', 'es']).default('tr');
+const mobileRegistration = z.object({ token: z.string().trim().min(10).max(512), timezone: z.string().trim().min(1).max(100), language });
+const webRegistration = z.object({ endpoint: z.string().url().max(2048), p256dh: z.string().min(10).max(512), auth: z.string().min(5).max(512), timezone: z.string().trim().min(1).max(100), language });
 
 export class NotificationController {
   static async register(req: Request, res: Response) {
     try {
-      const { token, timezone, language, userId } = req.body;
-
-      if (!token || !timezone) {
-        return res.status(400).json({ error: 'Token and timezone are required' });
-      }
+      const data = mobileRegistration.parse(req.body);
 
       await NotificationService.registerDevice({
-        token,
-        timezone,
-        language: language || 'tr',
-        userId
+        ...data,
+        userId: req.user?.userId,
       });
 
       res.status(200).json({ message: 'Device registered successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: 'Invalid registration', issues: error.issues });
       console.error('Registration error:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Device registration failed' });
     }
   }
 
   static async registerWeb(req: Request, res: Response) {
     try {
-      const { endpoint, p256dh, auth, timezone, language, userId } = req.body;
-
-      if (!endpoint || !p256dh || !auth || !timezone) {
-        return res.status(400).json({ error: 'Endpoint, p256dh, auth and timezone are required' });
-      }
+      const data = webRegistration.parse(req.body);
 
       await NotificationService.registerWebSubscription({
-        endpoint,
-        p256dh,
-        auth,
-        timezone,
-        language: language || 'tr',
-        userId
+        ...data,
+        userId: req.user?.userId,
       });
 
       res.status(200).json({ message: 'Web subscription registered successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: 'Invalid subscription', issues: error.issues });
       console.error('Web registration error:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error && error.message === 'WEB_PUSH_NOT_CONFIGURED' ? error.message : 'Web registration failed' });
     }
   }
 

@@ -10,6 +10,7 @@ import {
     Modal,
     Alert,
     ActivityIndicator,
+    Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,8 @@ import {
     Pause,
     Type,
     FileText,
+    ShieldCheck,
+    LifeBuoy,
 } from 'lucide-react-native';
 import { Audio } from 'expo-av';
 import { Colors } from '../constants/colors';
@@ -32,6 +35,7 @@ import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationService } from '../services/notificationService';
+import { AnalyticsService } from '../services/analyticsService';
 
 // Arapca kullanicilar icin meal dilinden hariclenenler
 const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => l !== 'ar');
@@ -69,6 +73,11 @@ export default function SettingsScreen() {
     const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
     const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+
+    useEffect(() => {
+        AnalyticsService.isEnabled().then(setAnalyticsEnabled);
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -341,6 +350,31 @@ export default function SettingsScreen() {
                             </View>
                         </View>
                         <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.sectionHeader, { color: theme.muted }]}>
+                    {t('settings.privacy_section', 'Gizlilik ve Destek')}
+                </Text>
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <View style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(52, 199, 89, 0.12)' }]}><ShieldCheck size={20} color="#34C759" /></View>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.analytics_title', 'Anonim kullanım analitiği')}</Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>{t('settings.analytics_desc', 'Mesaj içeriği ve reklam kimliği toplamadan uygulamayı geliştirmemize yardımcı olur.')}</Text>
+                            </View>
+                        </View>
+                        <Switch value={analyticsEnabled} onValueChange={(enabled) => { setAnalyticsEnabled(enabled); void AnalyticsService.setEnabled(enabled); }} trackColor={{ false: theme.border, true: theme.primary }} thumbColor="#fff" />
+                    </View>
+                    <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/privacy?lang=${language}`)}>
+                        <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}><FileText size={20} color="#0A84FF" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.privacy_policy', 'Gizlilik Politikası')}</Text></View><ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/sources?lang=${language}`)}>
+                        <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 159, 10, 0.12)' }]}><BookOpen size={20} color="#FF9F0A" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.sources', 'Kaynaklar ve Atıflar')}</Text></View><ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.row} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/support?lang=${language}`)}>
+                        <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(175, 82, 222, 0.12)' }]}><LifeBuoy size={20} color="#AF52DE" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.support', 'Destek')}</Text></View><ChevronRight size={18} color={theme.muted} />
                     </TouchableOpacity>
                 </View>
 

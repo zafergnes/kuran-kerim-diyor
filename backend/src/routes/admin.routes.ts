@@ -10,8 +10,13 @@ import {
   getPendingDeletions,
   getUsers,
   getComments,
-  approveComment
+  approveComment,
+  getProductAnalytics,
+  getAiFeedback,
+  getAdminAudit
 } from '../controllers/admin.controller';
+import { deleteAiSettings, getAiSettings, testAiSettings, updateAiSettings } from '../controllers/admin-settings.controller';
+import { listSupportRequests, updateSupportRequest } from '../controllers/support.controller';
 
 const router = Router();
 
@@ -23,6 +28,15 @@ router.get('/reports', getReports);
 router.get('/pending-deletions', getPendingDeletions);
 router.get('/users', getUsers);
 router.get('/comments', getComments);
+router.get('/analytics', getProductAnalytics);
+router.get('/ai-feedback', getAiFeedback);
+router.get('/audit', getAdminAudit);
+router.get('/settings/ai', getAiSettings);
+router.put('/settings/ai', updateAiSettings);
+router.post('/settings/ai/test', testAiSettings);
+router.delete('/settings/ai', deleteAiSettings);
+router.get('/support-requests', listSupportRequests);
+router.patch('/support-requests/:id', updateSupportRequest);
 router.post('/reports/:id/dismiss', dismissReport);
 router.post('/comments/:id/remove', removeComment);
 router.post('/comments/:id/approve', approveComment);

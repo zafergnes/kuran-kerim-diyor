@@ -1,7 +1,10 @@
 import { prisma } from './src/utils/prisma';
 
 async function makeAdmin() {
-  const email = 'eneesakcaa@gmail.com';
+  const email = process.env.ADMIN_EMAIL;
+  if (!email) {
+    throw new Error('ADMIN_EMAIL is required');
+  }
   try {
     await prisma.user.update({
       where: { email },

@@ -2,7 +2,8 @@ import { Stack } from 'expo-router';
 import { useFonts, Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
 import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
 import { CelebrationModal } from '../components/CelebrationModal';
@@ -11,6 +12,7 @@ import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { AnalyticsService } from '../services/analyticsService';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,6 +25,9 @@ export default function RootLayout() {
         NotoNaskhArabic_700Bold,
     });
     const router = useRouter();
+    const segments = useSegments();
+    const currentScreen = segments.join('/') || 'root';
+    const currentScreenRef = useRef(currentScreen);
 
     useEffect(() => {
         if (!loaded && !error) return;
@@ -55,8 +60,6 @@ export default function RootLayout() {
         if (!isExpoGo) {
             try {
                 const Notifications = require('expo-notifications');
-                const { NotificationService } = require('../services/notificationService');
-
                 Notifications.setNotificationHandler({
                     handleNotification: async () => ({
                         shouldShowAlert: true,
@@ -66,8 +69,6 @@ export default function RootLayout() {
                         shouldShowList: true,
                     }),
                 });
-
-                NotificationService.registerForPushNotifications();
 
                 notificationListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
                     const data = response.notification.request.content.data;
@@ -95,12 +96,6 @@ export default function RootLayout() {
         }
 
         checkFirstLaunch();
-
-        return () => {
-            if (notificationListener) {
-                notificationListener.remove();
-            }
-        };
 
         // Listen to Auth State Globally using our API
         const checkAuth = async () => {
@@ -139,7 +134,29 @@ export default function RootLayout() {
         };
 
         checkAuth();
+
+        return () => {
+            if (notificationListener) {
+                notificationListener.remove();
+            }
+        };
     }, [loaded, error]);
+
+    useEffect(() => {
+        if (!loaded) return;
+        void AnalyticsService.track('APP_OPEN', { screen: currentScreenRef.current });
+        const subscription = AppState.addEventListener('change', (state) => {
+            if (state === 'background' || state === 'inactive') {
+                void AnalyticsService.track('APP_BACKGROUND', { screen: currentScreenRef.current, throttleMs: 5000 });
+            }
+        });
+        return () => subscription.remove();
+    }, [loaded]);
+
+    useEffect(() => {
+        currentScreenRef.current = currentScreen;
+        if (loaded) void AnalyticsService.track('SCREEN_VIEW', { screen: currentScreen, throttleMs: 1000 });
+    }, [loaded, currentScreen]);
 
     if (!loaded && !error) {
         return null;

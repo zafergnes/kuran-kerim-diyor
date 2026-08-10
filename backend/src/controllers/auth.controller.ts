@@ -6,7 +6,7 @@ import { generateTokens, verifyRefreshToken } from '../utils/jwt';
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8).max(128),
   name: z.string().optional(),
 });
 
@@ -56,7 +56,7 @@ export const register = async (req: Request, res: Response) => {
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().max(128),
 });
 
 export const login = async (req: Request, res: Response) => {
@@ -158,7 +158,15 @@ export const refresh = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid or expired refresh token' });
     }
 
-    const tokens = generateTokens({ userId: decoded.userId, isGuest: decoded.isGuest });
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, isGuest: true, isBanned: true, isDeleted: true },
+    });
+    if (!user || user.isBanned || user.isDeleted) {
+      return res.status(401).json({ message: 'Account is unavailable' });
+    }
+
+    const tokens = generateTokens({ userId: user.id, isGuest: user.isGuest });
 
     res.json(tokens);
   } catch (error) {

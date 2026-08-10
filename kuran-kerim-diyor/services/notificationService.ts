@@ -6,6 +6,25 @@ import { useUserStore } from '../store/userStore';
 
 export class NotificationService {
   /**
+   * Mevcut izin zaten verilmişse token/dil bilgisini yeniler.
+   * Ayarlar veya dil değişikliği gibi dolaylı eylemlerde izin penceresi açmaz.
+   */
+  static async refreshRegistrationIfGranted() {
+    const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (isExpoGo || Platform.OS === 'web') return null;
+
+    try {
+      const Notifications = require('expo-notifications');
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') return null;
+      return await this.registerForPushNotifications();
+    } catch (error) {
+      console.error('[NotificationService] Registration refresh failed:', error);
+      return null;
+    }
+  }
+
+  /**
    * Bildirim izinlerini ister ve token'ı sunucuya kaydeder
    */
   static async registerForPushNotifications() {
@@ -74,7 +93,7 @@ export class NotificationService {
           language,
           userId
         });
-        console.log('[NotificationService] Registered with token:', token);
+        console.log('[NotificationService] Push registration completed.');
       } catch (error) {
         console.error('[NotificationService] Registration failed:', error);
       }
@@ -122,4 +141,3 @@ export class NotificationService {
     }
   }
 }
-

@@ -143,9 +143,9 @@ export const useUserStore = create<UserState>((set, get) => ({
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@app_language', lang);
         });
-        // Sunucudaki bildirim dilini de anında güncelle
+        // İzin zaten verilmişse sunucudaki bildirim dilini güncelle; izin isteme.
         import('../services/notificationService').then(({ NotificationService }) => {
-            NotificationService.registerForPushNotifications().catch(() => {});
+            NotificationService.refreshRegistrationIfGranted().catch(() => {});
         });
     },
     setProgress: async (surah, ayah, ayahCount) => {
@@ -160,6 +160,13 @@ export const useUserStore = create<UserState>((set, get) => ({
         if (shouldIncrement) {
             const key = `${surah}:${ayah}`;
             nextReadCounts[key] = (nextReadCounts[key] || 0) + 1;
+            import('../services/analyticsService').then(({ AnalyticsService }) => {
+                void AnalyticsService.track('READING_PROGRESS', {
+                    screen: 'quran_reader',
+                    metadata: { surah, ayah, uniqueAyahs: Object.keys(nextReadCounts).length },
+                    throttleMs: 30000,
+                });
+            });
         }
 
         // Determine completion of Surah

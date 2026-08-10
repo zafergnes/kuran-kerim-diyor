@@ -11,7 +11,7 @@
     "slide2_title": "Ihr Fortschritt ist sicher",
     "slide2_desc": "Wenn Sie ein Konto erstellen, wird Ihr Lesefortschritt in der Cloud gespeichert. Verlieren Sie nie Ihren Platz, auch wenn Sie Ihr Gerät wechseln.",
     "slide3_title": "Mit der Community teilen",
-    "slide3_desc": "Hören Sie sich Verse an und teilen Sie Ihre Gefühle anonym und sofort mit anderen Lesern.",
+    "slide3_desc": "Teilen Sie mit Ihrem Konto Gedanken zu Versen. Der Name kann verborgen werden; Kommentare werden zum Schutz der Community geprüft.",
     "slide4_title": "Leselayout",
     "slide4_desc": "Wie möchten Sie den Koran lesen? Sie können dies später in den Einstellungen ändern.",
     "btn_continue": "Weiter",
@@ -59,11 +59,11 @@
     "invalid_credential": "Ungültige E-Mail oder Passwort.",
     "user_not_found": "Kein Benutzer mit dieser E-Mail gefunden.",
     "email_in_use": "Diese E-Mail ist bereits registriert.",
-    "weak_password": "Passwort zu schwach (mind. 6 Zeichen).",
+    "weak_password": "Passwort zu schwach (mind. 8 Zeichen).",
     "network_failed": "Bitte überprüfen Sie Ihre Internetverbindung.",
     "cancelled": "Vorgang vom Benutzer abgebrochen.",
     "generic": "Ein Fehler ist aufgetreten: {{message}}",
-    "min_password": "Das Passwort muss mindestens 6 Zeichen lang sein."
+    "min_password": "Das Passwort muss mindestens 8 Zeichen lang sein."
   },
   "favorites": {
     "create_new_collection": "Neuer Sammlungsname...",
@@ -81,6 +81,7 @@
     "ayah_count": "{{count}} Verse"
   },
   "comments": {
+    "login_to_like": "Zum Liken von Kommentaren musst du dich anmelden.",
     "my_comments_desc": "Ihre Kommentare und deren Moderationsstatus.",
     "title": "Kommentare",
     "status_preparing": "Vorbereitung der Veröffentlichung...",
@@ -188,7 +189,11 @@
     "script_diyanet": "Diyanet-Orthographie (Offenes Alif)",
     "script_uthmani": "Medina-Orthographie (Uthmani)",
     "script_diyanet_short": "Diyanet-Stil",
-    "script_uthmani_short": "Medina-Stil"
+    "script_uthmani_short": "Medina-Stil",
+    "legal_section": "Datenschutz und Quellen",
+    "privacy_policy": "Datenschutzerklärung",
+    "sources": "Quellen und Namensnennungen",
+    "support": "Support"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -251,5 +256,32 @@
     "modal_title": "Herzlichen Glückwunsch!",
     "modal_subtitle": "Ein neuer Erfolg wurde freigeschaltet!",
     "modal_close": "Großartig"
+  },
+  "verse_chat": {
+    "title": "Über den Vers sprechen",
+    "suggestion_meaning": "Was ist die Kernaussage?",
+    "suggestion_context": "Kannst du den Kontext erklären?",
+    "disclaimer": "KI-Antworten dienen der Reflexion und Bildung; sie sind keine Übersetzung oder Fatwa.",
+    "placeholder": "Frage zu diesem Vers...",
+    "error_title": "Antwort konnte nicht erstellt werden",
+    "error_message": "Bitte Verbindung prüfen und erneut versuchen.",
+    "rate_limited": "Zu viele Fragen. Bitte versuche es später erneut.",
+    "report": "Antwort melden",
+    "report_title": "Antwort melden",
+    "report_inaccurate": "Falsch oder unbelegt",
+    "report_unsafe": "Problematisch oder verletzend",
+    "send": "Senden"
+  },
+  "community": {
+    "terms_title": "Community-Regeln",
+    "terms_message": "Akzeptiere vor deinem ersten Kommentar die Regeln für respektvolle Kommunikation und die Nutzungsbedingungen.",
+    "read_terms": "Bedingungen lesen",
+    "accept_terms": "Akzeptieren",
+    "report_abuse": "Beleidigung/Hass",
+    "report_misinformation": "Irreführender religiöser Inhalt",
+    "report_received": "Deine Meldung wird geprüft.",
+    "action_error": "Die Aktion konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
+    "block_user": "Blockieren",
+    "block_message": "Du wirst die Kommentare dieses Nutzers nicht mehr sehen. Blockieren?"
   }
 }

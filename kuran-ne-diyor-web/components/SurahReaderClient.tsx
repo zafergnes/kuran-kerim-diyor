@@ -9,7 +9,7 @@ import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { getPageFromSurahAyah } from "@/services/quranHelpers";
 import { GlobalAudioController } from "@/services/globalAudioController";
-import type { Surah } from "@/types/quran";
+import type { Ayah, Surah } from "@/types/quran";
 
 const reciterNames: Record<string, string> = {
   "ar.alafasy": "Mishary Rashid",
@@ -46,7 +46,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
   const [isPageAudioLoading, setIsPageAudioLoading] = useState<boolean>(false);
   const pageAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const playPageAyah = async (pageNum: number, pageAyahs: any[], index: number) => {
+  const playPageAyah = async (pageNum: number, pageAyahs: Ayah[], index: number) => {
     const ownerId = `page_${pageNum}`;
     if (index < 0 || index >= pageAyahs.length) {
       setPlayingPageNum(null);
@@ -102,7 +102,7 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
     }
   };
 
-  const togglePagePlay = async (pageNum: number, pageAyahs: any[]) => {
+  const togglePagePlay = async (pageNum: number, pageAyahs: Ayah[]) => {
     if (pageAyahs.length === 0) return;
     const ownerId = `page_${pageNum}`;
 
@@ -167,18 +167,22 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
 
   // Reset page audio when selectedReciter or layout changes
   useEffect(() => {
-    if (playingPageNum) {
-      GlobalAudioController.stop(`page_${playingPageNum}`);
-    }
-    if (pageAudioRef.current) {
-      pageAudioRef.current.pause();
-      pageAudioRef.current = null;
-    }
-    setPlayingPageNum(null);
-    setPlayingAyahIndex(-1);
-    setIsPagePlaying(false);
-    setPageAudioProgress(0);
-    setIsPageAudioLoading(false);
+    queueMicrotask(() => {
+      if (playingPageNum) {
+        GlobalAudioController.stop(`page_${playingPageNum}`);
+      }
+      if (pageAudioRef.current) {
+        pageAudioRef.current.pause();
+        pageAudioRef.current = null;
+      }
+      setPlayingPageNum(null);
+      setPlayingAyahIndex(-1);
+      setIsPagePlaying(false);
+      setPageAudioProgress(0);
+      setIsPageAudioLoading(false);
+    });
+    // Playback state is intentionally reset only when the reciter or layout changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedReciter, readingLayout]);
 
   // Clean up page audio on unmount

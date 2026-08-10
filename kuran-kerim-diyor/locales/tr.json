@@ -11,7 +11,7 @@
     "slide2_title": "Kaldığınız Yer Güvende",
     "slide2_desc": "Hesap oluşturduğunuzda ilerlemeniz buluta kaydedilir. Cihaz değiştirseniz bile kaldığınız yeri kaybetmezsiniz.",
     "slide3_title": "Toplulukla Paylaşın",
-    "slide3_desc": "Ayetleri dinleyin, hislerinizi isimsiz (anonim) bir şekilde diğer okurlarla anında paylaşın.",
+    "slide3_desc": "Hesabınızla ayetler üzerine düşüncelerinizi paylaşın. İsterseniz adınızı gizleyin; yorumlar topluluk güvenliği için incelenir.",
     "slide4_title": "Okuma Düzeni",
     "slide4_desc": "Kur'an-ı Kerim'i nasıl okumak istersiniz? Daha sonra ayarlardan değiştirebilirsiniz.",
     "btn_continue": "Devam Et",
@@ -59,11 +59,11 @@
     "invalid_credential": "E-posta veya şifre hatalı.",
     "user_not_found": "Böyle bir kullanıcı bulunamadı.",
     "email_in_use": "Bu e-posta adresi ile zaten kayıt olunmuş.",
-    "weak_password": "Şifreniz çok zayıf (En az 6 karakter olmalı).",
+    "weak_password": "Şifreniz çok zayıf (En az 8 karakter olmalı).",
     "network_failed": "İnternet bağlantınızı kontrol edip tekrar deneyin.",
     "cancelled": "Kullanıcı işlemi iptal etti.",
     "generic": "Bir hata oluştu: {{message}}",
-    "min_password": "Şifre en az 6 karakter olmalıdır."
+    "min_password": "Şifre en az 8 karakter olmalıdır."
   },
   "favorites": {
     "create_new_collection": "Yeni koleksiyon adı...",
@@ -117,6 +117,19 @@
     "login_prompt_desc": "Devam etmek için ücretsiz giriş yapmanız veya saniyeler içinde hesap oluşturmanız gerekiyor.",
     "login_button": "Hesap Oluştur / Giriş Yap",
     "login_to_like": "Yorumları beğenmek için giriş yapmalısınız.",
+    "login_to_report": "Yorum bildirmek için giriş yapmalısınız.",
+    "terms_title": "Topluluk Kuralları",
+    "terms_message": "Yorum göndererek saygılı iletişim kurallarını ve kullanım koşullarını kabul etmeniz gerekir.",
+    "read_terms": "Koşulları Oku",
+    "accept_terms": "Kabul Et",
+    "report": "Yorumu Bildir",
+    "report_message": "Bildirim nedenini seçin.",
+    "report_abuse": "Hakaret veya nefret",
+    "report_misinformation": "Yanıltıcı dini içerik",
+    "report_received": "Bildiriminiz alındı.",
+    "block_user": "Kullanıcıyı Engelle",
+    "block_message": "Bu kullanıcının yorumlarını artık görmeyeceksiniz.",
+    "block_confirm": "Engelle",
     "delete_confirm_title": "Yorumu Sil",
     "delete_confirm_message": "Bu yorumu silmek istediğinize emin misiniz?"
   },
@@ -189,7 +202,13 @@
     "script_diyanet": "Diyanet İmlası (Açık Elif)",
     "script_uthmani": "Medine İmlası (Uthmani)",
     "script_diyanet_short": "Diyanet İmlası",
-    "script_uthmani_short": "Medine İmlası"
+    "script_uthmani_short": "Medine İmlası",
+    "privacy_section": "Gizlilik ve Destek",
+    "analytics_title": "Anonim kullanım analitiği",
+    "analytics_desc": "Mesaj içeriği ve reklam kimliği toplamadan uygulamayı geliştirmemize yardımcı olur.",
+    "privacy_policy": "Gizlilik Politikası",
+    "sources": "Kaynaklar ve Atıflar",
+    "support": "Destek"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -252,5 +271,19 @@
     "modal_title": "Tebrikler!",
     "modal_subtitle": "Yeni bir başarı kilidi açıldı!",
     "modal_close": "Harika"
+  },
+  "verse_chat": {
+    "title": "Ayet Üzerine Konuş",
+    "suggestion_meaning": "Ana mesajı nedir?",
+    "suggestion_context": "Bağlamıyla açıklar mısın?",
+    "disclaimer": "AI yanıtları tefekkür ve eğitim içindir; meal veya fetva değildir.",
+    "placeholder": "Bu ayet hakkında sor...",
+    "error_title": "Yanıt oluşturulamadı",
+    "error_message": "Bağlantınızı kontrol edip tekrar deneyin.",
+    "rate_limited": "Çok fazla soru sordunuz. Lütfen biraz sonra tekrar deneyin.",
+    "report": "Yanıtı bildir",
+    "report_title": "Yanıtı bildir",
+    "report_inaccurate": "Hatalı veya kaynaksız",
+    "report_unsafe": "Sakıncalı veya kırıcı"
   }
 }

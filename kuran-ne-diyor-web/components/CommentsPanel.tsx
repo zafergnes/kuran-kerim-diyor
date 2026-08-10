@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { Flag, Heart, Reply, Send, Trash2 } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Flag, Heart, Reply, Send, Trash2, UserX } from "lucide-react";
 import apiClient from "@/services/apiClient";
 import { useComments } from "@/hooks/useComments";
 import { useUserStore } from "@/store/userStore";
@@ -10,11 +11,18 @@ import { useTranslation } from "react-i18next";
 export function CommentsPanel({ ayahId }: { ayahId: string }) {
   const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
-  const { comments, loading, error, addComment, deleteComment, toggleLike } = useComments(ayahId);
+  const language = useUserStore((state) => state.language);
+  const { comments, loading, error, addComment, deleteComment, toggleLike, refresh } = useComments(ayahId);
   const [text, setText] = useState("");
   const [replyToId, setReplyToId] = useState<number | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [formError, setFormError] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsPrompt, setShowTermsPrompt] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => setTermsAccepted(window.localStorage.getItem("community_terms_accepted") === "true"));
+  }, []);
 
   const maskName = (name: string): string => {
     if (!name) return 'A***';
@@ -51,6 +59,10 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!text.trim()) return;
+    if (!termsAccepted) {
+      setShowTermsPrompt(true);
+      return;
+    }
     setFormError(null);
 
     try {
@@ -62,10 +74,25 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
     }
   };
 
-  const reportComment = async (commentId: number) => {
-    const reason = window.prompt(t("comments.reportReason", "Sikayet nedeni"));
-    if (!reason?.trim()) return;
-    await apiClient.post("/reports", { commentId, reason: reason.trim() });
+  const reportComment = async (commentId: number, reason: "ABUSE_OR_HATE" | "RELIGIOUS_MISINFORMATION") => {
+    setFormError(null);
+    try {
+      await apiClient.post("/reports", { commentId, reason });
+      alert(t("community.report_received"));
+    } catch (caught) {
+      setFormError(caught instanceof Error ? caught.message : t("community.action_error"));
+    }
+  };
+
+  const blockUser = async (blockedUserId: string) => {
+    if (!window.confirm(t("community.block_message"))) return;
+    setFormError(null);
+    try {
+      await apiClient.post(`/users/blocks/${blockedUserId}`);
+      await refresh();
+    } catch (caught) {
+      setFormError(caught instanceof Error ? caught.message : t("community.action_error"));
+    }
   };
 
   const handleLikeClick = (commentId: number) => {
@@ -116,10 +143,11 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
               {t("comments.reply", "Yanitla")}
             </button>
             {user && !user.isGuest && !isMine && (
-              <button onClick={() => void reportComment(comment.id)} className="inline-flex items-center gap-1 text-xs font-bold text-muted">
-                <Flag size={15} />
-                {t("comments.report", "Sikayet")}
-              </button>
+              <>
+                <button onClick={() => void reportComment(comment.id, "ABUSE_OR_HATE")} className="inline-flex items-center gap-1 text-xs font-bold text-muted"><Flag size={15}/>{t("community.report_abuse")}</button>
+                <button onClick={() => void reportComment(comment.id, "RELIGIOUS_MISINFORMATION")} className="inline-flex items-center gap-1 text-xs font-bold text-muted"><Flag size={15}/>{t("community.report_misinformation")}</button>
+                <button onClick={() => void blockUser(comment.userId)} className="inline-flex items-center gap-1 text-xs font-bold text-muted"><UserX size={15}/>{t("community.block_user")}</button>
+              </>
             )}
           </div>
         </div>
@@ -158,6 +186,7 @@ export function CommentsPanel({ ayahId }: { ayahId: string }) {
       </div>
 
       <form onSubmit={submit} className="border-t border-border p-5">
+        {showTermsPrompt && <div className="mb-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-secondary"><p className="font-bold text-text">{t("community.terms_title")}</p><p className="mt-1 text-xs leading-5">{t("community.terms_message")}</p><div className="mt-2 flex items-center gap-3"><Link href={`/terms?lang=${language}`} target="_blank" className="text-xs font-bold text-primary underline">{t("community.read_terms")}</Link><button type="button" onClick={() => { window.localStorage.setItem("community_terms_accepted", "true"); setTermsAccepted(true); setShowTermsPrompt(false); }} className="rounded bg-primary px-3 py-1.5 text-xs font-bold text-white">{t("community.accept_terms")}</button></div></div>}
         {replyToId && (
           <div className="mb-3 flex items-center justify-between rounded-md bg-background px-3 py-2 text-xs font-bold text-muted">
             <span>{t("comments.replying", "Yanit yaziliyor")}</span>

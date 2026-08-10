@@ -11,7 +11,7 @@
     "slide2_title": "Votre progression est en sécurité",
     "slide2_desc": "Lorsque vous créez un compte, votre progression est enregistrée dans le cloud. Ne perdez jamais votre place, même si vous changez d'appareil.",
     "slide3_title": "Partager avec la communauté",
-    "slide3_desc": "Écoutez des versets et partagez vos sentiments de manière anonyme et instantanée avec d'autres lecteurs.",
+    "slide3_desc": "Utilisez votre compte pour partager vos réflexions. Vous pouvez masquer votre nom ; les commentaires sont examinés pour protéger la communauté.",
     "slide4_title": "Mise en page de lecture",
     "slide4_desc": "Comment souhaitez-vous lire le Coran ? Vous pourrez modifier cela plus tard dans les paramètres.",
     "btn_continue": "Continuer",
@@ -59,11 +59,11 @@
     "invalid_credential": "E-mail ou mot de passe invalide.",
     "user_not_found": "Aucun utilisateur trouvé avec cet e-mail.",
     "email_in_use": "Cet e-mail est déjà enregistré.",
-    "weak_password": "Mot de passe trop faible (min. 6 caractères).",
+    "weak_password": "Mot de passe trop faible (min. 8 caractères).",
     "network_failed": "Veuillez vérifier votre connexion Internet.",
     "cancelled": "Opération annulée par l'utilisateur.",
     "generic": "Une erreur s'est produite : {{message}}",
-    "min_password": "Le mot de passe doit comporter au moins 6 caractères."
+    "min_password": "Le mot de passe doit comporter au moins 8 caractères."
   },
   "favorites": {
     "create_new_collection": "Nouveau nom de collection...",
@@ -81,6 +81,7 @@
     "ayah_count": "{{count}} Versets"
   },
   "comments": {
+    "login_to_like": "Vous devez vous connecter pour aimer les commentaires.",
     "my_comments_desc": "Vos commentaires et statut de modération.",
     "title": "Commentaires",
     "status_preparing": "Préparation de la publication...",
@@ -188,7 +189,11 @@
     "script_diyanet": "Orthographe de Diyanet (Alif Ouvert)",
     "script_uthmani": "Orthographe de Médine (Uthmani)",
     "script_diyanet_short": "Style Diyanet",
-    "script_uthmani_short": "Style Médine"
+    "script_uthmani_short": "Style Médine",
+    "legal_section": "Confidentialité et sources",
+    "privacy_policy": "Politique de confidentialité",
+    "sources": "Sources et attributions",
+    "support": "Assistance"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -251,5 +256,32 @@
     "modal_title": "Félicitations!",
     "modal_subtitle": "Un nouveau succès a été débloqué!",
     "modal_close": "Génial"
+  },
+  "verse_chat": {
+    "title": "Discuter de ce verset",
+    "suggestion_meaning": "Quel est le message principal ?",
+    "suggestion_context": "Peux-tu expliquer le contexte ?",
+    "disclaimer": "Les réponses de l’IA servent à la réflexion et à l’apprentissage ; elles ne sont ni une traduction ni une fatwa.",
+    "placeholder": "Posez une question sur ce verset...",
+    "error_title": "Impossible de générer une réponse",
+    "error_message": "Vérifiez votre connexion et réessayez.",
+    "rate_limited": "Trop de questions. Réessayez dans quelques instants.",
+    "report": "Signaler la réponse",
+    "report_title": "Signaler la réponse",
+    "report_inaccurate": "Inexacte ou sans source",
+    "report_unsafe": "Inappropriée ou offensante",
+    "send": "Envoyer"
+  },
+  "community": {
+    "terms_title": "Règles de la communauté",
+    "terms_message": "Avant votre premier commentaire, acceptez les règles de respect et les conditions d’utilisation.",
+    "read_terms": "Lire les conditions",
+    "accept_terms": "Accepter",
+    "report_abuse": "Insulte/haine",
+    "report_misinformation": "Contenu religieux trompeur",
+    "report_received": "Votre signalement sera examiné.",
+    "action_error": "L’action n’a pas pu être effectuée. Veuillez réessayer.",
+    "block_user": "Bloquer",
+    "block_message": "Vous ne verrez plus les commentaires de cet utilisateur. Le bloquer ?"
   }
 }

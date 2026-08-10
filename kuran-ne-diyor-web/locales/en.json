@@ -11,7 +11,7 @@
     "slide2_title": "Your Progress is Safe",
     "slide2_desc": "When you create an account, your progress is saved to the cloud. Never lose your place even if you change devices.",
     "slide3_title": "Share with the Community",
-    "slide3_desc": "Listen to verses and share your feelings anonymously with other readers instantly.",
+    "slide3_desc": "Use your account to share reflections on verses. You may hide your name, and comments are reviewed for community safety.",
     "slide4_title": "Reading Layout",
     "slide4_desc": "How would you like to read the Quran? You can change this later in settings.",
     "btn_continue": "Continue",
@@ -59,11 +59,11 @@
     "invalid_credential": "Invalid email or password.",
     "user_not_found": "No user found with this email.",
     "email_in_use": "This email is already registered.",
-    "weak_password": "Password is too weak (min. 6 characters).",
+    "weak_password": "Password is too weak (min. 8 characters).",
     "network_failed": "Please check your internet connection and try again.",
     "cancelled": "User cancelled the operation.",
     "generic": "An error occurred: {{message}}",
-    "min_password": "Password must be at least 6 characters."
+    "min_password": "Password must be at least 8 characters."
   },
   "favorites": {
     "create_new_collection": "New collection name...",
@@ -189,7 +189,11 @@
     "script_diyanet": "Diyanet Orthography (Open Alif)",
     "script_uthmani": "Medina Orthography (Uthmani)",
     "script_diyanet_short": "Diyanet Style",
-    "script_uthmani_short": "Medina Style"
+    "script_uthmani_short": "Medina Style",
+    "legal_section": "Privacy and Sources",
+    "privacy_policy": "Privacy Policy",
+    "sources": "Sources and Attributions",
+    "support": "Support"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -252,5 +256,32 @@
     "modal_title": "Congratulations!",
     "modal_subtitle": "A new achievement unlocked!",
     "modal_close": "Great"
+  },
+  "verse_chat": {
+    "title": "Discuss This Verse",
+    "suggestion_meaning": "What is the main message?",
+    "suggestion_context": "Can you explain the context?",
+    "disclaimer": "AI responses support reflection and learning; they are not translation or religious rulings.",
+    "placeholder": "Ask about this verse...",
+    "error_title": "Could not generate a response",
+    "error_message": "Check your connection and try again.",
+    "rate_limited": "You have asked many questions. Please try again shortly.",
+    "report": "Report response",
+    "report_title": "Report response",
+    "report_inaccurate": "Inaccurate or unsupported",
+    "report_unsafe": "Unsafe or offensive",
+    "send": "Send"
+  },
+  "community": {
+    "terms_title": "Community Rules",
+    "terms_message": "Before your first comment, accept the respectful communication rules and Terms of Use.",
+    "read_terms": "Read Terms",
+    "accept_terms": "Accept",
+    "report_abuse": "Abuse/hate",
+    "report_misinformation": "Misleading religious content",
+    "report_received": "Your report was submitted for review.",
+    "action_error": "The action could not be completed. Please try again.",
+    "block_user": "Block",
+    "block_message": "You will no longer see this user's comments. Block this user?"
   }
 }

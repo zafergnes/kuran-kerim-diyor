@@ -11,7 +11,7 @@
     "slide2_title": "Tu progreso está a salvo",
     "slide2_desc": "Cuando creas una cuenta, tu progreso de lectura se guarda en la nube. Nunca pierdas tu lugar, incluso si cambias de dispositivo.",
     "slide3_title": "Comparte con la comunidad",
-    "slide3_desc": "Escucha versículos y comparte tus sentimientos de forma anónima con otros lectores al instante.",
+    "slide3_desc": "Usa tu cuenta para compartir reflexiones sobre las aleyas. Puedes ocultar tu nombre; los comentarios se revisan para proteger a la comunidad.",
     "slide4_title": "Diseño de lectura",
     "slide4_desc": "¿Cómo te gustaría leer el Corán? Puedes cambiar esto más adelante en la configuración.",
     "btn_continue": "Continuar",
@@ -59,11 +59,11 @@
     "invalid_credential": "Correo electrónico o contraseña inválidos.",
     "user_not_found": "No se encontró ningún usuario con este correo.",
     "email_in_use": "Este correo electrónico ya está registrado.",
-    "weak_password": "La contraseña es demasiado débil (mín. 6 caracteres).",
+    "weak_password": "La contraseña es demasiado débil (mín. 8 caracteres).",
     "network_failed": "Por favor, comprueba tu conexión a Internet.",
     "cancelled": "Operación cancelada por el usuario.",
     "generic": "Se produjo un error: {{message}}",
-    "min_password": "La contraseña debe tener al menos 6 caracteres."
+    "min_password": "La contraseña debe tener al menos 8 caracteres."
   },
   "favorites": {
     "create_new_collection": "Nuevo nombre de colección...",
@@ -116,6 +116,20 @@
     "login_prompt_title": "¿Quieres compartir tus pensamientos?",
     "login_prompt_desc": "Inicia sesión gratis o crea una cuenta en segundos para continuar.",
     "login_button": "Crear cuenta / Iniciar sesión",
+    "login_to_like": "Debes iniciar sesión para indicar que te gusta un comentario.",
+    "login_to_report": "Debes iniciar sesión para reportar comentarios.",
+    "terms_title": "Reglas de la comunidad",
+    "terms_message": "Antes de publicar debes aceptar las reglas de comunicación respetuosa y las condiciones de uso.",
+    "read_terms": "Leer condiciones",
+    "accept_terms": "Aceptar",
+    "report": "Reportar comentario",
+    "report_message": "Elige el motivo del reporte.",
+    "report_abuse": "Insulto u odio",
+    "report_misinformation": "Contenido religioso engañoso",
+    "report_received": "Hemos recibido tu reporte.",
+    "block_user": "Bloquear usuario",
+    "block_message": "Ya no verás los comentarios de este usuario.",
+    "block_confirm": "Bloquear",
     "delete_confirm_title": "Eliminar comentario",
     "delete_confirm_message": "¿Estás seguro de que quieres eliminar este comentario?"
   },
@@ -188,7 +202,13 @@
     "script_diyanet": "Ortografía de Diyanet (Alif Abierta)",
     "script_uthmani": "Ortografía de Medina (Uthmani)",
     "script_diyanet_short": "Estilo Diyanet",
-    "script_uthmani_short": "Estilo Medina"
+    "script_uthmani_short": "Estilo Medina",
+    "privacy_section": "Privacidad y soporte",
+    "analytics_title": "Análisis de uso anónimo",
+    "analytics_desc": "Nos ayuda a mejorar sin recopilar mensajes ni identificadores publicitarios.",
+    "privacy_policy": "Política de privacidad",
+    "sources": "Fuentes y atribuciones",
+    "support": "Soporte"
   },
   "reciters": {
     "ar_alafasy_name": "Mishary Rashid Al-Afasy",
@@ -251,5 +271,19 @@
     "modal_title": "¡Felicitaciones!",
     "modal_subtitle": "¡Has desbloqueado un nuevo logro!",
     "modal_close": "Estupendo"
+  },
+  "verse_chat": {
+    "title": "Conversar sobre esta aleya",
+    "suggestion_meaning": "¿Cuál es el mensaje principal?",
+    "suggestion_context": "¿Puedes explicar el contexto?",
+    "disclaimer": "Las respuestas de IA sirven para reflexionar y aprender; no son una traducción ni una fetua.",
+    "placeholder": "Pregunta sobre esta aleya...",
+    "error_title": "No se pudo generar una respuesta",
+    "error_message": "Comprueba tu conexión e inténtalo de nuevo.",
+    "rate_limited": "Has hecho muchas preguntas. Inténtalo de nuevo más tarde.",
+    "report": "Reportar respuesta",
+    "report_title": "Reportar respuesta",
+    "report_inaccurate": "Incorrecta o sin respaldo",
+    "report_unsafe": "Inapropiada u ofensiva"
   }
 }

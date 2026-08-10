@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, useColorScheme, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, useColorScheme, Alert, RefreshControl, Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../constants/colors';
 import { useComments } from '../hooks/useComments';
 import { useUserStore } from '../store/userStore';
-import { Heart, MessageSquare, Trash2, Reply, Send } from 'lucide-react-native';
+import { Heart, Trash2, Reply, Send, Flag, UserX } from 'lucide-react-native';
 import { maskName } from '../utils/privacy';
 
 interface CommentSheetProps {
@@ -27,9 +28,14 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
     const [selectedLanguage, setSelectedLanguage] = useState<string | 'all'>('all');
     const [replyToId, setReplyToId] = useState<string | null>(null);
     const [expandedThreads, setExpandedThreads] = useState<Record<string, boolean>>({});
+    const [communityTermsAccepted, setCommunityTermsAccepted] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
     // Otomatik Yenileme (Polling): Bekleyen yorum varsa her 10 sn'de bir tazele
+    useEffect(() => {
+        AsyncStorage.getItem('@community_terms_accepted').then(value => setCommunityTermsAccepted(value === 'true'));
+    }, []);
+
     useEffect(() => {
         const hasPending = comments.some(c => c.status === 'PENDING');
         if (!hasPending) return;
@@ -119,7 +125,7 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
         return `${dd}/${mm}/${yyyy}`;
     };
 
-    const handleSend = async () => {
+    const submitComment = async () => {
         if (!text.trim() || !isRealUser) return;
         const currentText = text.trim();
         const currentReplyToId = replyToId;
@@ -136,6 +142,51 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
             setText(currentText);
             setReplyToId(currentReplyToId);
         }
+    };
+
+    const handleSend = () => {
+        if (communityTermsAccepted) {
+            void submitComment();
+            return;
+        }
+        Alert.alert(
+            t('comments.terms_title', 'Topluluk Kuralları'),
+            t('comments.terms_message', 'Yorum göndererek saygılı iletişim kurallarını ve kullanım koşullarını kabul etmeniz gerekir.'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('comments.read_terms', 'Koşulları Oku'), onPress: () => void Linking.openURL(`https://kurannediyor.com.tr/terms?lang=${language}`) },
+                { text: t('comments.accept_terms', 'Kabul Et'), onPress: async () => { await AsyncStorage.setItem('@community_terms_accepted', 'true'); setCommunityTermsAccepted(true); await submitComment(); } },
+            ],
+        );
+    };
+
+    const handleReport = (commentId: number) => {
+        if (!isRealUser) {
+            Alert.alert(t('comments.login_prompt_title'), t('comments.login_to_report', 'Yorum bildirmek için giriş yapmalısınız.'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('profile.login'), onPress: () => router.push('/(tabs)/profile') },
+            ]);
+            return;
+        }
+        Alert.alert(t('comments.report', 'Yorumu Bildir'), t('comments.report_message', 'Bildirim nedenini seçin.'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('comments.report_abuse', 'Hakaret veya nefret'), onPress: async () => { const { default: apiClient } = await import('../services/apiClient'); await apiClient.post('/reports', { commentId, reason: 'ABUSE_OR_HATE' }); Alert.alert(t('comments.report_received', 'Bildiriminiz alındı.')); } },
+            { text: t('comments.report_misinformation', 'Yanıltıcı dini içerik'), onPress: async () => { const { default: apiClient } = await import('../services/apiClient'); await apiClient.post('/reports', { commentId, reason: 'RELIGIOUS_MISINFORMATION' }); Alert.alert(t('comments.report_received', 'Bildiriminiz alındı.')); } },
+        ]);
+    };
+
+    const handleBlock = (blockedUserId: string) => {
+        if (!isRealUser) {
+            Alert.alert(t('comments.login_prompt_title'), t('comments.login_to_report', 'Kullanıcı engellemek için giriş yapmalısınız.'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('profile.login'), onPress: () => router.push('/(tabs)/profile') },
+            ]);
+            return;
+        }
+        Alert.alert(t('comments.block_user', 'Kullanıcıyı Engelle'), t('comments.block_message', 'Bu kullanıcının yorumlarını artık görmeyeceksiniz.'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('comments.block_confirm', 'Engelle'), style: 'destructive', onPress: async () => { const { default: apiClient } = await import('../services/apiClient'); await apiClient.post(`/users/blocks/${blockedUserId}`); await refresh(false); } },
+        ]);
     };
 
     const handleDelete = (id: string) => {
@@ -258,6 +309,13 @@ export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
                                         <Reply size={16} color={theme.muted} />
                                         <Text style={[styles.actionText, { color: theme.muted }]}>{t('comments.reply')}</Text>
                                     </TouchableOpacity>
+                                )}
+
+                                {userId !== item.userId && !item.isDeletedUser && !item.isDeletedMod && (
+                                    <>
+                                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleReport(Number(item.id))} accessibilityLabel={t('comments.report', 'Yorumu Bildir')}><Flag size={15} color={theme.muted} /></TouchableOpacity>
+                                        {isRealUser && <TouchableOpacity style={styles.actionBtn} onPress={() => handleBlock(String(item.userId))} accessibilityLabel={t('comments.block_user', 'Kullanıcıyı Engelle')}><UserX size={15} color={theme.muted} /></TouchableOpacity>}
+                                    </>
                                 )}
 
                                 {userId === item.userId && !item.isDeletedUser && !item.isDeletedMod ? (

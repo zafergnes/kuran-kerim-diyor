@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useUserStore } from "@/store/userStore";
 import { useTranslation } from "react-i18next";
 import { Award, Star, X } from "lucide-react";
@@ -9,23 +9,10 @@ export function CelebrationModal() {
   const { t } = useTranslation();
   const activeCelebration = useUserStore((state) => state.activeCelebration);
   const setActiveCelebration = useUserStore((state) => state.setActiveCelebration);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (activeCelebration) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
-  }, [activeCelebration]);
-
-  if (!activeCelebration || !isVisible) return null;
+  if (!activeCelebration) return null;
 
   const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(() => {
-      setActiveCelebration(null);
-    }, 200);
+    setActiveCelebration(null);
   };
 
   return (

@@ -1,5 +1,21 @@
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
+import { Prisma } from '@prisma/client';
+import { calculateProductAnalytics } from '../services/product-analytics.service';
+
+const writeAudit = (req: Request, action: string, targetType: string, targetId: string, details?: Record<string, unknown>) =>
+  prisma.adminAudit.create({
+    data: { adminUserId: req.user!.userId, action, targetType, targetId, details: details as Prisma.InputJsonValue | undefined },
+  });
+
+const syncCommentCount = async (ayahId: string) => {
+  const commentCount = await prisma.comment.count({ where: { ayahId, isDeleted: false, status: 'APPROVED' } });
+  await prisma.ayahStat.upsert({
+    where: { ayahId },
+    update: { commentCount },
+    create: { ayahId, commentCount },
+  });
+};
 
 export const getAdminStats = async (req: Request, res: Response) => {
   try {
@@ -65,6 +81,7 @@ export const dismissReport = async (req: Request, res: Response) => {
     }
 
     await prisma.report.delete({ where: { id: reportId } });
+    await writeAudit(req, 'REPORT_DISMISSED', 'Report', String(reportId), { penalizeReporter: !!penalizeReporter });
 
     res.json({ message: 'Report dismissed successfully' });
   } catch (error) {
@@ -94,13 +111,8 @@ export const removeComment = async (req: Request, res: Response) => {
       where: { commentId }
     });
 
-    // Decrement Comment Count on AyahStat
-    await prisma.ayahStat.update({
-      where: { ayahId: comment.ayahId },
-      data: { commentCount: { decrement: 1 } }
-    }).catch(() => {
-      // Ignore if stat record does not exist
-    });
+    await syncCommentCount(comment.ayahId);
+    await writeAudit(req, 'COMMENT_REMOVED', 'Comment', String(commentId), { reason: reason || 'Topluluk Kuralları İhlali' });
 
     res.json({ message: 'Comment removed and reports deleted successfully' });
   } catch (error) {
@@ -122,6 +134,7 @@ export const banUser = async (req: Request, res: Response) => {
       where: { id: userId },
       data: { isBanned: !!isBanned }
     });
+    await writeAudit(req, isBanned ? 'USER_BANNED' : 'USER_UNBANNED', 'User', userId);
 
     res.json({ message: `User status updated successfully. Banned: ${!!isBanned}` });
   } catch (error) {
@@ -161,7 +174,7 @@ export const getUsers = async (req: Request, res: Response) => {
     const search = req.query.search as string || '';
     const filter = req.query.filter as string || '';
 
-    const whereClause: any = {};
+    const whereClause: Prisma.UserWhereInput = {};
 
     if (search) {
       whereClause.OR = [
@@ -207,7 +220,7 @@ export const getComments = async (req: Request, res: Response) => {
     const search = req.query.search as string || '';
     const status = req.query.status as string || '';
 
-    const whereClause: any = {
+    const whereClause: Prisma.CommentWhereInput = {
       isDeleted: false
     };
 
@@ -257,17 +270,79 @@ export const approveComment = async (req: Request, res: Response) => {
       }
     });
 
-    if (comment.status === 'REMOVED_BY_MODERATOR') {
-      await prisma.ayahStat.update({
-        where: { ayahId: comment.ayahId },
-        data: { commentCount: { increment: 1 } }
-      }).catch(() => {
-        // Ignore if stat record does not exist
-      });
-    }
+    await syncCommentCount(comment.ayahId);
+    await writeAudit(req, 'COMMENT_APPROVED', 'Comment', String(commentId));
 
     res.json({ message: 'Comment approved successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getProductAnalytics = async (req: Request, res: Response) => {
+  try {
+    const requestedDays = Number(req.query.days || 30);
+    const days = [7, 30, 90].includes(requestedDays) ? requestedDays : 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
+    const [
+      totalUsers, registeredUsers, guestUsers, newRegistrations, activeInstalls,
+      dailyActiveInstalls, events, progressRows,
+    ] = await Promise.all([
+      prisma.user.count({ where: { isDeleted: false } }),
+      prisma.user.count({ where: { isGuest: false, isDeleted: false } }),
+      prisma.user.count({ where: { isGuest: true, isDeleted: false } }),
+      prisma.user.count({ where: { isGuest: false, isDeleted: false, createdAt: { gte: since } } }),
+      prisma.appEvent.findMany({ where: { createdAt: { gte: since } }, distinct: ['installId'], select: { installId: true } }),
+      prisma.appEvent.findMany({ where: { createdAt: { gte: dayStart } }, distinct: ['installId'], select: { installId: true } }),
+      prisma.appEvent.findMany({ where: { createdAt: { gte: since } }, orderBy: { createdAt: 'desc' }, select: { event: true, installId: true, sessionId: true, screen: true, metadata: true, userId: true, createdAt: true } }),
+      prisma.userProgress.findMany({ select: { userId: true, readCounts: true, currentSurah: true, currentAyah: true, completedSurahs: true } }),
+    ]);
+
+    const calculated = calculateProductAnalytics(events, progressRows);
+
+    return res.json({
+      rangeDays: days,
+      users: { total: totalUsers, registered: registeredUsers, guests: guestUsers, newRegistrations },
+      activity: {
+        dailyActiveInstalls: dailyActiveInstalls.length,
+        activeInstalls: activeInstalls.length,
+        ...calculated.activity,
+      },
+      engagement: calculated.engagement,
+      funnel: calculated.funnel,
+      exitStages: calculated.exitStages,
+    });
+  } catch (error) {
+    console.error('[Admin Analytics]:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getAiFeedback = async (_req: Request, res: Response) => {
+  try {
+    const feedback = await prisma.aiFeedback.findMany({
+      include: { user: { select: { id: true, email: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    return res.json(feedback);
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getAdminAudit = async (_req: Request, res: Response) => {
+  try {
+    const audit = await prisma.adminAudit.findMany({
+      include: { admin: { select: { id: true, email: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 300,
+    });
+    return res.json(audit);
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

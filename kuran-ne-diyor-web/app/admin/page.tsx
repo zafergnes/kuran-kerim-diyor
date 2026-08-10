@@ -25,7 +25,7 @@ export default function AdminDashboard() {
     try {
       const response = await apiClient.get<AdminStats>("/admin/stats");
       setStats(response.data);
-    } catch (err) {
+    } catch {
       setError("İstatistikler yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
+    queueMicrotask(() => void fetchStats());
   }, []);
 
   if (loading) {

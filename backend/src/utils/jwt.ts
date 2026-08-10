@@ -1,7 +1,15 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret';
+const requiredSecret = (name: 'JWT_SECRET' | 'JWT_REFRESH_SECRET') => {
+  const value = process.env[name];
+  if (!value || value.length < 32 || value.includes('fallback') || value.includes('change_me')) {
+    throw new Error(`${name} must be configured with at least 32 random characters`);
+  }
+  return value;
+};
+
+const JWT_SECRET = requiredSecret('JWT_SECRET');
+const JWT_REFRESH_SECRET = requiredSecret('JWT_REFRESH_SECRET');
 
 export interface TokenPayload {
   userId: string;

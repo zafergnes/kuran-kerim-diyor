@@ -49,7 +49,7 @@ function CommentsList() {
         params: { search: searchTerm, status }
       });
       setComments(response.data);
-    } catch (err) {
+    } catch {
       setError("Yorumlar yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -57,7 +57,9 @@ function CommentsList() {
   };
 
   useEffect(() => {
-    fetchComments();
+    queueMicrotask(() => void fetchComments());
+    // Search is submitted explicitly; only the status tab triggers this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]); // Fetch when status filter tab changes
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -72,7 +74,7 @@ function CommentsList() {
       setComments(prev =>
         prev.map(c => (c.id === commentId ? { ...c, status: "APPROVED", moderationReason: null } : c))
       );
-    } catch (err) {
+    } catch {
       alert("Yorum onaylanırken bir hata oluştu.");
     }
   };
@@ -87,7 +89,7 @@ function CommentsList() {
       setComments(prev =>
         prev.map(c => (c.id === commentId ? { ...c, status: "REMOVED_BY_MODERATOR", moderationReason: reason || "Topluluk Kuralları İhlali" } : c))
       );
-    } catch (err) {
+    } catch {
       alert("Yorum kaldırılırken bir hata oluştu.");
     }
   };

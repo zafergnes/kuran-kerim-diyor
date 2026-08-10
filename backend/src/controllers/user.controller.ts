@@ -50,13 +50,14 @@ export const deleteAccount = async (req: Request, res: Response) => {
     }
 
     // Soft delete: Mark account as deleted and store the timestamp
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        isDeleted: true,
-        deletedAt: new Date()
-      }
-    });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { isDeleted: true, deletedAt: new Date() },
+      }),
+      prisma.pushDevice.deleteMany({ where: { userId } }),
+      prisma.webPushSubscription.deleteMany({ where: { userId } }),
+    ]);
 
     res.json({ message: 'Account deletion scheduled. You have 14 days to cancel by logging in.' });
   } catch (error) {
@@ -144,3 +145,31 @@ export const saveProgress = async (req: Request, res: Response) => {
   }
 };
 
+export const blockUser = async (req: Request, res: Response) => {
+  try {
+    const blockerId = req.user!.userId;
+    const blockedId = req.params.id as string;
+    if (blockerId === blockedId) return res.status(400).json({ message: 'You cannot block yourself' });
+    const target = await prisma.user.findUnique({ where: { id: blockedId }, select: { id: true } });
+    if (!target) return res.status(404).json({ message: 'User not found' });
+    await prisma.userBlock.upsert({
+      where: { blockerId_blockedId: { blockerId, blockedId } },
+      create: { blockerId, blockedId },
+      update: {},
+    });
+    return res.status(201).json({ message: 'User blocked' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const unblockUser = async (req: Request, res: Response) => {
+  try {
+    const blockerId = req.user!.userId;
+    const blockedId = req.params.id as string;
+    await prisma.userBlock.deleteMany({ where: { blockerId, blockedId } });
+    return res.json({ message: 'User unblocked' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};

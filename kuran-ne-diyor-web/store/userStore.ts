@@ -4,6 +4,7 @@ import { create } from "zustand";
 import apiClient from "@/services/apiClient";
 import type { AppLanguage } from "@/types/quran";
 import type { ApiUser, AuthResponse, Collection, Favorite } from "@/types/api";
+import axios from "axios";
 
 const FAVORITES_KEY = "userFavorites";
 const COLLECTIONS_KEY = "userCollections";
@@ -288,8 +289,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       const response = await apiClient.get<{ user: ApiUser }>("/auth/me");
       writeJson("@user_profile", response.data.user);
       set({ user: response.data.user });
-    } catch (error: any) {
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
         get().logout();
       }
     }

@@ -1,23 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
-import { BarChart2, AlertTriangle, Shield, ArrowLeft, UserX, MessageSquare, Users } from "lucide-react";
+import { BarChart2, AlertTriangle, Shield, ArrowLeft, UserX, MessageSquare, Users, Activity, Sparkles, ScrollText, Settings, LifeBuoy } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, initialized } = useUserStore();
-  const [authorized, setAuthorized] = useState(false);
+  const authorized = initialized && user?.role === "ADMIN";
 
   useEffect(() => {
     if (initialized) {
       if (!user || user.role !== "ADMIN") {
         router.push("/");
-      } else {
-        setAuthorized(true);
       }
     }
   }, [user, initialized, router]);
@@ -35,6 +33,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isDeletionsActive = pathname === "/admin/pending-deletions";
   const isCommentsActive = pathname === "/admin/comments";
   const isUsersActive = pathname === "/admin/users";
+  const isAnalyticsActive = pathname === "/admin/analytics";
+  const isAiFeedbackActive = pathname === "/admin/ai-feedback";
+  const isAuditActive = pathname === "/admin/audit";
+  const isAiSettingsActive = pathname === "/admin/ai-settings";
+  const isSupportActive = pathname === "/admin/support";
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-6">
@@ -73,6 +76,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <BarChart2 size={18} />
             Genel Durum
+          </Link>
+          <Link
+            href="/admin/analytics"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${isAnalyticsActive ? "bg-primary text-white shadow-sm" : "text-secondary hover:bg-card hover:text-text"}`}
+          >
+            <Activity size={18} />
+            Ürün Analitiği
+          </Link>
+          <Link
+            href="/admin/ai-feedback"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${isAiFeedbackActive ? "bg-primary text-white shadow-sm" : "text-secondary hover:bg-card hover:text-text"}`}
+          >
+            <Sparkles size={18} />
+            AI Denetimi
+          </Link>
+          <Link href="/admin/ai-settings" className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${isAiSettingsActive ? "bg-primary text-white shadow-sm" : "text-secondary hover:bg-card hover:text-text"}`}>
+            <Settings size={18} />
+            AI Ayarları
+          </Link>
+          <Link href="/admin/support" className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${isSupportActive ? "bg-primary text-white shadow-sm" : "text-secondary hover:bg-card hover:text-text"}`}>
+            <LifeBuoy size={18} />
+            Destek Talepleri
+          </Link>
+          <Link
+            href="/admin/audit"
+            className={`flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-semibold transition cursor-pointer ${isAuditActive ? "bg-primary text-white shadow-sm" : "text-secondary hover:bg-card hover:text-text"}`}
+          >
+            <ScrollText size={18} />
+            İşlem Geçmişi
           </Link>
           <Link
             href="/admin/comments"

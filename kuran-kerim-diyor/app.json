@@ -1,53 +1,40 @@
 {
   "expo": {
-    "name": "kuran-kerim-diyor",
+    "name": "Kur'an-ı Kerim Diyor",
     "slug": "kuran-kerim-diyor",
     "scheme": "kuran-kerim-diyor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/icon-v2.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/android-icon-foreground-v2.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#003B49"
     },
     "notification": {
-      "icon": "./assets/notification-icon.png",
-      "color": "#b69a73"
+      "icon": "./assets/android-icon-foreground-v2.png",
+      "color": "#D6A94F"
     },
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "1",
       "bundleIdentifier": "com.kurankerimdiyor",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "associatedDomains": ["applinks:kurannediyor.com.tr"]
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "versionCode": 1,
       "package": "com.kurankerimdiyor",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#003B49",
+        "foregroundImage": "./assets/android-icon-foreground-v2.png",
+        "monochromeImage": "./assets/android-icon-foreground-v2.png"
       },
-      "predictiveBackGestureEnabled": false,
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "https",
-              "host": "kurannediyor.com.tr",
-              "pathPrefix": "/ayet"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ]
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -60,11 +47,6 @@
       [
         "@bittingz/expo-widgets",
         {
-          "ios": {
-            "src": "./widgets/ios",
-            "devTeamId": "enesakca04",
-            "mode": "production"
-          },
           "android": {
             "src": "./widgets",
             "widgets": [

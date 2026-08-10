@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'rea
 import { Colors } from '../constants/colors';
 import { Ayah } from '../services/quranData';
 import { useUserStore } from '../store/userStore';
-import { MessageSquare, Share2, HelpCircle } from 'lucide-react-native';
+import { MessageSquare, Share2, Sparkles } from 'lucide-react-native';
 import { CommentSheet } from './CommentSheet';
 import { AudioPlayer } from './AudioPlayer';
 import { VerseShareCard } from './VerseShareCard';
 import { useTranslation } from 'react-i18next';
 import { useAyahStats } from '../hooks/useAyahStats';
 import { splitBismillah, isSajdahAyah, hasBismillah } from '../utils/quranHelpers';
+import { VerseChatModal } from './VerseChatModal';
+import { AnalyticsService } from '../services/analyticsService';
 
 interface AyahCardProps {
     ayah: Ayah;
@@ -23,6 +25,7 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
     const theme = Colors.light;
     const [showComments, setShowComments] = useState(false);
     const [showShare, setShowShare] = useState(false);
+    const [showVerseChat, setShowVerseChat] = useState(false);
     const { t } = useTranslation();
 
     // Arapca kullanici: meal tercihine gore goster/gizle
@@ -116,6 +119,17 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                 </Text>
 
                 <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={styles.compactAiButton}
+                        onPress={() => {
+                            setShowVerseChat(true);
+                            void AnalyticsService.track('AI_CHAT_OPEN', { screen: 'single_verse', metadata: { surahNumber, ayahNumber: ayah.number } });
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
+                    >
+                        <Sparkles size={18} color={theme.primary} />
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.actionBtn} onPress={() => setShowShare(true)}>
 
                         <Share2 size={24} color={theme.primary} />
@@ -170,6 +184,15 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                     </ScrollView>
                 </View>
             </Modal>
+
+            <VerseChatModal
+                visible={showVerseChat}
+                onClose={() => setShowVerseChat(false)}
+                surahNumber={surahNumber}
+                ayahNumber={ayah.number}
+                reference={`${surahName} ${ayah.number}`}
+                translation={translationText || rawArabicText}
+            />
         </View>
     );
 }
@@ -257,6 +280,14 @@ const styles = StyleSheet.create({
     },
     actionBtn: {
         padding: 8,
+    },
+    compactAiButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(182, 154, 115, 0.10)',
     },
     commentBadgeContainer: {
         position: 'relative',

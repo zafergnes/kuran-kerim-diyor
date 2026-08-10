@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Share2, BookOpen, Search } from "lucide-react";
+import { Sparkles, Share2, BookOpen } from "lucide-react";
 import { DailyVerseService, DailyVerse } from "@/services/dailyVerseService";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
@@ -14,11 +14,13 @@ export function DailyVerseSection() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    setLoading(true);
-    DailyVerseService.getDailyVerse(language)
-      .then(setVerse)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    queueMicrotask(() => {
+      setLoading(true);
+      DailyVerseService.getDailyVerse(language)
+        .then(setVerse)
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
   }, [language]);
 
   if (loading) {

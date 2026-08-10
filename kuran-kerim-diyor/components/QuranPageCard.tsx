@@ -14,8 +14,10 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio } from 'expo-av';
-import { Play, Pause } from 'lucide-react-native';
+import { Play, Pause, Sparkles } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
+import { VerseChatModal } from './VerseChatModal';
+import { AnalyticsService } from '../services/analyticsService';
 
 const toArabicDigits = (num: number): string => {
     const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -44,13 +46,15 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     const colorScheme = useColorScheme();
     const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
     
-    const { language, arabicFontFamily, selectedReciter } = useUserStore();
+    const { language, arabicTranslationLang, arabicFontFamily, selectedReciter } = useUserStore();
+    const translationLanguage = language === 'ar' ? arabicTranslationLang : language;
     
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(null);
     const [playProgress, setPlayProgress] = useState(0);
+    const [chatAyah, setChatAyah] = useState<PageAyahItem | null>(null);
 
     // Fetch all ayahs on this page
     const pageAyahs = useMemo(() => {
@@ -194,6 +198,19 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
 
                 {/* Page Audio Player Controls */}
                 <View style={styles.pageAudioControls}>
+                    <TouchableOpacity
+                        style={styles.compactAiButton}
+                        onPress={() => {
+                            const highlighted = pageAyahs.find((item) => `${item.surahNumber}_${item.ayah.number}` === activeHighlightId);
+                            setChatAyah(highlighted || pageAyahs[0] || null);
+                            const target = highlighted || pageAyahs[0];
+                            if (target) void AnalyticsService.track('AI_CHAT_OPEN', { screen: 'page_reader', metadata: { surahNumber: target.surahNumber, ayahNumber: target.ayah.number } });
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
+                    >
+                        <Sparkles size={17} color={theme.primary} />
+                    </TouchableOpacity>
                     {isPlaying && (
                         <View 
                             style={styles.progressBarContainer}
@@ -362,7 +379,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                             <Text style={[styles.translationAyahNo, { color: theme.primary }]}>
                                                 {`[${item.ayah.number}] `}
                                             </Text>
-                                            {item.ayah.translations[language as AppLanguage] || item.ayah.translations.tr}
+                                            {item.ayah.translations[translationLanguage as AppLanguage] || item.ayah.translations.tr}
                                             {isSajdah && (
                                                 <Text style={{ color: '#D32F2F', fontWeight: 'bold', fontSize: 12 }}>
                                                     {` [۩ ${t('common.sajdah_warning_short', 'Secde Ayeti')}]`}
@@ -414,6 +431,16 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     </TouchableOpacity>
                 </View>
             </View>
+            {chatAyah && (
+                <VerseChatModal
+                    visible
+                    onClose={() => setChatAyah(null)}
+                    surahNumber={chatAyah.surahNumber}
+                    ayahNumber={chatAyah.ayah.number}
+                    reference={`${chatAyah.surahName} ${chatAyah.ayah.number}`}
+                    translation={chatAyah.ayah.translations[translationLanguage as AppLanguage] || chatAyah.ayah.translations.tr}
+                />
+            )}
         </View>
     );
 };
@@ -446,6 +473,15 @@ const styles = StyleSheet.create({
     pageAudioBtn: {
         padding: 6,
         marginLeft: 4,
+    },
+    compactAiButton: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(182, 154, 115, 0.10)',
+        marginRight: 4,
     },
     progressBarContainer: {
         width: 120,

@@ -17,7 +17,8 @@ export const startModerationWorker = () => {
       const pendingComments = await prisma.comment.findMany({
         where: { 
           status: 'PENDING',
-          isDeleted: false
+          isDeleted: false,
+          moderationReason: null
         },
         orderBy: { createdAt: 'asc' },
         take: 5
@@ -35,6 +36,14 @@ export const startModerationWorker = () => {
           const result = await moderateComment(comment.text);
           console.log(`[Worker]: AI Response for "${comment.text.substring(0, 20)}":`, result);
           
+          if (result.reviewRequired) {
+            await prisma.comment.update({
+              where: { id: comment.id },
+              data: { moderationReason: 'AI_UNAVAILABLE', language: result.detectedLanguage || comment.language },
+            });
+            continue;
+          }
+
           await prisma.comment.update({
             where: { id: comment.id },
             data: { 

@@ -38,8 +38,8 @@ apiClient.interceptors.response.use(
           window.localStorage.setItem("refreshToken", response.data.refreshToken);
           originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
           return apiClient(originalRequest);
-        } catch (refreshError: any) {
-          if (refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403)) {
+        } catch (refreshError: unknown) {
+          if (axios.isAxiosError(refreshError) && (refreshError.response?.status === 401 || refreshError.response?.status === 403)) {
             window.localStorage.removeItem("userToken");
             window.localStorage.removeItem("refreshToken");
             window.localStorage.removeItem("@user_profile");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookmarkPlus, Copy, Heart, MessageSquare, Share2, X } from "lucide-react";
+import { BookmarkPlus, Copy, Heart, MessageSquare, Share2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Ayah } from "@/types/quran";
 import { useAyahStats } from "@/hooks/useAyahStats";
@@ -11,6 +11,8 @@ import { CommentsPanel } from "@/components/CommentsPanel";
 import { CollectionMenu } from "@/components/CollectionMenu";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { DeleteWarningDialog } from "@/components/DeleteWarningDialog";
+import { hasBismillah, isSajdahAyah, splitBismillah } from "@/services/quranHelpers";
+import { VerseChatDialog } from "@/components/VerseChatDialog";
 
 type AyahCardProps = {
   ayah: Ayah;
@@ -24,6 +26,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   const [showComments, setShowComments] = useState(false);
   const [showCollections, setShowCollections] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+  const [showVerseChat, setShowVerseChat] = useState(false);
   const language = useUserStore((state) => state.language);
   const showArabicTranslation = useUserStore((state) => state.showArabicTranslation);
   const arabicTranslationLang = useUserStore((state) => state.arabicTranslationLang);
@@ -47,7 +50,6 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
   const translation = useMemo(() => ayah.translations[displayLanguage] || ayah.translations.tr, [ayah, displayLanguage]);
 
   // Besmele ayrıştırma
-  const { splitBismillah, isSajdahAyah, hasBismillah } = require("@/services/quranHelpers");
   let bismillahToRender: string | null = null;
   let finalArabicText = rawArabicText;
   
@@ -184,6 +186,13 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
         <div className="flex flex-wrap items-center gap-2">
           <AudioPlayer globalAyahNumber={ayah.globalNumber} />
           <button
+            onClick={() => setShowVerseChat(true)}
+            className="grid h-8 w-8 place-items-center rounded-full border border-primary/30 bg-primary/5 text-primary transition hover:bg-primary/10"
+            title={t("verse_chat.title")}
+          >
+            <Sparkles size={14} />
+          </button>
+          <button
             onClick={handleCopy}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
             title={t("common.copy", "Kopyala")}
@@ -259,6 +268,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
       {showDeleteWarning && (
         <DeleteWarningDialog onCancel={() => setShowDeleteWarning(false)} onConfirm={(dontAskAgain) => void confirmFavoriteRemoval(dontAskAgain)} />
       )}
+      <VerseChatDialog open={showVerseChat} onClose={() => setShowVerseChat(false)} surahNumber={surahNumber} ayahNumber={ayah.number} reference={`${surahName} ${surahNumber}:${ayah.number}`} translation={translation} language={language} />
     </article>
   );
 }

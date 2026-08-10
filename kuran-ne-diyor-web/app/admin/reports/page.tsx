@@ -5,14 +5,11 @@ import apiClient from "@/services/apiClient";
 import { 
   AlertTriangle, 
   Trash2, 
-  EyeOff, 
   UserMinus, 
   UserCheck, 
   CheckCircle,
   ExternalLink,
-  MessageSquare,
   Search,
-  AlertCircle
 } from "lucide-react";
 
 interface Report {
@@ -53,7 +50,7 @@ export default function AdminReports() {
     try {
       const response = await apiClient.get<Report[]>("/admin/reports");
       setReports(response.data);
-    } catch (err) {
+    } catch {
       setError("Şikayetler yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -61,14 +58,14 @@ export default function AdminReports() {
   };
 
   useEffect(() => {
-    fetchReports();
+    queueMicrotask(() => void fetchReports());
   }, []);
 
   const handleDismissReport = async (reportId: number, penalizeReporter: boolean) => {
     try {
       await apiClient.post(`/admin/reports/${reportId}/dismiss`, { penalizeReporter });
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-    } catch (err) {
+    } catch {
       alert("Şikayet yoksayılırken bir hata oluştu.");
     }
   };
@@ -78,7 +75,7 @@ export default function AdminReports() {
       await apiClient.post(`/admin/comments/${commentId}/remove`, { reason });
       // Remove all reports that correspond to this comment ID
       setReports((prev) => prev.filter((r) => r.commentId !== commentId));
-    } catch (err) {
+    } catch {
       alert("Yorum kaldırılırken bir hata oluştu.");
     }
   };
@@ -105,7 +102,7 @@ export default function AdminReports() {
           return r;
         })
       );
-    } catch (err) {
+    } catch {
       alert("Kullanıcı durumu güncellenirken bir hata oluştu.");
     }
   };

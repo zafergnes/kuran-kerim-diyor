@@ -137,4 +137,30 @@ export class DailyService {
       arabic: ayah.arabic
     };
   }
+
+  static getVerseDiscussionContext(surahNum: number, ayahNum: number, lang: string) {
+    const quran = this.loadQuranData();
+    const surah = quran.find((item: any) => item.number === surahNum);
+    if (!surah) throw new Error("Surah not found");
+
+    const currentIndex = surah.ayahs.findIndex((item: any) => item.number === ayahNum);
+    if (currentIndex < 0) throw new Error("Ayah not found");
+
+    const safeLanguage = ['tr', 'en', 'ar', 'de', 'fr', 'es'].includes(lang) ? lang : 'tr';
+    const contextAyahs = surah.ayahs
+      .slice(Math.max(0, currentIndex - 5), Math.min(surah.ayahs.length, currentIndex + 6))
+      .map((item: any) => ({
+        number: item.number,
+        arabic: item.arabic,
+        translation: safeLanguage === 'ar' ? item.arabic : (item.translations[safeLanguage] || item.translations.tr),
+      }));
+
+    return {
+      surahNumber: surah.number,
+      surahName: surah.name[safeLanguage] || surah.name.tr,
+      ayahNumber: ayahNum,
+      language: safeLanguage,
+      ayahs: contextAyahs,
+    };
+  }
 }

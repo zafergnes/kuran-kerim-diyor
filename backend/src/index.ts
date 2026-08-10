@@ -15,6 +15,9 @@ import statsRoutes from './routes/stats.routes';
 import userRoutes from './routes/user.routes';
 import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin.routes';
+import verseChatRoutes from './routes/verse-chat.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import supportRoutes from './routes/support.routes';
 import { startModerationWorker } from './services/worker.service';
 import { NotificationService } from './services/notification.service';
 
@@ -35,8 +38,17 @@ const port = process.env.PORT || 3000;
 
 // Security Middlewares
 app.use(helmet()); // Secures HTTP headers
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = (process.env.CORS_ORIGINS || 'https://kurannediyor.com.tr,http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Origin is not allowed'));
+  },
+}));
+app.use(express.json({ limit: '100kb' }));
 
 // Rate Limiting: Max 100 requests per 15 minutes per IP
 const limiter = rateLimit({
@@ -57,6 +69,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/daily-context', dailyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/verse-chat', verseChatRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/support', supportRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Kuran Backend is secure and running' });

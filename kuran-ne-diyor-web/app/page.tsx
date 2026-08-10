@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Clock3, Search, Sparkles } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getAllSurahs, getSurah } from "@/services/quranData";
+import { getAllSurahs } from "@/services/quranData";
 import { AppShell } from "@/components/AppShell";
 import { DailyVerseSection } from "@/components/DailyVerseSection";
 import { SurahList } from "@/components/SurahList";
@@ -11,8 +11,6 @@ import { ReadingProgress } from "@/components/ReadingProgress";
 
 export default function Home() {
   const surahs = getAllSurahs();
-  const openingSurah = getSurah(1);
-  const featuredAyah = openingSurah?.ayahs[0];
   const { t } = useTranslation();
 
   return (

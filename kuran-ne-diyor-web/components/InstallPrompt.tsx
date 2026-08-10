@@ -22,14 +22,17 @@ export function InstallPrompt() {
 
   useEffect(() => {
     // Check if running as PWA (standalone)
-    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone 
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
+      || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
       || false;
-    setIsStandalone(isStandaloneMode);
 
     // Detect iOS
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(ios);
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      && !(window as Window & { MSStream?: unknown }).MSStream;
+    queueMicrotask(() => {
+      setIsStandalone(isStandaloneMode);
+      setIsIOS(ios);
+    });
 
     // Save beforeinstallprompt event for Android/Chrome
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -58,7 +61,7 @@ export function InstallPrompt() {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
-  }, [isStandalone]);
+  }, []);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;

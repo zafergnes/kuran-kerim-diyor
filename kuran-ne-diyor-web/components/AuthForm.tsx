@@ -78,7 +78,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             className="h-12 rounded-md border border-border bg-background px-3 text-sm font-semibold text-text"
             type="password"
             autoComplete={mode === "login" ? "current-password" : "new-password"}
-            minLength={6}
+            minLength={mode === "register" ? 8 : 1}
             required
           />
         </label>
@@ -94,9 +94,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       >
         {t("profile.guest_continue", "Misafir olarak devam et")}
       </button>
-      <p className="mt-5 text-center text-sm font-semibold text-muted">
+      <Link href={mode === "login" ? "/register" : "/login"} className="mt-5 block text-center text-sm font-semibold text-primary hover:underline">
         {mode === "login" ? t("profile.no_account", "Hesabın yok mu? Kayıt Ol") : t("profile.has_account", "Zaten hesabın var mı? Giriş Yap")}
-      </p>
+      </Link>
     </div>
   );
 }

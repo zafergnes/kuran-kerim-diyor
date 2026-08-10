@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import apiClient from "@/services/apiClient";
-import { UserX, Clock, Search, AlertCircle, RefreshCw } from "lucide-react";
+import { UserX, Clock, Search, AlertCircle } from "lucide-react";
 
 interface PendingDeletion {
   id: string;
@@ -16,6 +16,7 @@ export default function PendingDeletions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [renderedAt] = useState(() => Date.now());
 
   const fetchDeletions = async () => {
     setLoading(true);
@@ -23,7 +24,7 @@ export default function PendingDeletions() {
     try {
       const response = await apiClient.get<PendingDeletion[]>("/admin/pending-deletions");
       setDeletions(response.data);
-    } catch (err) {
+    } catch {
       setError("Silinme talepleri yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -31,14 +32,14 @@ export default function PendingDeletions() {
   };
 
   useEffect(() => {
-    fetchDeletions();
+    queueMicrotask(() => void fetchDeletions());
   }, []);
 
   const calculateRemainingDays = (deletedAtStr: string) => {
     const deletedAt = new Date(deletedAtStr);
     const fourteenDays = 14 * 24 * 60 * 60 * 1000;
     const expiryTime = deletedAt.getTime() + fourteenDays;
-    const remainingMs = expiryTime - Date.now();
+    const remainingMs = expiryTime - renderedAt;
     const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
     return remainingDays;
   };

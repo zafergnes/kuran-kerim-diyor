@@ -9,7 +9,6 @@ import {
   UserMinus, 
   UserCheck, 
   User, 
-  HelpCircle,
   AlertOctagon,
   Calendar
 } from "lucide-react";
@@ -43,7 +42,7 @@ function UsersList() {
         params: { search: searchTerm, filter }
       });
       setUsers(response.data);
-    } catch (err) {
+    } catch {
       setError("Kullanıcılar yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -51,7 +50,9 @@ function UsersList() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    queueMicrotask(() => void fetchUsers());
+    // Search is submitted explicitly; only the filter tab triggers this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]); // Fetch immediately when filter changes
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -66,7 +67,7 @@ function UsersList() {
       setUsers(prev =>
         prev.map(u => (u.id === userId ? { ...u, isBanned: !currentlyBanned } : u))
       );
-    } catch (err) {
+    } catch {
       alert("Kullanıcı engellenirken/engeli kaldırılırken bir hata oluştu.");
     }
   };

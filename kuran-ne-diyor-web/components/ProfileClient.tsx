@@ -8,6 +8,7 @@ import { useUserStore } from "@/store/userStore";
 import apiClient from "@/services/apiClient";
 import { useTranslation } from "react-i18next";
 import { quranData } from "@/services/quranData";
+import axios from "axios";
 
 export function ProfileClient() {
   useAppInit();
@@ -36,8 +37,9 @@ export function ProfileClient() {
       await apiClient.delete("/users");
       logout();
       router.push("/");
-    } catch (err: any) {
-      if (err.response?.status === 400 && err.response?.data?.code === "DELETE_COOLDOWN") {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (axios.isAxiosError<{ code?: string }>(err) && err.response?.status === 400 && err.response.data?.code === "DELETE_COOLDOWN") {
         alert(
           t(
             "profile.delete_cooldown_error",
@@ -45,7 +47,7 @@ export function ProfileClient() {
           )
         );
       } else {
-        alert(t("auth_errors.generic", "Bir hata oluştu: {{message}}", { message: err.message }));
+        alert(t("auth_errors.generic", "Bir hata oluştu: {{message}}", { message }));
       }
     }
   };

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -7,8 +7,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const prisma = new PrismaClient();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL_NAME || "gemini-1.5-flash" });
+if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is required');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-3.6-flash';
 
 async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -41,9 +42,8 @@ async function categorizeSurahsBatch(surahs: any[]) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text();
+    const result = await ai.models.generateContent({ model: modelName, contents: prompt, config: { responseMimeType: 'application/json' } });
+    let text = result.text || '';
     
     text = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const batchResult = JSON.parse(text);

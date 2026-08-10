@@ -14,21 +14,15 @@ const NOTIFICATION_TITLES: Record<string, string> = {
   ar: 'آية اليوم'
 };
 
-const vapidEmail = process.env.VAPID_EMAIL || 'mailto:info@kuran-kerim-diyor.com';
+const vapidEmail = process.env.VAPID_EMAIL || 'https://kurannediyor.com.tr/support';
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const webPushConfigured = Boolean(vapidPublicKey && vapidPrivateKey);
 
-if (!vapidPublicKey || !vapidPrivateKey) {
-  const keys = webpush.generateVAPIDKeys();
-  console.log('===================================================');
-  console.log('[WebPush] Generated VAPID Keys (Add to your .env):');
-  console.log(`VAPID_PUBLIC_KEY="${keys.publicKey}"`);
-  console.log(`VAPID_PRIVATE_KEY="${keys.privateKey}"`);
-  console.log(`VAPID_EMAIL="mailto:info@kuran-kerim-diyor.com"`);
-  console.log('===================================================');
-  webpush.setVapidDetails('mailto:info@kuran-kerim-diyor.com', keys.publicKey, keys.privateKey);
-} else {
+if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+} else {
+  console.warn('[WebPush] VAPID keys are not configured; web push delivery is disabled.');
 }
 
 export class NotificationService {
@@ -57,6 +51,7 @@ export class NotificationService {
    * Web push aboneliği kaydeder veya günceller
    */
   static async registerWebSubscription(data: { endpoint: string; p256dh: string; auth: string; timezone: string; language: string; userId?: string }) {
+    if (!webPushConfigured) throw new Error('WEB_PUSH_NOT_CONFIGURED');
     // @ts-ignore - Prisma Client generator delay
     return prisma.webPushSubscription.upsert({
       where: { endpoint: data.endpoint },
@@ -105,7 +100,7 @@ export class NotificationService {
             const messages: ExpoPushMessage[] = [];
             for (const pushToken of tokens) {
               if (!Expo.isExpoPushToken(pushToken)) {
-                console.error(`Push token ${pushToken} is not a valid Expo push token`);
+                console.error('[Notification] Skipping an invalid Expo push token.');
                 continue;
               }
 
@@ -134,13 +129,13 @@ export class NotificationService {
                 const tokens = Array.isArray(recipient) ? recipient : [recipient];
                 
                 if (ticket.status === 'error') {
-                  console.error(`[Notification] Error sending push to tokens ${tokens.join(', ')}:`, ticket);
+                  console.error(`[Notification] Push delivery failed for ${tokens.length} recipient(s):`, ticket.details?.error || ticket.message);
                   if (ticket.details && ticket.details.error === 'DeviceNotRegistered') {
                     for (const token of tokens) {
-                      console.log(`[Notification] Deleting unregistered device token: ${token}`);
+                      console.log('[Notification] Removing an unregistered device token.');
                       // @ts-ignore
                       await prisma.pushDevice.delete({ where: { token } }).catch((err: any) => {
-                        console.error(`[Notification] Failed to delete token ${token} from db:`, err);
+                        console.error('[Notification] Failed to delete an unregistered token:', err);
                       });
                     }
                   }
@@ -157,6 +152,7 @@ export class NotificationService {
     }
 
     // 2. WEB PUSH SUBSCRIPTIONS
+    if (!webPushConfigured) return;
     try {
       // @ts-ignore
       const webSubscriptions = await prisma.webPushSubscription.findMany({
@@ -196,9 +192,9 @@ export class NotificationService {
 
               webpush.sendNotification(pushSubscription, payload)
                 .catch((err: any) => {
-                  console.error('[WebPush] Error sending push to endpoint:', sub.endpoint, err);
+                  console.error('[WebPush] Delivery failed:', err.statusCode || err.message);
                   if (err.statusCode === 410 || err.statusCode === 404) {
-                    console.log('[WebPush] Deleting expired subscription:', sub.endpoint);
+                    console.log('[WebPush] Removing an expired subscription.');
                     // @ts-ignore
                     prisma.webPushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
                   }
@@ -235,10 +231,11 @@ export class NotificationService {
       
       // Daha gelismis: Her cihazin yerel saatini hesapla
       // @ts-ignore - Prisma IDE sync issue
-      const allTimezones = await prisma.pushDevice.findMany({
-        distinct: ['timezone'],
-        select: { timezone: true }
-      });
+      const [mobileTimezones, webTimezones] = await Promise.all([
+        prisma.pushDevice.findMany({ distinct: ['timezone'], select: { timezone: true } }),
+        prisma.webPushSubscription.findMany({ distinct: ['timezone'], select: { timezone: true } }),
+      ]);
+      const allTimezones = [...new Set([...mobileTimezones, ...webTimezones].map((item) => item.timezone))].map((timezone) => ({ timezone }));
 
       for (const tz of allTimezones) {
         try {
@@ -290,6 +287,21 @@ export class NotificationService {
         }
       } catch (error) {
         console.error('[Cron] Error permanently deleting expired accounts:', error);
+      }
+    });
+
+    // Privacy retention: anonymous/product analytics 13 months, reported AI excerpts 180 days.
+    cron.schedule('30 3 * * *', async () => {
+      try {
+        const analyticsCutoff = new Date(Date.now() - 395 * 24 * 60 * 60 * 1000);
+        const aiFeedbackCutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+        const [analytics, aiFeedback] = await Promise.all([
+          prisma.appEvent.deleteMany({ where: { createdAt: { lt: analyticsCutoff } } }),
+          prisma.aiFeedback.deleteMany({ where: { createdAt: { lt: aiFeedbackCutoff } } }),
+        ]);
+        console.log(`[Cron] Retention cleanup removed ${analytics.count} analytics and ${aiFeedback.count} AI feedback rows.`);
+      } catch (error) {
+        console.error('[Cron] Retention cleanup failed:', error);
       }
     });
 

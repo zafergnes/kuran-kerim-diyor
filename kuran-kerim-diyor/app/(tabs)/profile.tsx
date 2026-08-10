@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Platform, Modal, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Modal, FlatList, Alert } from 'react-native';
 import { Colors } from '../../constants/colors';
 import apiClient from '../../services/apiClient';
 import * as SecureStore from 'expo-secure-store';
 import { useUserStore } from '../../store/userStore';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, AppLanguage } from '../../constants/languages';
-
-WebBrowser.maybeCompleteAuthSession();
 
 import { BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star, Settings, LogOut, UserX, ChevronRight, Globe, Check, Award } from 'lucide-react-native';
 import { useColorScheme, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
 import { quranData } from '../../services/quranData';
+import { AnalyticsService } from '../../services/analyticsService';
 
 const ICON_MAP: Record<string, any> = {
     BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star
@@ -112,23 +108,6 @@ export default function ProfileScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    /* Google Login şimdilik pasif (ID'ler tanımlanana kadar)
-    const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-        clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    });
-    */
-
-    /*
-    useEffect(() => {
-        if (response?.type === 'success') {
-            // Google Login will be implemented in backend later
-            setError("Google Login is currently unavailable with the new backend.");
-        }
-    }, [response]);
-    */
-
     const handleLogin = async () => {
         setLoading(true);
         setError('');
@@ -141,6 +120,7 @@ export default function ProfileScreen() {
             await SecureStore.setItemAsync('userToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
             setAuth(user.id, user.isGuest, user.email, user.email);
+            void AnalyticsService.track('AUTH_LOGIN', { screen: 'profile', metadata: { method: 'email' } });
             if (!user.isGuest) {
                 useUserStore.getState().syncAllLocalData();
             }
@@ -157,7 +137,7 @@ export default function ProfileScreen() {
     };
 
     const handleRegister = async () => {
-        if (passwordInput.length < 6) {
+        if (passwordInput.length < 8) {
             setError(t('auth_errors.min_password'));
             return;
         }
@@ -172,6 +152,7 @@ export default function ProfileScreen() {
             await SecureStore.setItemAsync('userToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
             setAuth(user.id, user.isGuest, user.email, user.email);
+            void AnalyticsService.track('AUTH_REGISTER', { screen: 'profile', metadata: { method: 'email' } });
             if (!user.isGuest) {
                 useUserStore.getState().syncAllLocalData();
             }
@@ -190,14 +171,11 @@ export default function ProfileScreen() {
             await SecureStore.setItemAsync('userToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
             setAuth(user.id, true, null, null);
+            void AnalyticsService.track('AUTH_LOGIN', { screen: 'profile', metadata: { method: 'guest' } });
         } catch (e: any) {
             setError(translateAuthError(e.response?.data?.message || e.message));
         }
         setLoading(false);
-    };
-
-    const handleAppleLogin = async () => {
-        setError("Apple Login is currently unavailable with the new backend.");
     };
 
     const handleLogout = async () => {
@@ -215,6 +193,7 @@ export default function ProfileScreen() {
             useUserStore.getState().setFavorites({});
             useUserStore.getState().setCollections({});
             setAuth(null, false, null, null);
+            void AnalyticsService.track('AUTH_LOGOUT', { screen: 'profile' });
             
             Alert.alert(t('common.success'), t('profile.logout_success') || "Çıkış yapıldı.");
         } catch (e) {
@@ -464,31 +443,6 @@ export default function ProfileScreen() {
                                 </TouchableOpacity>
                             </>
                         )}
-
-                        <View style={styles.divider}>
-                            <View style={[styles.line, { backgroundColor: theme.border }]} />
-                            <Text style={{ marginHorizontal: 8, color: theme.muted }}>{t('profile.or')}</Text>
-                            <View style={[styles.line, { backgroundColor: theme.border }]} />
-                        </View>
-
-                        {/* Sosyal girişler şimdilik gizli (Henüz hazır değil)
-                        <TouchableOpacity 
-                            style={[styles.outlineButton, { borderColor: theme.primary, backgroundColor: 'transparent', marginBottom: 12 }]} 
-                            onPress={() => promptAsync()}
-                            disabled={!request}
-                        >
-                            <Text style={[styles.outlineButtonText, { color: theme.primary }]}>{t('profile.google_login')}</Text>
-                        </TouchableOpacity>
-
-                        {Platform.OS === 'ios' && (
-                            <TouchableOpacity 
-                                style={[styles.outlineButton, { borderColor: theme.text, backgroundColor: theme.card, marginBottom: 12 }]} 
-                                onPress={handleAppleLogin}
-                            >
-                                <Text style={[styles.outlineButtonText, { color: theme.text }]}>{t('profile.apple_login')}</Text>
-                            </TouchableOpacity>
-                        )}
-                        */}
 
                         <TouchableOpacity style={[styles.outlineButton, { borderColor: theme.primary }]} onPress={handleGuestLogin}>
                             <Text style={[styles.outlineButtonText, { color: theme.primary }]}>{t('profile.guest_continue')}</Text>

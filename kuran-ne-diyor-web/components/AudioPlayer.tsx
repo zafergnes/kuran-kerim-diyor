@@ -30,14 +30,14 @@ export function AudioPlayer({ globalAyahNumber }: { globalAyahNumber: number }) 
       setIsPlaying(false);
       setPlayProgress(0);
     }
-  }, [expectedUrl]);
+  }, [expectedUrl, ownerId]);
 
   // Clean up on unmount
   useEffect(() => {
     return () => {
       GlobalAudioController.stop(ownerId);
     };
-  }, []);
+  }, [ownerId]);
 
   const toggle = async () => {
     if (isLoading) return;
@@ -106,7 +106,7 @@ export function AudioPlayer({ globalAyahNumber }: { globalAyahNumber: number }) 
     }
   };
 
-  const showProgress = isPlaying || (playProgress > 0 && audioRef.current);
+  const showProgress = isPlaying || playProgress > 0;
 
   return (
     <div className="flex items-center gap-3">

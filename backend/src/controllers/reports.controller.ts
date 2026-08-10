@@ -61,9 +61,6 @@ export const markReportInvalid = async (req: Request, res: Response) => {
   try {
     const reportId = parseInt(req.params.id as string);
 
-    // This endpoint would normally be protected by an isAdmin middleware.
-    // We assume the Discord webhook contains a secure secret key to hit this.
-    
     const report = await prisma.report.findUnique({ where: { id: reportId } });
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
