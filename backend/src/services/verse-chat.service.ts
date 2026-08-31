@@ -102,7 +102,7 @@ export class VerseChatService {
       input.ayahNumber,
       input.language,
     );
-    const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-3.6-flash';
+    const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash-lite';
     const ai = new GoogleGenAI({ apiKey });
 
     const { systemInstruction, prompt } = buildVerseChatPrompt(input, context);
@@ -112,7 +112,7 @@ export class VerseChatService {
       contents: prompt,
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         maxOutputTokens: 900,
         responseMimeType: 'application/json',
         responseJsonSchema: {

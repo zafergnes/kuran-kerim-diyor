@@ -42,7 +42,7 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-https://kurannediyor.com.tr}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODERATION_MODEL=${GEMINI_MODERATION_MODEL:-gemini-3.5-flash-lite}
-      - GEMINI_CHAT_MODEL=${GEMINI_CHAT_MODEL:-gemini-3.6-flash}
+      - GEMINI_CHAT_MODEL=${GEMINI_CHAT_MODEL:-gemini-3.5-flash-lite}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_EMAIL=${VAPID_EMAIL:-https://kurannediyor.com.tr/support}
