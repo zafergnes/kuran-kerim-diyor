@@ -5,10 +5,9 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    useColorScheme,
     ActivityIndicator,
 } from 'react-native';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
@@ -43,8 +42,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     onToggleMode,
 }) => {
     const { t } = useTranslation();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     
     const { language, arabicTranslationLang, arabicFontFamily, selectedReciter } = useUserStore();
     const translationLanguage = language === 'ar' ? arabicTranslationLang : language;
@@ -184,7 +182,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         : highlightedAyahId;
 
     return (
-        <View style={[styles.cardContainer, { height: containerHeight }]}>
+        <View style={[styles.cardContainer, { height: containerHeight, backgroundColor: theme.background }]}>
             {/* Header Information */}
             <View style={[styles.pageHeader, { borderBottomColor: theme.border }]}>
                 <View>

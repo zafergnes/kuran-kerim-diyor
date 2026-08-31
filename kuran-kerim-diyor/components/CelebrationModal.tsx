@@ -1,14 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useUserStore } from '../store/userStore';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { Award, Star } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export function CelebrationModal() {
     const { t } = useTranslation();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
 
     const activeCelebration = useUserStore((state) => state.activeCelebration);
     const setActiveCelebration = useUserStore((state) => state.setActiveCelebration);

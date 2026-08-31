@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Modal, FlatList, Alert } from 'react-native';
-import { Colors } from '../../constants/colors';
 import apiClient from '../../services/apiClient';
 import * as SecureStore from 'expo-secure-store';
 import { useUserStore } from '../../store/userStore';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, AppLanguage } from '../../constants/languages';
 
-import { BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star, Settings, LogOut, UserX, ChevronRight, Globe, Check, Award } from 'lucide-react-native';
-import { useColorScheme, ScrollView } from 'react-native';
+import { BookOpen, MessageSquare, Heart, Settings, LogOut, UserX, ChevronRight, Globe, Check, Award, Sprout, Zap, Crown, Sparkles, ShieldCheck, Lock } from 'lucide-react-native';
+import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
 import { quranData } from '../../services/quranData';
 import { AnalyticsService } from '../../services/analyticsService';
-
-const ICON_MAP: Record<string, any> = {
-    BookOpen, BookMarked, MessageSquare, Heart, TrendingUp, GitCommitHorizontal, Star
-};
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function ProfileScreen() {
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { 
         userId, 
         isAnonymous, 
@@ -67,13 +62,13 @@ export default function ProfileScreen() {
     }
 
     const badgesList = [
-        { id: "first_step", icon: "🌱" },
-        { id: "first_surah", icon: "📖" },
-        { id: "regular", icon: "⚡" },
-        { id: "faithful_reader", icon: "💖" },
-        { id: "hatim", icon: "👑" },
-        { id: "double_hatim", icon: "✨" },
-        { id: "hatim_guardian", icon: "🛡️" },
+        { id: "first_step", icon: Sprout },
+        { id: "first_surah", icon: BookOpen },
+        { id: "regular", icon: Zap },
+        { id: "faithful_reader", icon: Heart },
+        { id: "hatim", icon: Crown },
+        { id: "double_hatim", icon: Sparkles },
+        { id: "hatim_guardian", icon: ShieldCheck },
     ];
 
     useEffect(() => {
@@ -95,6 +90,7 @@ export default function ProfileScreen() {
     };
 
     const translateAuthError = (message: string) => {
+        if (/timeout|ECONNABORTED|network error/i.test(message)) return t('auth_errors.network_failed');
         if (message.includes('invalid_credential') || message.includes('401')) return t('auth_errors.invalid_credential');
         if (message.includes('user_not_found') || message.includes('404')) return t('auth_errors.user_not_found');
         if (message.includes('email_in_use') || message.includes('409')) return t('auth_errors.email_in_use');
@@ -104,7 +100,7 @@ export default function ProfileScreen() {
 
     const [emailInput, setEmailInput] = useState('');
     const [passwordInput, setPasswordInput] = useState('');
-    const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+    const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -289,6 +285,7 @@ export default function ProfileScreen() {
                     <View style={styles.badgesGrid}>
                         {badgesList.map((badge) => {
                             const isUnlocked = (seenAchievements || []).includes(badge.id);
+                            const BadgeIcon = isUnlocked ? badge.icon : Lock;
                             return (
                                 <View 
                                     key={badge.id} 
@@ -298,8 +295,8 @@ export default function ProfileScreen() {
                                         isUnlocked ? null : styles.badgeLocked
                                     ]}
                                 >
-                                    <View style={[styles.badgeIconWrapper, { backgroundColor: isUnlocked ? theme.primary + '15' : '#f5f5f5' }]}>
-                                        <Text style={{ fontSize: 18 }}>{isUnlocked ? badge.icon : '🔒'}</Text>
+                                    <View style={[styles.badgeIconWrapper, { backgroundColor: isUnlocked ? theme.primary + '15' : theme.background }]}>
+                                        <BadgeIcon size={20} color={isUnlocked ? theme.primary : theme.muted} strokeWidth={2} />
                                     </View>
                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                         <Text style={[styles.badgeName, { color: isUnlocked ? theme.text : theme.muted }]}>
@@ -391,16 +388,36 @@ export default function ProfileScreen() {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
-            <View style={styles.card}>
-                <Text style={[styles.title, { color: theme.text }]}>
+        <KeyboardAvoidingView
+            style={[styles.authKeyboardView, { backgroundColor: theme.background }]}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView
+                contentContainerStyle={styles.authContainer}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={[styles.authHeroIcon, { backgroundColor: theme.primary + '1A' }]}>
+                    <BookOpen size={34} color={theme.primary} />
+                </View>
+                <Text style={[styles.authWelcomeTitle, { color: theme.text }]}>
+                    {t('profile.auth_welcome')}
+                </Text>
+                <Text style={[styles.authWelcomeText, { color: theme.secondary }]}>
+                    {t('profile.auth_subtitle')}
+                </Text>
+
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <Text style={[styles.authFormTitle, { color: theme.text }]}>
                     {authMode === 'login' ? t('profile.login') : t('profile.register')}
                 </Text>
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <TextInput
-                    style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+                    style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}
                     placeholder={t('profile.email')}
                     placeholderTextColor={theme.muted}
                     value={emailInput}
@@ -410,7 +427,7 @@ export default function ProfileScreen() {
                 />
 
                 <TextInput
-                    style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+                    style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}
                     placeholder={t('profile.password')}
                     placeholderTextColor={theme.muted}
                     value={passwordInput}
@@ -447,10 +464,14 @@ export default function ProfileScreen() {
                         <TouchableOpacity style={[styles.outlineButton, { borderColor: theme.primary }]} onPress={handleGuestLogin}>
                             <Text style={[styles.outlineButtonText, { color: theme.primary }]}>{t('profile.guest_continue')}</Text>
                         </TouchableOpacity>
+                        <Text style={[styles.guestHint, { color: theme.muted }]}>
+                            {t('profile.guest_hint')}
+                        </Text>
                     </>
                 )}
-            </View>
-        </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -458,6 +479,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+    },
+    authKeyboardView: {
+        flex: 1,
     },
     headerCard: {
         padding: 24,
@@ -503,13 +527,48 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     card: {
-        backgroundColor: '#fff',
         padding: 24,
-        borderRadius: 12,
+        borderRadius: 20,
+        borderWidth: StyleSheet.hairlineWidth,
         shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
         elevation: 3,
+        width: '100%',
+    },
+    authContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 32,
+    },
+    authHeroIcon: {
+        width: 72,
+        height: 72,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    authWelcomeTitle: {
+        fontSize: 26,
+        fontWeight: '700',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    authWelcomeText: {
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: 'center',
+        maxWidth: 330,
+        marginBottom: 24,
+    },
+    authFormTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 20,
+        textAlign: 'center',
     },
     title: {
         fontSize: 24,
@@ -539,10 +598,17 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         borderWidth: 1,
+        marginTop: 20,
     },
     outlineButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    guestHint: {
+        fontSize: 12,
+        lineHeight: 17,
+        textAlign: 'center',
+        marginTop: 10,
     },
     divider: {
         flexDirection: 'row',
@@ -559,8 +625,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     badgeLocked: {
-        borderColor: '#eee',
-        backgroundColor: '#fafafa',
         opacity: 0.55,
     },
     modalOverlay: {

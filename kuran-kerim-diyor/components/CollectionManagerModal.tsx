@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, useColorScheme, TextInput, ScrollView, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
-import { Colors } from '../constants/colors';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { Check, Plus, X } from 'lucide-react-native';
 import { useUserStore } from '../store/userStore';
 import { useTranslation } from 'react-i18next';
@@ -13,8 +13,7 @@ interface CollectionManagerModalProps {
 
 export function CollectionManagerModal({ visible, ayahId, onClose }: CollectionManagerModalProps) {
     const { t } = useTranslation();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { collections, addCollection, addAyahToCollection, removeAyahFromCollection } = useUserStore();
     const [newColName, setNewColName] = useState('');
 

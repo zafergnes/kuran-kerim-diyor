@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AppLanguage } from '../constants/languages';
+import type { ThemePreference } from '../hooks/useAppTheme';
 
 export interface Collection {
     id: string;
@@ -9,6 +10,7 @@ export interface Collection {
 
 interface UserState {
     language: AppLanguage;
+    themePreference: ThemePreference;
     currentSurah: number;
     currentAyah: number;
     completedSurahs: number[];
@@ -41,6 +43,7 @@ interface UserState {
     setActiveCelebration: (badge: string | null) => void;
 
     setLanguage: (lang: AppLanguage) => void;
+    setThemePreference: (theme: ThemePreference) => void;
     setProgress: (surah: number, ayah: number, ayahCount?: number) => Promise<void>;
     addCompletedSurah: (surah: number) => void;
     setCompletedSurahs: (surahs: number[]) => void;
@@ -108,6 +111,7 @@ const calculateUnlockedAchievements = (state: {
 
 export const useUserStore = create<UserState>((set, get) => ({
     language: 'tr', // Default
+    themePreference: 'system',
     currentSurah: 1,
     currentAyah: 1,
     completedSurahs: [],
@@ -146,6 +150,12 @@ export const useUserStore = create<UserState>((set, get) => ({
         // İzin zaten verilmişse sunucudaki bildirim dilini güncelle; izin isteme.
         import('../services/notificationService').then(({ NotificationService }) => {
             NotificationService.refreshRegistrationIfGranted().catch(() => {});
+        });
+    },
+    setThemePreference: (themePreference) => {
+        set({ themePreference });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_theme', themePreference);
         });
     },
     setProgress: async (surah, ayah, ayahCount) => {
@@ -311,6 +321,11 @@ export const useUserStore = create<UserState>((set, get) => ({
             
             const storedFavs = await AsyncStorage.getItem('userFavorites');
             if (storedFavs) set({ favorites: JSON.parse(storedFavs) });
+
+            const storedTheme = await AsyncStorage.getItem('@app_theme');
+            if (storedTheme === 'system' || storedTheme === 'light' || storedTheme === 'dark') {
+                set({ themePreference: storedTheme });
+            }
             
             const storedCols = await AsyncStorage.getItem('userCollections');
             if (storedCols) set({ collections: JSON.parse(storedCols) });

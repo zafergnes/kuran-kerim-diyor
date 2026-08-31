@@ -1,12 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Home, BookOpen, Search, User, Heart } from 'lucide-react-native';
-import { Colors } from '../../constants/colors';
-import { View, StyleSheet, Platform, useColorScheme } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function TabLayout() {
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { t } = useTranslation();
 
     return (

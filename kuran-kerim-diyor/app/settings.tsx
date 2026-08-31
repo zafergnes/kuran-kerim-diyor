@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     Switch,
     ScrollView,
-    useColorScheme,
     Modal,
     Alert,
     ActivityIndicator,
@@ -28,14 +27,15 @@ import {
     FileText,
     ShieldCheck,
     LifeBuoy,
+    Palette,
 } from 'lucide-react-native';
 import { Audio } from 'expo-av';
-import { Colors } from '../constants/colors';
 import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationService } from '../services/notificationService';
 import { AnalyticsService } from '../services/analyticsService';
+import { useAppTheme, ThemePreference } from '../hooks/useAppTheme';
 
 // Arapca kullanicilar icin meal dilinden hariclenenler
 const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => l !== 'ar');
@@ -43,12 +43,14 @@ const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => 
 export default function SettingsScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { t } = useTranslation();
 
     const {
         language,
+        setLanguage,
+        themePreference,
+        setThemePreference,
         showArabicTranslation,
         arabicTranslationLang,
         setShowArabicTranslation,
@@ -64,6 +66,8 @@ export default function SettingsScreen() {
     } = useUserStore();
 
     const isArabicUser = language === 'ar';
+    const [showAppLanguagePicker, setShowAppLanguagePicker] = useState(false);
+    const [showThemePicker, setShowThemePicker] = useState(false);
     const [showLangPicker, setShowLangPicker] = useState(false);
     const [showReciterPicker, setShowReciterPicker] = useState(false);
     const [showLayoutPicker, setShowLayoutPicker] = useState(false);
@@ -353,6 +357,52 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </View>
 
+                {/* ── UYGULAMA DİLİ ── */}
+                <Text style={[styles.sectionHeader, { color: theme.muted }]}>
+                    {t('profile.language')}
+                </Text>
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => setShowAppLanguagePicker(true)}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(52, 199, 89, 0.12)' }]}>
+                                <Globe size={20} color="#34C759" />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('profile.language')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {LANGUAGES[language].nativeName}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* ── UYGULAMA TEMASI ── */}
+                <Text style={[styles.sectionHeader, { color: theme.muted }]}>
+                    {t('settings.appearance_section')}
+                </Text>
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => setShowThemePicker(true)}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(175, 82, 222, 0.12)' }]}>
+                                <Palette size={20} color="#AF52DE" />
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.app_theme')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {t(`settings.theme_${themePreference}`)}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                </View>
+
                 <Text style={[styles.sectionHeader, { color: theme.muted }]}>
                     {t('settings.privacy_section', 'Gizlilik ve Destek')}
                 </Text>
@@ -379,6 +429,81 @@ export default function SettingsScreen() {
                 </View>
 
             </ScrollView>
+
+            {/* ── Uygulama Dili Seçici Modal ── */}
+            <Modal
+                visible={showAppLanguagePicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowAppLanguagePicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowAppLanguagePicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('profile.language')}
+                        </Text>
+                        {(Object.keys(LANGUAGES) as AppLanguage[]).map(lang => (
+                            <TouchableOpacity
+                                key={lang}
+                                style={[styles.langItem, { borderBottomColor: theme.border }]}
+                                onPress={() => {
+                                    setLanguage(lang);
+                                    setShowAppLanguagePicker(false);
+                                }}
+                            >
+                                <View>
+                                    <Text style={[styles.langName, { color: theme.text }]}>
+                                        {LANGUAGES[lang].nativeName}
+                                    </Text>
+                                    <Text style={[styles.langSub, { color: theme.muted }]}>
+                                        {LANGUAGES[lang].name}
+                                    </Text>
+                                </View>
+                                {language === lang && <Check size={20} color={theme.primary} />}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Uygulama Teması Seçici Modal ── */}
+            <Modal
+                visible={showThemePicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowThemePicker(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowThemePicker(false)}
+                >
+                    <View style={[styles.langModal, { backgroundColor: theme.card }]}>
+                        <Text style={[styles.langModalTitle, { color: theme.text }]}>
+                            {t('settings.app_theme')}
+                        </Text>
+                        {(['system', 'light', 'dark'] as ThemePreference[]).map(option => (
+                            <TouchableOpacity
+                                key={option}
+                                style={[styles.langItem, { borderBottomColor: theme.border }]}
+                                onPress={() => {
+                                    setThemePreference(option);
+                                    setShowThemePicker(false);
+                                }}
+                            >
+                                <Text style={[styles.langName, { color: theme.text }]}>
+                                    {t(`settings.theme_${option}`)}
+                                </Text>
+                                {themePreference === option && <Check size={20} color={theme.primary} />}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
 
             {/* ── Meal Dili Seçici Modal ── */}
             <Modal

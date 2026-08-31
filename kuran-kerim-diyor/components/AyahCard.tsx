@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { Ayah } from '../services/quranData';
 import { useUserStore } from '../store/userStore';
 import { MessageSquare, Share2, Sparkles } from 'lucide-react-native';
@@ -22,7 +22,7 @@ interface AyahCardProps {
 export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
     const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
     const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
-    const theme = Colors.light;
+    const { theme } = useAppTheme();
     const [showComments, setShowComments] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [showVerseChat, setShowVerseChat] = useState(false);

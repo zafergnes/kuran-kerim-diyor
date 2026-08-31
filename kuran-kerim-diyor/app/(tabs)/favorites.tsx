@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, useColorScheme, FlatList, TouchableOpacity, Modal, Platform } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Platform } from 'react-native';
 import { useUserStore } from '../../store/userStore';
 import { getSurah } from '../../services/quranData';
 import { useNavigation, useRouter } from 'expo-router';
@@ -10,10 +9,10 @@ import { DeleteWarningModal } from '../../components/DeleteWarningModal';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { Trash2 } from 'lucide-react-native';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function FavoritesScreen() {
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { 
         favorites, collections, toggleFavorite, removeAyahFromCollection, 
         setProgress, language, hideFavoriteDeleteWarning, setHideFavoriteDeleteWarning 

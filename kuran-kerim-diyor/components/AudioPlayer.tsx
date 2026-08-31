@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { Audio } from 'expo-av';
 import { Play, Pause } from 'lucide-react-native';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { useTranslation } from 'react-i18next';
 import { GlobalAudioController } from '../services/globalAudioController';
@@ -19,7 +19,7 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
     const { selectedReciter } = useUserStore();
     const { t } = useTranslation();
 
-    const theme = Colors.light;
+    const { theme } = useAppTheme();
     const reciterKey = selectedReciter.replace('.', '_');
     const reciterName = t(`reciters.${reciterKey}_name`);
 

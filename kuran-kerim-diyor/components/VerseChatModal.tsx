@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Flag, Send, ShieldCheck, Sparkles, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { VerseChatMessage, VerseChatResponse, VerseChatService } from '../services/verseChatService';
 import { AnalyticsService } from '../services/analyticsService';
@@ -23,7 +23,7 @@ export function VerseChatModal(props: Props) {
   const { visible, onClose, surahNumber, ayahNumber, reference, translation } = props;
   const { t } = useTranslation();
   const language = useUserStore((state) => state.language);
-  const theme = Colors.light;
+  const { theme } = useAppTheme();
   const [messages, setMessages] = useState<VerseChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

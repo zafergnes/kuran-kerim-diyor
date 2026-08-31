@@ -1,21 +1,13 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-import Constants from 'expo-constants';
-
-const getBaseUrl = () => {
-  const debuggerHost = Constants.expoConfig?.hostUri;
-  if (debuggerHost) {
-    const ip = debuggerHost.split(':')[0];
-    return `http://${ip}:3001/api`;
-  }
-  return 'https://api.kurannediyor.com.tr/api';
-};
-
-const API_URL = getBaseUrl();
+export const API_ORIGIN = (process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.kurannediyor.com.tr')
+  .replace(/\/+$/, '');
+export const API_URL = `${API_ORIGIN}/api`;
 
 const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -45,6 +37,16 @@ apiClient.interceptors.response.use(
   async (error: any) => {
     const originalRequest = error.config;
 
+    if (__DEV__) {
+      console.warn('[API] Request failed', {
+        baseURL: originalRequest?.baseURL,
+        url: originalRequest?.url,
+        code: error.code,
+        status: error.response?.status,
+        message: error.message,
+      });
+    }
+
     // If error is 401 and we haven't tried refreshing yet
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -53,7 +55,7 @@ apiClient.interceptors.response.use(
         const refreshToken = await SecureStore.getItemAsync('refreshToken');
         if (refreshToken) {
           // Try to get a new access token
-          const res = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+          const res = await axios.post(`${API_URL}/auth/refresh`, { refreshToken }, { timeout: 15000 });
           const { accessToken } = res.data;
 
           // Store the new token

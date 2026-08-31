@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useColorScheme } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import apiClient from '../services/apiClient';
 import { useUserStore } from '../store/userStore';
 import { useRouter, Stack } from 'expo-router';
@@ -22,8 +21,7 @@ interface MyComment {
 }
 
 export default function MyCommentsScreen() {
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { userId } = useUserStore();
     const router = useRouter();
     const { t } = useTranslation();

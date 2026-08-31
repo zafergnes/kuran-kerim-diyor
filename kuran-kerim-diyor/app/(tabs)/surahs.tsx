@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CheckCircle2 } from 'lucide-react-native';
-import { Colors } from '../../constants/colors';
 import { getAllSurahs } from '../../services/quranData';
 import { useProgress } from '../../hooks/useProgress';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function SurahsScreen() {
     const { t } = useTranslation();
     const surahs = getAllSurahs();
-    const theme = Colors.light;
+    const { theme } = useAppTheme();
     const router = useRouter();
     const { setProgress, completedSurahs } = useProgress();
 
@@ -33,11 +33,11 @@ export default function SurahsScreen() {
                             onPress={() => handlePress(item.number)}
                             style={[styles.surahCard, { borderBottomColor: theme.border, backgroundColor: isCompleted ? 'rgba(182, 154, 115, 0.03)' : 'transparent' }]}
                         >
-                            <View style={[styles.numberCircle, isCompleted && { backgroundColor: theme.primary }]}>
+                            <View style={[styles.numberCircle, { backgroundColor: theme.primary + '1A' }, isCompleted && { backgroundColor: theme.primary }]}>
                                 {isCompleted ? (
                                     <CheckCircle2 size={20} color="#fff" />
                                 ) : (
-                                    <Text style={styles.numberText}>{item.number}</Text>
+                                    <Text style={[styles.numberText, { color: theme.primary }]}>{item.number}</Text>
                                 )}
                             </View>
                             <View style={styles.surahInfo}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, useColorScheme } from 'react-native';
-import { Colors } from '../constants/colors';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { Check, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -12,8 +12,7 @@ interface DeleteWarningModalProps {
 
 export function DeleteWarningModal({ visible, onConfirm, onCancel }: DeleteWarningModalProps) {
     const { t } = useTranslation();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const [dontAskAgain, setDontAskAgain] = useState(false);
 
     if (!visible) return null;

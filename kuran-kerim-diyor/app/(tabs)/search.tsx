@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../constants/colors';
 import { searchAyahs } from '../../services/quranData';
 import { useUserStore } from '../../store/userStore';
 import { useProgress } from '../../hooks/useProgress';
 import { useAyahStats } from '../../hooks/useAyahStats';
 import { Heart } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 const formatFavCount = (n: number) => {
     if (n < 1000) return n.toString();
@@ -52,8 +52,7 @@ const SearchResultItem = ({ item, theme, language, onPress }: any) => {
 };
 
 export default function SearchScreen() {
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { language } = useUserStore();
     const router = useRouter();
     const { setProgress } = useProgress();

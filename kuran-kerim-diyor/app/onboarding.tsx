@@ -1,10 +1,10 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useColorScheme, FlatList, Modal, Switch, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, Modal, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BookOpen, Cloud, Heart, ArrowRight, Check, Globe } from 'lucide-react-native';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useTranslation } from 'react-i18next';
 import i18n, { applyRTL } from '../services/i18n';
 import { useUserStore } from '../store/userStore';
@@ -19,8 +19,7 @@ export default function OnboardingScreen() {
     const [analyticsConsent, setAnalyticsConsent] = useState(false);
     const flatListRef = useRef<FlatList>(null);
     const router = useRouter();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const { t } = useTranslation();
     const { language, setLanguage, readingLayout, setReadingLayout } = useUserStore();
 

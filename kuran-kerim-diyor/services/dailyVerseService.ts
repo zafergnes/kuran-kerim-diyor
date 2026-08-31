@@ -1,20 +1,9 @@
 import axios from 'axios';
 import * as Localization from 'expo-localization';
-import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_ORIGIN } from './apiClient';
 
-// Backend URL'i - Geliştirme aşamasında localhost için uygun IP'yi ayarlar
-const getBaseUrl = () => {
-  // Eğer emulator kullanılıyorsa 10.0.2.2, değilse yerel IP
-  const debuggerHost = Constants.expoConfig?.hostUri;
-  if (debuggerHost) {
-    const ip = debuggerHost.split(':')[0];
-    return `http://${ip}:3001`;
-  }
-  return 'https://api.kurannediyor.com.tr';
-};
-
-const BASE_URL = getBaseUrl();
+const BASE_URL = API_ORIGIN;
 
 export interface DailyVerse {
   text: string;

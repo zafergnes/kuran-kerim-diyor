@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, useColorScheme, Alert, RefreshControl, Linking } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Alert, RefreshControl, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useComments } from '../hooks/useComments';
 import { useUserStore } from '../store/userStore';
 import { Heart, Trash2, Reply, Send, Flag, UserX } from 'lucide-react-native';
@@ -18,8 +18,7 @@ interface CommentSheetProps {
 export function CommentSheet({ surahNo, ayahNo, onClose }: CommentSheetProps) {
     const { comments, loading, addComment, toggleLike, deleteComment, refresh } = useComments(surahNo, ayahNo);
     const { userId, isAnonymous, language, displayName } = useUserStore();
-    const colorScheme = useColorScheme();
-    const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const { theme } = useAppTheme();
     const router = useRouter();
     const { t } = useTranslation();
 

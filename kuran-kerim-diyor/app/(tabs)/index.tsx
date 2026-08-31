@@ -6,7 +6,6 @@ import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService'
 import { VerseShareCard } from '../../components/VerseShareCard';
 import { Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/colors';
 import { getSurah } from '../../services/quranData';
 import { AyahCard } from '../../components/AyahCard';
 import { useProgress } from '../../hooks/useProgress';
@@ -19,6 +18,7 @@ import { QuranPageCard } from '../../components/QuranPageCard';
 import { getPageFromSurahAyah } from '../../utils/quranHelpers';
 import { PAGE_START_MAP } from '../../utils/pageMapping';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 const formatFavCount = (n: number) => {
     if (n < 1000) return n.toString();
@@ -32,9 +32,9 @@ export default function MainFeedScreen() {
     const params = useLocalSearchParams();
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
+    const { theme } = useAppTheme();
     const { currentSurah, currentAyah, setProgress } = useProgress();
     const surah = getSurah(currentSurah || 1);
-    const theme = Colors.light;
 
     const PAGES_ARRAY = useMemo(() => Array.from({ length: 604 }, (_, i) => i + 1), []);
     const currentPage = useMemo(() => {

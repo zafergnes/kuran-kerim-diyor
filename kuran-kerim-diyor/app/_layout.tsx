@@ -4,6 +4,7 @@ import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-googl
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import '../services/i18n'; // i18n'i uygulama baslarken baslat
 import i18n, { applyRTL, detectDeviceLanguage } from '../services/i18n';
 import { CelebrationModal } from '../components/CelebrationModal';
@@ -13,11 +14,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { AnalyticsService } from '../services/analyticsService';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+    const { colorScheme } = useAppTheme();
     const [loaded, error] = useFonts({
         Amiri_400Regular,
         Amiri_700Bold,
@@ -164,6 +167,7 @@ export default function RootLayout() {
 
     return (
         <>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
             <Stack>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="onboarding" options={{ headerShown: false }} />
