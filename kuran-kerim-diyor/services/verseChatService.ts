@@ -20,7 +20,7 @@ export const VerseChatService = {
     message: string;
     history: VerseChatMessage[];
   }): Promise<VerseChatResponse> {
-    return (await apiClient.post('/verse-chat', input)).data;
+    return (await apiClient.post('/verse-chat', input, { timeout: 45000 })).data;
   },
 
   async report(input: {

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import { z } from 'zod';
 import { DailyService } from './daily.service';
 import { SystemSettingsService } from './system-settings.service';
@@ -112,6 +112,8 @@ export class VerseChatService {
       contents: prompt,
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        maxOutputTokens: 900,
         responseMimeType: 'application/json',
         responseJsonSchema: {
           type: 'object', additionalProperties: false,

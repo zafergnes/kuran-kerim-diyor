@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
@@ -9,6 +9,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { VerseChatMessage, VerseChatResponse, VerseChatService } from '../services/verseChatService';
 import { AnalyticsService } from '../services/analyticsService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   visible: boolean;
@@ -24,6 +25,8 @@ export function VerseChatModal(props: Props) {
   const { t } = useTranslation();
   const language = useUserStore((state) => state.language);
   const { theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
   const [messages, setMessages] = useState<VerseChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,11 +58,20 @@ export function VerseChatModal(props: Props) {
       ].filter(Boolean).join('\n\n');
       setMessages([...withQuestion, { role: 'assistant', text }]);
     } catch (error: any) {
+      const status = error?.response?.status;
+      const isTimeout = error?.code === 'ECONNABORTED' || /timeout/i.test(error?.message || '');
+      const message = status === 429
+        ? t('verse_chat.rate_limited', 'Çok fazla soru sordunuz. Lütfen biraz sonra tekrar deneyin.')
+        : isTimeout
+          ? t('verse_chat.timeout_error', 'Yanıt beklenenden uzun sürdü. Lütfen tekrar deneyin.')
+          : status === 502 || status === 503
+            ? t('verse_chat.service_error', 'AI servisine şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin.')
+            : !error?.response
+              ? t('verse_chat.network_error', 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edin.')
+              : t('verse_chat.error_message', 'Yanıt oluşturulamadı. Lütfen tekrar deneyin.');
       Alert.alert(
         t('verse_chat.error_title', 'Yanıt oluşturulamadı'),
-        error?.response?.status === 429
-          ? t('verse_chat.rate_limited', 'Çok fazla soru sordunuz. Lütfen biraz sonra tekrar deneyin.')
-          : t('verse_chat.error_message', 'Bağlantınızı kontrol edip tekrar deneyin.'),
+        message,
       );
     } finally {
       setLoading(false);
@@ -83,7 +95,11 @@ export function VerseChatModal(props: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={[styles.root, { backgroundColor: theme.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={[styles.root, { backgroundColor: theme.background }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+      >
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <View style={styles.heading}><Sparkles size={18} color={theme.primary} /><View>
             <Text style={[styles.title, { color: theme.text }]}>{t('verse_chat.title', 'Ayet Üzerine Konuş')}</Text>
@@ -91,7 +107,14 @@ export function VerseChatModal(props: Props) {
           </View></View>
           <TouchableOpacity onPress={onClose} style={styles.close}><X size={20} color={theme.text} /></TouchableOpacity>
         </View>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        >
           <View style={[styles.verse, { borderColor: theme.border, backgroundColor: theme.card }]}>
             <Text numberOfLines={3} style={[styles.verseText, { color: theme.secondary }]}>{translation}</Text>
           </View>
@@ -111,8 +134,8 @@ export function VerseChatModal(props: Props) {
           {loading && <ActivityIndicator color={theme.primary} style={{ alignSelf: 'flex-start', margin: 10 }} />}
           {lastResponse && !loading && <TouchableOpacity onPress={report} style={styles.report}><Flag size={13} color={theme.muted} /><Text style={{ color: theme.muted, fontSize: 11 }}>{t('verse_chat.report', 'Yanıtı bildir')}</Text></TouchableOpacity>}
         </ScrollView>
-        <View style={[styles.composer, { borderTopColor: theme.border }]}>
-          <TextInput value={input} onChangeText={setInput} multiline maxLength={600} placeholder={t('verse_chat.placeholder', 'Bu ayet hakkında sor...')} placeholderTextColor={theme.muted} style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.card }]} />
+        <View style={[styles.composer, { borderTopColor: theme.border, paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <TextInput value={input} onChangeText={setInput} onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250)} multiline maxLength={600} placeholder={t('verse_chat.placeholder', 'Bu ayet hakkında sor...')} placeholderTextColor={theme.muted} style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.card }]} />
           <TouchableOpacity onPress={() => void send()} disabled={!input.trim() || loading} style={[styles.send, { backgroundColor: theme.primary, opacity: !input.trim() || loading ? 0.4 : 1 }]}><Send size={18} color="#fff" /></TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
