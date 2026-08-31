@@ -12,20 +12,25 @@ import { useAyahStats } from '../hooks/useAyahStats';
 import { splitBismillah, isSajdahAyah, hasBismillah } from '../utils/quranHelpers';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
+import { getHighlightedLetterCount, splitWordAtHighlightedLetter } from '../utils/audioTextProgress';
 
 interface AyahCardProps {
     ayah: Ayah;
     surahName: string;
     surahNumber: number;
+    onAudioInteractionChange?: (isInteracting: boolean) => void;
 }
 
-export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
+export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChange }: AyahCardProps) {
     const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
     const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
     const { theme } = useAppTheme();
     const [showComments, setShowComments] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [showVerseChat, setShowVerseChat] = useState(false);
+    const [audioProgress, setAudioProgress] = useState(0);
+    const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+    const [seekProgress, setSeekProgress] = useState<number | null>(null);
     const { t } = useTranslation();
 
     // Arapca kullanici: meal tercihine gore goster/gizle
@@ -49,10 +54,18 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
     // Lafzatullah renklendirme (Allah ve lillah lafizlari)
     const renderArabicText = (text: string) => {
         const words = text.split(/\s+/);
+        const highlightedLetterCount = getHighlightedLetterCount(text, audioProgress);
+        let consumedLetters = 0;
+
         return words.map((word, index) => {
             // Arapcadaki Allah ve Lillah kelimeleri (farkli harekelere ve harflere gore)
             const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
             const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
+            const wordLetterCount = getHighlightedLetterCount(word, 1);
+            const highlightedInWord = Math.min(wordLetterCount, Math.max(0, highlightedLetterCount - consumedLetters));
+            const parts = splitWordAtHighlightedLetter(word, highlightedInWord);
+            const wordStartProgress = consumedLetters / Math.max(1, getHighlightedLetterCount(text, 1));
+            consumedLetters += wordLetterCount;
             
             return (
                 <Text 
@@ -61,8 +74,19 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
                         color: isAllah ? '#D32F2F' : theme.text,
                         fontWeight: isAllah ? 'bold' : 'normal'
                     }}
+                    onPress={() => {
+                        if (!isAudioPlaying) return;
+                        setSeekProgress(null);
+                        requestAnimationFrame(() => setSeekProgress(wordStartProgress));
+                    }}
                 >
-                    {word}{index < words.length - 1 ? ' ' : ''}
+                    {parts.highlighted ? (
+                        <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{parts.highlighted}</Text>
+                    ) : null}
+                    {parts.remaining ? (
+                        <Text style={{ color: isAllah ? '#D32F2F' : theme.text }}>{parts.remaining}</Text>
+                    ) : null}
+                    {index < words.length - 1 ? ' ' : ''}
                 </Text>
             );
         });
@@ -112,7 +136,13 @@ export function AyahCard({ ayah, surahName, surahNumber }: AyahCardProps) {
             </ScrollView>
 
             <View style={styles.footer}>
-                <AudioPlayer globalAyahNumber={ayah.globalNumber} />
+                <AudioPlayer
+                    globalAyahNumber={ayah.globalNumber}
+                    onProgressChange={setAudioProgress}
+                    seekProgress={seekProgress}
+                    onPlayingChange={setIsAudioPlaying}
+                    onScrubbingChange={onAudioInteractionChange}
+                />
 
                 <Text style={[styles.metaText, { color: theme.muted, marginHorizontal: 16 }]}>
                     {surahName} • {t('common.ayah')} {ayah.number}

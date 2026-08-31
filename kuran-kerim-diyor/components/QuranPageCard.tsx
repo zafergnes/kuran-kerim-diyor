@@ -17,6 +17,7 @@ import { Play, Pause, Sparkles } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
+import { getHighlightedLetterCount, splitWordAtHighlightedLetter } from '../utils/audioTextProgress';
 
 const toArabicDigits = (num: number): string => {
     const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -32,6 +33,7 @@ interface QuranPageCardProps {
     highlightedAyahId: string | null;
     activeMode: 'arabic' | 'translation';
     onToggleMode: (mode: 'arabic' | 'translation') => void;
+    onAudioInteractionChange?: (isInteracting: boolean) => void;
 }
 
 export const QuranPageCard: React.FC<QuranPageCardProps> = ({
@@ -40,6 +42,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     highlightedAyahId,
     activeMode,
     onToggleMode,
+    onAudioInteractionChange,
 }) => {
     const { t } = useTranslation();
     const { theme } = useAppTheme();
@@ -79,7 +82,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         }
     }, [selectedReciter]);
 
-    const playAyahAtIndex = async (index: number) => {
+    const playAyahAtIndex = async (index: number, startProgress = 0) => {
         if (index < 0 || index >= pageAyahs.length) {
             await GlobalAudioController.stop(ownerId);
             return;
@@ -95,8 +98,16 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
 
             const { sound: newSound } = await Audio.Sound.createAsync(
                 { uri: url },
-                { shouldPlay: true }
+                { shouldPlay: startProgress <= 0 }
             );
+
+            if (startProgress > 0) {
+                const status = await newSound.getStatusAsync();
+                if (status.isLoaded && status.durationMillis) {
+                    await newSound.setPositionAsync(startProgress * status.durationMillis);
+                }
+                await newSound.playAsync();
+            }
 
             setSound(newSound);
             setIsPlaying(true);
@@ -168,6 +179,18 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         }
     };
 
+    const seekToProgress = (progress: number) => {
+        if (!isPlaying || !sound) return;
+
+        const normalizedProgress = Math.min(1, Math.max(0, progress));
+        setPlayProgress(normalizedProgress);
+        sound.getStatusAsync().then((status) => {
+            if (status.isLoaded && status.durationMillis) {
+                sound.setPositionAsync(normalizedProgress * status.durationMillis).catch(() => {});
+            }
+        }).catch(() => {});
+    };
+
     const isArabic = activeMode === 'arabic';
 
     const getArabicFont = (weight: 'regular' | 'bold' = 'regular') => {
@@ -216,6 +239,10 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                             onMoveShouldSetResponder={() => true}
                             onResponderGrant={handleResponderGrantOrMove}
                             onResponderMove={handleResponderGrantOrMove}
+                            onResponderRelease={() => onAudioInteractionChange?.(false)}
+                            onResponderTerminate={() => onAudioInteractionChange?.(false)}
+                            onResponderTerminationRequest={() => false}
+                            onTouchStart={() => onAudioInteractionChange?.(true)}
                         >
                             <View style={styles.progressBarBg}>
                                 <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
@@ -258,22 +285,30 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                 lastGroup.items.push(item);
                             });
 
-                            const renderArabicWordText = (word: string, isHighlighted: boolean) => {
+                            const renderArabicWordText = (
+                                word: string,
+                                isHighlighted: boolean,
+                                highlightedInWord: number,
+                            ) => {
                                 const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
                                 const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
+                                const parts = splitWordAtHighlightedLetter(word, isHighlighted ? highlightedInWord : 0);
                                 return (
                                     <Text
                                         style={[
                                             styles.arabicWordText,
                                             {
                                                 fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
-                                                color: isHighlighted ? theme.primary : (isAllah ? '#D32F2F' : theme.text),
+                                                color: isAllah ? '#D32F2F' : theme.text,
                                                 fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
                                                 fontWeight: isAllah ? 'bold' : 'normal',
                                             }
                                         ]}
                                     >
-                                        {word}
+                                        {parts.highlighted ? (
+                                            <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{parts.highlighted}</Text>
+                                        ) : null}
+                                        {parts.remaining}
                                     </Text>
                                 );
                             };
@@ -308,15 +343,44 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                 }
 
                                                 const words = textToRender.replace(/\s+/g, ' ').split(' ');
+                                                const highlightedLetterCount = isHighlighted
+                                                    ? getHighlightedLetterCount(textToRender, playProgress)
+                                                    : 0;
+                                                let consumedLetters = 0;
 
                                                 return (
                                                     <React.Fragment key={item.ayah.globalNumber}>
-                                                        {words.map((word, wIdx) => (
-                                                            <React.Fragment key={wIdx}>
-                                                                {renderArabicWordText(word, isHighlighted)}
-                                                                <Text> </Text>
-                                                            </React.Fragment>
-                                                        ))}
+                                                        {words.map((word, wIdx) => {
+                                                            const wordLetterCount = getHighlightedLetterCount(word, 1);
+                                                            const highlightedInWord = Math.min(
+                                                                wordLetterCount,
+                                                                Math.max(0, highlightedLetterCount - consumedLetters),
+                                                            );
+                                                            const wordStartProgress = consumedLetters / Math.max(
+                                                                1,
+                                                                getHighlightedLetterCount(textToRender, 1),
+                                                            );
+                                                            const pageAyahIndex = pageAyahs.findIndex(
+                                                                (pageAyah) => pageAyah.ayah.globalNumber === item.ayah.globalNumber,
+                                                            );
+                                                            consumedLetters += wordLetterCount;
+
+                                                            return (
+                                                                <React.Fragment key={wIdx}>
+                                                                    <Text onPress={() => {
+                                                                        if (!isPlaying) return;
+                                                                        if (isHighlighted) {
+                                                                            seekToProgress(wordStartProgress);
+                                                                        } else if (pageAyahIndex >= 0) {
+                                                                            void playAyahAtIndex(pageAyahIndex, wordStartProgress);
+                                                                        }
+                                                                    }}>
+                                                                        {renderArabicWordText(word, isHighlighted, highlightedInWord)}
+                                                                    </Text>
+                                                                    <Text> </Text>
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
                                                         <Text
                                                             style={[
                                                                 styles.ayahNumberBadge,

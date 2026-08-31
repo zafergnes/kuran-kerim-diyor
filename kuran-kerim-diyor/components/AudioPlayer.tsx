@@ -9,9 +9,19 @@ import { GlobalAudioController } from '../services/globalAudioController';
 
 interface AudioPlayerProps {
     globalAyahNumber: number;
+    onProgressChange?: (progress: number) => void;
+    seekProgress?: number | null;
+    onPlayingChange?: (isPlaying: boolean) => void;
+    onScrubbingChange?: (isScrubbing: boolean) => void;
 }
 
-export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
+export function AudioPlayer({
+    globalAyahNumber,
+    onProgressChange,
+    seekProgress,
+    onPlayingChange,
+    onScrubbingChange,
+}: AudioPlayerProps) {
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +34,12 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
     const reciterName = t(`reciters.${reciterKey}_name`);
 
     const ownerId = `ayah_${globalAyahNumber}`;
+
+    const updateProgress = (progress: number) => {
+        const normalizedProgress = Math.min(1, Math.max(0, progress));
+        setPlayProgress(normalizedProgress);
+        onProgressChange?.(normalizedProgress);
+    };
 
     // Clean up sound on unmount
     useEffect(() => {
@@ -39,6 +55,22 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
         }
     }, [selectedReciter]);
 
+    useEffect(() => {
+        if (seekProgress === null || seekProgress === undefined || !sound) return;
+
+        sound.getStatusAsync().then((status) => {
+            if (status.isLoaded && status.durationMillis) {
+                const normalizedProgress = Math.min(1, Math.max(0, seekProgress));
+                updateProgress(normalizedProgress);
+                sound.setPositionAsync(normalizedProgress * status.durationMillis).catch(() => {});
+            }
+        }).catch(() => {});
+    }, [seekProgress, sound]);
+
+    useEffect(() => {
+        onPlayingChange?.(isPlaying);
+    }, [isPlaying, onPlayingChange]);
+
     const handlePlayPause = async () => {
         if (isLoading) return;
 
@@ -48,7 +80,7 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
             } else {
                 await GlobalAudioController.play(sound, ownerId, () => {
                     setIsPlaying(false);
-                    setPlayProgress(0);
+                    updateProgress(0);
                     setSound(null);
                 });
                 await sound.playAsync();
@@ -77,11 +109,11 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
             newSound.setOnPlaybackStatusUpdate((status: any) => {
                 if (status.isLoaded) {
                     if (status.durationMillis) {
-                        setPlayProgress(status.positionMillis / status.durationMillis);
+                        updateProgress(status.positionMillis / status.durationMillis);
                     }
                     if (status.didJustFinish) {
                         setIsPlaying(false);
-                        setPlayProgress(0);
+                        updateProgress(0);
                         setSound(null);
                         GlobalAudioController.stop(ownerId);
                     }
@@ -90,7 +122,7 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
 
             await GlobalAudioController.play(newSound, ownerId, () => {
                 setIsPlaying(false);
-                setPlayProgress(0);
+                updateProgress(0);
                 setSound(null);
             });
         } catch (e) {
@@ -106,7 +138,7 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
         const width = 120;
         const percentage = Math.min(1, Math.max(0, locationX / width));
         
-        setPlayProgress(percentage);
+        updateProgress(percentage);
 
         if (sound) {
             sound.getStatusAsync().then(status => {
@@ -137,6 +169,10 @@ export function AudioPlayer({ globalAyahNumber }: AudioPlayerProps) {
                         onMoveShouldSetResponder={() => true}
                         onResponderGrant={handleResponderGrantOrMove}
                         onResponderMove={handleResponderGrantOrMove}
+                        onResponderRelease={() => onScrubbingChange?.(false)}
+                        onResponderTerminate={() => onScrubbingChange?.(false)}
+                        onResponderTerminationRequest={() => false}
+                        onTouchStart={() => onScrubbingChange?.(true)}
                     >
                         <View style={styles.progressBarBg}>
                             <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />

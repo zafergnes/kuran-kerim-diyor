@@ -59,6 +59,7 @@ export default function MainFeedScreen() {
     const [showDailyModal, setShowDailyModal] = useState(false);
     const [activePageMode, setActivePageMode] = useState<'arabic' | 'translation'>('arabic');
     const [highlightedAyahId, setHighlightedAyahId] = useState<string | null>(null);
+    const [isAudioInteracting, setIsAudioInteracting] = useState(false);
 
     useEffect(() => {
         setHighlightedAyahId(`${currentSurah}_${currentAyah}`);
@@ -330,6 +331,7 @@ export default function MainFeedScreen() {
                                     highlightedAyahId={highlightedAyahId}
                                     activeMode={activePageMode}
                                     onToggleMode={setActivePageMode}
+                                    onAudioInteractionChange={setIsAudioInteracting}
                                 />
                             </View>
                         );
@@ -338,12 +340,18 @@ export default function MainFeedScreen() {
                         const surahName = language === 'ar' ? surah.name.ar : language === 'tr' ? surah.name.tr : surah.name.en;
                         return (
                             <View style={{ height: containerHeight, width }}>
-                                <AyahCard ayah={item as any} surahName={surahName} surahNumber={surah.number} />
+                                <AyahCard
+                                    ayah={item as any}
+                                    surahName={surahName}
+                                    surahNumber={surah.number}
+                                    onAudioInteractionChange={setIsAudioInteracting}
+                                />
                             </View>
                         );
                     }
                 }}
                 horizontal
+                scrollEnabled={!isAudioInteracting}
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={width}

@@ -55,24 +55,17 @@ hazirliginda yapilan islemleri ve siradaki adimlari kaydetmek icin olusturuldu.
 - JSON yapisi dogrulandi.
 - Mevcut Expo/EAS project ID korunuyor:
   cc7bed36-1460-4f3c-84ff-3d98b7c27429
-- app.json icindeki mevcut EAS owner: enesakca04
+- EAS projesi zafergunes hesabina aktarildi.
+- app.json icindeki EAS owner: zafergunes
+- Production EAS ortami build profiline baglandi.
+- EXPO_PUBLIC_API_BASE_URL production degiskeni EAS'e tanimlandi.
 
-6. EAS ERISIM ENGELI
+6. EAS ERISIM DURUMU
 
 - Bu bilgisayarda giris yapilan Expo hesabi: zafergunes
-- EAS projesi enesakca04 hesabina ait.
-- zafergunes hesabi su anda projeyi okuyamiyor; EAS "Entity not authorized"
-  hatasi veriyor.
-- Bu nedenle yeni EAS projesi olusturulmadi, projectId degistirilmedi ve mevcut
-  signing credentials uzerine yazilmadi.
-
-ENES'TEN BEKLENEN:
-
-- Tercihen zafergunes hesabina mevcut kuran-kerim-diyor EAS projesi icin
-  gerekli proje/organizasyon erisimini vermek.
-- Alternatif olarak build ve credentials islemleri sirasinda enesakca04
-  hesabiyla EAS CLI oturumu acmak.
-- Mevcut signing credentials ve push yapilandirmasi korunmali.
+- Proje tam adi: @zafergunes/kuran-kerim-diyor
+- Proje erisimi ve production environment baglantisi dogrulandi.
+- Mevcut projectId korunuyor; yeni EAS projesi olusturulmadi.
 
 7. YAYIN ONCESI TEKNIK KONTROL SONUCLARI
 
@@ -80,10 +73,10 @@ ENES'TEN BEKLENEN:
 - Mobil TypeScript: basarili
 - Web TypeScript, ESLint ve production build: basarili
 - Web npm audit: 0 acik
-- Expo Doctor: 17/18 basarili
-- Guncellenmesi gereken Expo patch surumleri:
-  expo 54.0.36 -> 54.0.37
-  expo-constants 18.0.13 -> 18.0.14
+- Expo Doctor: 18/18 basarili
+- expo 54.0.37 ve expo-constants 18.0.14 surumlerine guncellendi.
+- Mobil TypeScript ve iOS bundle/export kontrolleri basarili.
+- Web ESLint ve production build kontrolleri basarili.
 - Backend npm audit, Prisma/deepmerge-ts zincirinde 3 high bulgu nedeniyle
   release-check betigini durduruyor. Breaking downgrade/force fix uygulanmadi.
 - Mobil audit bulgulari Expo/Metro arac zincirinde. "npm audit fix --force"
@@ -97,17 +90,15 @@ ENES'TEN BEKLENEN:
 - Backend health endpoint calisiyor:
   https://api.kurannediyor.com.tr/api/health
 
-8. EAS ERISIMI GELINCE YAPILACAKLAR
+8. YAYIN ICIN KALANLAR
 
-1) EAS proje erisimini dogrula.
-2) Apple API key ve iOS distribution credentials'i EAS'e guvenli bicimde tanit.
-3) Expo patch surumlerini kontrollu guncelle ve test et.
-4) Uygulamanin gorunen adini tum gerekli yerlerde Kur'an Ne Diyor? yap.
-5) Apple metadata/localization dosyalarini hazirla ve App Store Connect'e gonder.
-6) App Privacy, age rating, content rights ve review bilgilerini tamamla.
-7) iPhone ve iPad ekran goruntulerini uret.
-8) Production iOS build al, fiziksel cihaz/TestFlight testi yap.
-9) Son kontrol sonrasi App Review'a elle gonder.
+1) Apple distribution certificate ve provisioning profile'i EAS'te dogrula/olustur.
+2) Production iOS build al ve App Store Connect'e gonder.
+3) TestFlight uzerinden gercek cihaz regresyon testi yap.
+4) Apple metadata ve 6 dil yerellestirmelerini App Store Connect'e gir.
+5) App Privacy, age rating, content rights ve review bilgilerini tamamla.
+6) Hazirlanan ham ekran goruntulerini market boyutlarina getirip yukle.
+7) Son kontrol sonrasi App Review'a elle gonder.
 
 GUVENLIK NOTU
 
@@ -123,3 +114,33 @@ GUVENLIK NOTU
 - Durum cubugu secilen temaya gore otomatik olarak acik veya koyu gorunuyor.
 - Paylasilacak ayet gorselinin tasarimi tutarli kalmasi icin paylasim karti acik
   temada birakildi; uygulama arayuzu temasindan bagimsizdir.
+
+10. EAS PRODUCTION VE SURUM YONETIMI
+
+- Uygulamanin gorunen adi Kur'an Ne Diyor? olarak guncellendi.
+- EAS owner zafergunes olarak ayarlandi.
+- Production profili production environment'a baglandi.
+- Surum kaynagi remote yapildi ve production build numarasi otomatik artacak
+  sekilde ayarlandi.
+- EAS remote iOS build numarasi 1 olarak baslatildi; bu nedenle app.json icindeki
+  yerel ios.buildNumber alani kaldirildi.
+- Apple Developer hesabi store@emektra.com olarak dogrulandi.
+- Ilk production build, Apple oturumu eskidigi ve sifre/2FA terminalden yeniden
+  girilmesi gerektigi icin kimlik dogrulama adiminda bekliyor.
+
+11. SESLI OKUMA ILERLEMESI VE SES KONUMU
+
+- Sayfa gorunumunde aktif ayetin tamamini tek renge boyamak yerine, ses ilerledikce
+  Arapca metnin harf harf vurgu rengine donmesi saglandi.
+- Ayni harf ilerlemesi ayet ayet okuma gorunumune de eklendi.
+- Arapca harekeler bagli olduklari temel harfle birlikte isleniyor.
+- Ses cubugu ileri/geri suruklenirken yatay sayfa gecisi gecici olarak kapatiliyor;
+  parmak birakilinca yeniden aciliyor. Boylece iki hareket birbiriyle cakismiyor.
+- Ayet gorunumunde ses calarken Arapca bir kelimeye dokunuldugunda ses, kelimenin
+  metindeki yaklasik konumuna atlaniyor.
+- Sayfa gorunumunde aktif ayetin veya ayni sayfadaki baska bir ayetin kelimesine
+  dokunularak ilgili ayet/kelime civarindan okumaya devam edilebiliyor.
+- Ses saglayicisi kelime veya harf zaman kodu vermedigi icin senkronizasyon,
+  oynatma suresinin metindeki harf oranina dagitilmasiyla yaklasik hesaplaniyor.
+- Son kontroller: TypeScript basarili, Expo Doctor 18/18, iOS production bundle
+  ve export basarili, backend testleri 13/13 basarili.
