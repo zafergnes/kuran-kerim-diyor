@@ -17,7 +17,7 @@
       "color": "#D6A94F"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -41,7 +41,15 @@
     "plugins": [
       "expo-router",
       "expo-asset",
-      "expo-localization",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["tr", "en", "ar", "de", "fr", "es"],
+            "android": ["tr", "en", "ar", "de", "fr", "es"]
+          }
+        }
+      ],
       "expo-notifications",
       [
         "@bittingz/expo-widgets",
