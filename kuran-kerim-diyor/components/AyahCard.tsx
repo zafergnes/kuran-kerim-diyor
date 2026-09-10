@@ -12,6 +12,7 @@ import { useAyahStats } from '../hooks/useAyahStats';
 import { splitBismillah, isSajdahAyah, hasBismillah } from '../utils/quranHelpers';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AyahCardProps {
     ayah: Ayah;
@@ -27,6 +28,7 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
     const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
     const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
     const { theme } = useAppTheme();
+    const insets = useSafeAreaInsets();
     const [showComments, setShowComments] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [showVerseChat, setShowVerseChat] = useState(false);
@@ -215,15 +217,7 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
                 setShowComments(false);
                 refresh();
             }}>
-                <View style={{ flex: 1, backgroundColor: theme.background }}>
-                    <View style={styles.sheetHeader}>
-                        <TouchableOpacity onPress={() => {
-                            setShowComments(false);
-                            refresh();
-                        }}>
-                            <Text style={{ color: theme.primary, fontSize: 16, padding: 16, fontWeight: 'bold' }}>{t('common.close')}</Text>
-                        </TouchableOpacity>
-                    </View>
+                <View style={{ flex: 1, backgroundColor: theme.background, paddingTop: insets.top }}>
                     <CommentSheet surahNo={surahNumber} ayahNo={ayah.number} onClose={() => {
                         setShowComments(false);
                         refresh();
@@ -232,16 +226,18 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
             </Modal>
 
             <Modal visible={showShare} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowShare(false)}>
-                <View style={{ flex: 1, backgroundColor: theme.background }}>
+                <View style={{ flex: 1, backgroundColor: theme.background, paddingTop: insets.top }}>
                     <View style={styles.sheetHeader}>
                         <TouchableOpacity onPress={() => setShowShare(false)}>
                             <Text style={{ color: theme.primary, fontSize: 16, padding: 16, fontWeight: 'bold' }}>{t('common.close')}</Text>
                         </TouchableOpacity>
                     </View>
                     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-                        <VerseShareCard 
-                            text={translationText || rawArabicText} 
+                        <VerseShareCard
+                            text={translationText || rawArabicText}
                             reference={`${surahName} ${surahNumber}:${ayah.number}`}
+                            surahNumber={surahNumber}
+                            ayahNumber={ayah.number}
                             onClose={() => setShowShare(false)}
                         />
                     </ScrollView>

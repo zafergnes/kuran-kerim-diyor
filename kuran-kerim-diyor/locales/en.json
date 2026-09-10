@@ -55,7 +55,8 @@
     "guest_hint": "You can continue reading without creating an account.",
     "or": "OR",
     "delete_confirm_title": "Delete Account",
-    "delete_confirm_message": "Are you sure you want to delete your account? This action cannot be undone and all your data (favorites, collections, comments) will be permanently deleted."
+    "delete_confirm_message": "Are you sure you want to delete your account? This action cannot be undone and all your data (favorites, collections, comments) will be permanently deleted.",
+    "name": "Your name"
   },
   "auth_errors": {
     "operation_not_allowed": "This sign-in method is not enabled.",

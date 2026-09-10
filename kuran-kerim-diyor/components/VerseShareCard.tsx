@@ -10,10 +10,16 @@ import { searchAyahs } from '../services/quranData';
 interface VerseShareCardProps {
   text: string;
   reference: string;
+  /**
+   * Paylasim baglantisinin uretildigi gercek numaralar. Cagiran taraf bunlari
+   * zaten biliyor; gecildiginde referans metnini geri ayristirmaya gerek kalmaz.
+   */
+  surahNumber?: number;
+  ayahNumber?: number;
   onClose?: () => void;
 }
 
-export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference, onClose }) => {
+export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference, surahNumber, ayahNumber, onClose }) => {
   const { t } = useTranslation();
   const viewShotRef = useRef<any>(null);
   const theme = Colors.light;
@@ -39,11 +45,18 @@ export const VerseShareCard: React.FC<VerseShareCardProps> = ({ text, reference,
     }
   };
 
-  const { surahNum, ayahNum } = getRefIds(reference);
+  // Numaralar prop olarak geldiyse onlar kullanilir. Referans metnini geri
+  // ayristirmak yalnizca eski cagrilar icin yedek yol; o yol Turkce disindaki
+  // dillerde sure adini eslestiremeyip 1'e dustugu icin yanlis baglanti uretir.
+  const parsed = getRefIds(reference);
+  const surahNum = surahNumber ?? parsed.surahNum;
+  const ayahNum = ayahNumber ?? parsed.ayahNum;
   const webUrl = `https://kurannediyor.com.tr/ayet/${surahNum}:${ayahNum}`;
-  const deepLink = `kuran-kerim-diyor://ayet?id=${surahNum}:${ayahNum}`;
 
-  const shareText = `${t('common.share_message', { reference, url: webUrl })}\n\nApp Link: ${deepLink}`;
+  // Ozel sema (kuran-kerim-diyor://) mesajlasma uygulamalarinda tiklanabilir
+  // baglantiya donusmuyor; duz metin olarak kalip bozuk gorunuyor. Web adresi
+  // hem tiklanabilir hem de uygulamaya yonlendirmeyi kendisi yapabiliyor.
+  const shareText = t('common.share_message', { reference, url: webUrl });
 
   const handleSharePress = async () => {
     if (Platform.OS === 'android') {

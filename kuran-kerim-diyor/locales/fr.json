@@ -55,7 +55,8 @@
     "guest_hint": "Vous pouvez continuer à lire sans créer de compte.",
     "or": "OU",
     "delete_confirm_title": "Supprimer le compte",
-    "delete_confirm_message": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données (favoris, collections, commentaires) seront définitivement supprimées."
+    "delete_confirm_message": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données (favoris, collections, commentaires) seront définitivement supprimées.",
+    "name": "Votre nom"
   },
   "auth_errors": {
     "operation_not_allowed": "Cette méthode de connexion n'est pas activée.",

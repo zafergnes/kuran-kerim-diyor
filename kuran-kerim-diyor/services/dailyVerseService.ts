@@ -8,6 +8,13 @@ const BASE_URL = API_ORIGIN;
 export interface DailyVerse {
   text: string;
   reference: string;
+  /**
+   * Backend /api/daily-context bu iki alani da donduruyor. Paylasim baglantisi
+   * bunlardan uretilmeli; referans metninden geri ayristirmak sure adi
+   * yerellestirildigi icin Turkce disindaki dillerde yanlis sonuc veriyor.
+   */
+  surahNumber?: number;
+  startAyah?: number;
 }
 
 export const DailyVerseService = {

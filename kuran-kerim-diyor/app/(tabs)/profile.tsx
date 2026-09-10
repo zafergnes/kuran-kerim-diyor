@@ -100,6 +100,7 @@ export default function ProfileScreen() {
 
     const [emailInput, setEmailInput] = useState('');
     const [passwordInput, setPasswordInput] = useState('');
+    const [nameInput, setNameInput] = useState('');
     const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -140,9 +141,12 @@ export default function ProfileScreen() {
         setLoading(true);
         setError('');
         try {
+            // name gonderilmezse backend e-posta onekini isim olarak kaydediyor;
+            // bu ad yorumlarda maskelenmis halde herkese gorunuyor.
             const res = await apiClient.post('/auth/register', {
                 email: emailInput,
-                password: passwordInput
+                password: passwordInput,
+                name: nameInput.trim() || undefined
             });
             const { accessToken, refreshToken, user } = res.data;
             await SecureStore.setItemAsync('userToken', accessToken);
@@ -415,6 +419,18 @@ export default function ProfileScreen() {
                 </Text>
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
+
+                {authMode === 'register' && (
+                    <TextInput
+                        style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}
+                        placeholder={t('profile.name', 'Adınız')}
+                        placeholderTextColor={theme.muted}
+                        value={nameInput}
+                        onChangeText={setNameInput}
+                        autoCapitalize="words"
+                        maxLength={40}
+                    />
+                )}
 
                 <TextInput
                     style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.background }]}

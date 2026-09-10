@@ -100,7 +100,7 @@ export function VerseChatModal(props: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
-        <View style={[styles.header, { borderBottomColor: theme.border }]}>
+        <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: Math.max(insets.top, 16) }]}>
           <View style={styles.heading}><Sparkles size={18} color={theme.primary} /><View>
             <Text style={[styles.title, { color: theme.text }]}>{t('verse_chat.title', 'Ayet Üzerine Konuş')}</Text>
             <Text style={[styles.reference, { color: theme.muted }]}>{reference}</Text>

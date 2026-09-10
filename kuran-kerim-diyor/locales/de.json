@@ -55,7 +55,8 @@
     "guest_hint": "Du kannst ohne Konto weiterlesen.",
     "or": "ODER",
     "delete_confirm_title": "Konto löschen",
-    "delete_confirm_message": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und alle Ihre Daten (Favoriten, Sammlungen, Kommentare) werden dauerhaft gelöscht."
+    "delete_confirm_message": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und alle Ihre Daten (Favoriten, Sammlungen, Kommentare) werden dauerhaft gelöscht.",
+    "name": "Ihr Name"
   },
   "auth_errors": {
     "operation_not_allowed": "Diese Anmeldemethode ist nicht aktiviert.",

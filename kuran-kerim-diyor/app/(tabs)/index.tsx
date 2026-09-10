@@ -482,9 +482,11 @@ export default function MainFeedScreen() {
                         </View>
                         <ScrollView contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 20) }}>
                             {dailyVerse && (
-                                <VerseShareCard 
-                                    text={dailyVerse.text} 
-                                    reference={dailyVerse.reference} 
+                                <VerseShareCard
+                                    text={dailyVerse.text}
+                                    reference={dailyVerse.reference}
+                                    surahNumber={dailyVerse.surahNumber}
+                                    ayahNumber={dailyVerse.startAyah}
                                     onClose={() => setShowDailyModal(false)}
                                 />
                             )}

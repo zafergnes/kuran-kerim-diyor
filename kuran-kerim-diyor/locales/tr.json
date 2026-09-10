@@ -55,7 +55,8 @@
     "guest_hint": "Hesap oluşturmadan okumaya devam edebilirsin.",
     "or": "VEYA",
     "delete_confirm_title": "Hesabı Sil",
-    "delete_confirm_message": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz (favoriler, koleksiyonlar, yorumlar) kalıcı olarak silinecektir."
+    "delete_confirm_message": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz (favoriler, koleksiyonlar, yorumlar) kalıcı olarak silinecektir.",
+    "name": "Adınız"
   },
   "auth_errors": {
     "operation_not_allowed": "Bu giriş yöntemi henüz aktif edilmemiş.",
