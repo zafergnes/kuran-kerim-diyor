@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
+      "appleTeamId": "CD5FK55DWW",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -69,6 +70,7 @@
           "ios": {
             "src": "./widgets/ios",
             "deploymentTarget": "16.2",
+            "devTeamId": "CD5FK55DWW",
             "xcode": {
               "appGroupId": "group.com.kurankerimdiyor.expowidgets"
             }
