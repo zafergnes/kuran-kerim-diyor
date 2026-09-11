@@ -316,7 +316,17 @@
     "detail_heading": "Tiefe Bedeutung und Reflexion",
     "pray_with_name": "Mit diesem Namen bitten",
     "no_results": "Keine Namen gefunden, die Ihrer Suche entsprechen.",
-    "clear_search": "Suche zurücksetzen"
+    "clear_search": "Suche zurücksetzen",
+    "share_title": "Einen Namen Allahs teilen"
+  },
+  "ayat_al_kursi": {
+    "title": "Ayat al-Kursi",
+    "subtitle": "Sure al-Baqara · Vers 255",
+    "subtitle_short": "Lesen, hören und nachdenken",
+    "listen": "Ayat al-Kursi anhören",
+    "listen_subtitle": "Mit dem ausgewählten Rezitator",
+    "reflection_title": "Halte inne und bedenke die Bedeutung",
+    "reflection": "Speichere und teile diesen Vers als Moment der Besinnung über Allahs Wissen, Macht und Schutz."
   },
   "dua": {
     "title": "KI-Bittgebetsassistent",

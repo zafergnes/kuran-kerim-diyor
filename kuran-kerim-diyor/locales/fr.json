@@ -316,7 +316,17 @@
     "detail_heading": "Sens profond et méditation spirituelle",
     "pray_with_name": "Invoquer par ce Nom",
     "no_results": "Aucun nom ne correspond à votre recherche.",
-    "clear_search": "Effacer la recherche"
+    "clear_search": "Effacer la recherche",
+    "share_title": "Partager un Nom d’Allah"
+  },
+  "ayat_al_kursi": {
+    "title": "Ayat al-Kursî",
+    "subtitle": "Sourate Al-Baqara · Verset 255",
+    "subtitle_short": "Lire, écouter et méditer",
+    "listen": "Écouter Ayat al-Kursî",
+    "listen_subtitle": "Avec le récitant choisi",
+    "reflection_title": "Prenez un instant pour méditer",
+    "reflection": "Conservez et partagez ce verset pour méditer sur la science, la puissance et la protection d’Allah."
   },
   "dua": {
     "title": "Assistant Invocation IA",

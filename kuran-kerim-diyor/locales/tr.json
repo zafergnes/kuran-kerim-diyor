@@ -316,7 +316,17 @@
     "detail_heading": "Derin Anlamı ve Tefekkürü",
     "pray_with_name": "Bu İsimle Dua İste",
     "no_results": "Aramanızla eşleşen isim bulunamadı.",
-    "clear_search": "Aramayı Temizle"
+    "clear_search": "Aramayı Temizle",
+    "share_title": "Esma-ül Hüsna paylaş"
+  },
+  "ayat_al_kursi": {
+    "title": "Ayetel Kürsî",
+    "subtitle": "Bakara Sûresi · 255. Ayet",
+    "subtitle_short": "Oku, dinle ve tefekkür et",
+    "listen": "Ayetel Kürsî’yi dinle",
+    "listen_subtitle": "Seçtiğiniz okuyucuyla",
+    "reflection_title": "Bir an dur, anlamını düşün",
+    "reflection": "Allah’ın ilmi, kudreti ve koruyuculuğu üzerine tefekkür etmek için bu ayeti saklayabilir ve paylaşabilirsiniz."
   },
   "dua": {
     "title": "AI Dua Asistanı",

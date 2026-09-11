@@ -8,13 +8,13 @@ import {
     TextInput,
     Modal,
     ScrollView,
-    Share,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Search, X, Share2, Sparkles, BookOpen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/useAppTheme';
 import namesData from '../constants/names99.json';
+import { NameShareCard } from '../components/NameShareCard';
 
 interface NameItem {
     id: number;
@@ -34,6 +34,7 @@ export default function Names99Screen() {
 
     const [search, setSearch] = useState('');
     const [selectedName, setSelectedName] = useState<NameItem | null>(null);
+    const [shareName, setShareName] = useState<NameItem | null>(null);
 
     const lang = useMemo(() => {
         const raw = (i18n.language || 'tr').toLowerCase().slice(0, 2);
@@ -60,19 +61,6 @@ export default function Names99Screen() {
             );
         });
     }, [search, lang]);
-
-    const handleShare = async (item: NameItem) => {
-        const trans = item.transliteration[lang] || item.transliteration.tr;
-        const meaning = item.meaning[lang] || item.meaning.tr;
-        const expl = item.explanation[lang] || item.explanation.tr;
-        const message = `${item.id}. ${item.arabic} (${trans})\n\n${t('names.meaning_label', 'Anlamı')}: ${meaning}\n\n${t('names.explanation_label', 'Açıklama')}: ${expl}\n\n${t('names.reference_label', 'Referans')}: ${item.quranReference}\n\nKur'an Ne Diyor?`;
-
-        try {
-            await Share.share({ message });
-        } catch {
-            // Ignore
-        }
-    };
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -210,7 +198,12 @@ export default function Names99Screen() {
 
                                 <View style={styles.modalActions}>
                                     <TouchableOpacity
-                                        onPress={() => handleShare(selectedName)}
+                                        onPress={() => {
+                                            // Native platformlarda modal üstüne modal bazı cihazlarda dokunmayı yutar.
+                                            // Detay modalını kapatıp görsel paylaşım kartını tek modal olarak açıyoruz.
+                                            setSelectedName(null);
+                                            setShareName(selectedName);
+                                        }}
                                         style={[styles.shareBtn, { borderColor: theme.border, backgroundColor: theme.background }]}
                                     >
                                         <Share2 size={18} color={theme.text} />
@@ -235,6 +228,38 @@ export default function Names99Screen() {
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
+                            </ScrollView>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                visible={shareName !== null}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShareName(null)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>
+                                {t('names.share_title', 'Esma-ül Hüsna paylaş')}
+                            </Text>
+                            <TouchableOpacity onPress={() => setShareName(null)}>
+                                <X size={22} color={theme.muted} />
+                            </TouchableOpacity>
+                        </View>
+                        {shareName && (
+                            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                                <NameShareCard
+                                    id={shareName.id}
+                                    arabic={shareName.arabic}
+                                    transliteration={shareName.transliteration[lang] || shareName.transliteration.tr}
+                                    meaning={shareName.meaning[lang] || shareName.meaning.tr}
+                                    explanation={shareName.explanation[lang] || shareName.explanation.tr}
+                                    reference={shareName.quranReference}
+                                />
                             </ScrollView>
                         )}
                     </View>

@@ -304,7 +304,14 @@
     "detail_heading": "Significado profundo y reflexión",
     "pray_with_name": "Suplicar con este Nombre",
     "no_results": "No se encontraron nombres que coincidan con su búsqueda.",
-    "clear_search": "Borrar búsqueda"
+    "clear_search": "Borrar búsqueda",
+    "share_title": "Compartir un Nombre de Alá"
+  },
+  "ayat_al_kursi": {
+    "title": "Ayat al-Kursi",
+    "subtitle": "Sura Al-Baqarah · Aleya 255",
+    "listen": "Escuchar Ayat al-Kursi",
+    "reflection": "Guarda esta aleya para reflexionar sobre el conocimiento, el poder y la protección de Alá."
   },
   "dua": {
     "title": "Asistente de Súplicas IA",

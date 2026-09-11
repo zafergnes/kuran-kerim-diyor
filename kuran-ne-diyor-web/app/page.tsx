@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Clock3 } from "lucide-react";
+import { Clock3, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getAllSurahs } from "@/services/quranData";
 import { AppShell } from "@/components/AppShell";
@@ -37,6 +37,10 @@ export default function Home() {
               <p className="text-2xl font-bold text-text">6236</p>
               <p className="text-sm font-semibold text-muted">{t("web.verse_search", "Ayet arama altyapısı")}</p>
             </div>
+            <Link href="/ayetel-kursi" className="flex items-center gap-3 rounded-md border border-primary/25 bg-primary/10 p-4 transition hover:bg-primary/15">
+              <ShieldCheck size={22} className="text-primary" />
+              <span className="text-sm font-bold text-text">{t("ayat_al_kursi.title", "Ayetel Kürsî")}</span>
+            </Link>
           </div>
         </aside>
       </section>

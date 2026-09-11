@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CheckCircle2, Heart, Sparkles, BookOpen } from 'lucide-react-native';
+import { CheckCircle2, Heart, Sparkles, BookOpen, ShieldCheck } from 'lucide-react-native';
 import { getAllSurahs } from '../../services/quranData';
 import { useProgress } from '../../hooks/useProgress';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,24 @@ export default function SurahsScreen() {
                 contentContainerStyle={{ paddingBottom: 24 }}
                 ListHeaderComponent={
                     <View style={styles.headerCardsContainer}>
+                        <TouchableOpacity
+                            onPress={() => router.push('/ayetel-kursi')}
+                            style={[styles.quickCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.quickIconCircle, { backgroundColor: 'rgba(182, 154, 115, 0.15)' }]}>
+                                <ShieldCheck size={20} color={theme.primary} />
+                            </View>
+                            <View style={styles.quickCardTextContainer}>
+                                <Text style={[styles.quickCardTitle, { color: theme.text }]}>
+                                    {t('ayat_al_kursi.title', 'Ayetel Kürsî')}
+                                </Text>
+                                <Text style={[styles.quickCardDesc, { color: theme.muted }]}>
+                                    {t('ayat_al_kursi.subtitle_short', 'Oku, dinle ve tefekkür et')}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+
                         <TouchableOpacity
                             onPress={() => router.push('/names99')}
                             style={[styles.quickCard, { backgroundColor: theme.card, borderColor: theme.border }]}

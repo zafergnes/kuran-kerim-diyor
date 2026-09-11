@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield, Sparkles, Flame } from "lucide-react";
+import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield, ShieldCheck, Sparkles, Flame } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
@@ -23,6 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/dua-generator", label: t("dua.nav_title", "Dua Asistanı"), icon: Sparkles },
     { href: "/search", label: t("tabs.search", "Ara"), icon: Search },
     { href: "/favorites", label: t("favorites.title", "Favoriler"), icon: BookOpen },
+    { href: "/ayetel-kursi", label: t("ayat_al_kursi.title", "Ayetel Kürsî"), icon: ShieldCheck },
     { href: "/collections", label: t("collections.title", "Koleksiyonlar"), icon: BookOpen },
     { href: "/my-comments", label: t("my_comments.title", "Yorumlarım"), icon: MessageSquare },
     { href: "/profile", label: t("tabs.profile", "Profil"), icon: User },

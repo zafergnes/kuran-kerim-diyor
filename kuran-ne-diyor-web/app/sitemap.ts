@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/ayetel-kursi"), lastModified: now, changeFrequency: "yearly", priority: 0.9 },
     { url: absoluteUrl("/search"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/sources"), lastModified: now, changeFrequency: "yearly", priority: 0.4 },
     { url: absoluteUrl("/privacy"), lastModified: now, changeFrequency: "yearly", priority: 0.3 },

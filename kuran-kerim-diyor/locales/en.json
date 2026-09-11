@@ -316,7 +316,17 @@
     "detail_heading": "Profound Meaning and Reflection",
     "pray_with_name": "Supplicate with this Name",
     "no_results": "No names found matching your search.",
-    "clear_search": "Clear Search"
+    "clear_search": "Clear Search",
+    "share_title": "Share a Name of Allah"
+  },
+  "ayat_al_kursi": {
+    "title": "Ayat al-Kursi",
+    "subtitle": "Al-Baqarah · Verse 255",
+    "subtitle_short": "Read, listen and reflect",
+    "listen": "Listen to Ayat al-Kursi",
+    "listen_subtitle": "With your selected reciter",
+    "reflection_title": "Pause and reflect on its meaning",
+    "reflection": "Keep and share this verse as a moment to reflect on Allah’s knowledge, power and protection."
   },
   "dua": {
     "title": "AI Dua Assistant",
