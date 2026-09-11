@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "القرآن الكريم يقول",
+    "CFBundleName": "القرآن الكريم يقول"
+  },
+  "android": {
+    "app_name": "القرآن الكريم يقول"
+  }
+}

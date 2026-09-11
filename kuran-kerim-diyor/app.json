@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.kurankerimdiyor",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -84,6 +85,14 @@
         }
       ]
     ],
+    "locales": {
+      "tr": "./locales/app-metadata-tr.json",
+      "en": "./locales/app-metadata-en.json",
+      "ar": "./locales/app-metadata-ar.json",
+      "de": "./locales/app-metadata-de.json",
+      "fr": "./locales/app-metadata-fr.json",
+      "es": "./locales/app-metadata-es.json"
+    },
     "extra": {
       "router": {},
       "eas": {

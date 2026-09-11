@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Le Saint Coran Dit",
+    "CFBundleName": "Le Saint Coran Dit"
+  },
+  "android": {
+    "app_name": "Le Saint Coran Dit"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Kur'an Ne Diyor?",
+    "CFBundleName": "Kur'an Ne Diyor?"
+  },
+  "android": {
+    "app_name": "Kur'an Ne Diyor?"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "El Sagrado Corán Dice",
+    "CFBundleName": "El Sagrado Corán Dice"
+  },
+  "android": {
+    "app_name": "El Sagrado Corán Dice"
+  }
+}

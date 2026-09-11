@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Der Heilige Koran Sagt",
+    "CFBundleName": "Der Heilige Koran Sagt"
+  },
+  "android": {
+    "app_name": "Der Heilige Koran Sagt"
+  }
+}

@@ -36,3 +36,45 @@ index ce45081..c0bcb8d 100644
 +    return config;
  };
  exports.withModule = withModule;
+
+diff --git a/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js b/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js
+index 7d3c8c5..8e51cc8 100644
+--- a/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js
++++ b/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js
+@@ -62,19 +62,27 @@
+   )
+ end
+ `;
+-    const withAppExtFix = (0, generateCode_1.mergeContents)({
+-        tag: "app_ext_fix",
+-        src: podFileContent,
+-        newSrc: `
++    // CocoaPods changed its generated Podfile in Expo SDK 57 and no longer
++    // includes the resource_bundle_target hook used by older versions of this
++    // plugin. Keep the compatibility tweak when that hook exists, but do not
++    // fail the whole prebuild when it is absent.
++    let podFileContents = podFileContent;
++    if (/resource_bundle_target.build_configurations.each do \|config\|/.test(podFileContent)) {
++        const withAppExtFix = (0, generateCode_1.mergeContents)({
++            tag: "app_ext_fix",
++            src: podFileContent,
++            newSrc: `
+         config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = resource_bundle_target.name == 'Sentry' ? 'YES' : 'No'
+         `,
+-        anchor: /resource_bundle_target.build_configurations.each do \|config\|/,
+-        offset: 1,
+-        comment: "#",
+-    });
++            anchor: /resource_bundle_target.build_configurations.each do \|config\|/,
++            offset: 1,
++            comment: "#",
++        });
++        podFileContents = withAppExtFix.contents;
++    }
+     const withAppExtFixPt2 = (0, generateCode_1.mergeContents)({
+         tag: 'fix2',
+-        src: withAppExtFix.contents,
++        src: podFileContents,
+         newSrc: ` installer.pods_project.targets.each do |target|
+         target.build_configurations.each do |config|
+           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
