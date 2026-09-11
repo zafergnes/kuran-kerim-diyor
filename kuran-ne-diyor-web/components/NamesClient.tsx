@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import namesData from "@/data/names99.json";
 import { Search, X, Copy, Check, Sparkles, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,14 @@ export function NamesClient() {
   const [search, setSearch] = useState("");
   const [selectedName, setSelectedName] = useState<NameItem | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Visual share cards link to #name-{id}; open that name directly when the link is followed.
+  useEffect(() => {
+    const match = window.location.hash.match(/^#name-(\d+)$/);
+    if (!match) return;
+    const name = typedNames.find((item) => item.id === Number(match[1]));
+    if (name) queueMicrotask(() => setSelectedName(name));
+  }, []);
 
   const lang = useMemo(() => {
     const raw = (i18n.language || "tr").toLowerCase().slice(0, 2);
@@ -106,6 +114,7 @@ export function NamesClient() {
           return (
             <div
               key={item.id}
+              id={`name-${item.id}`}
               onClick={() => setSelectedName(item)}
               className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
             >
