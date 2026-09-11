@@ -54,6 +54,13 @@
       [
         "@bittingz/expo-widgets",
         {
+          "ios": {
+            "src": "./widgets/ios",
+            "deploymentTarget": "17.0",
+            "xcode": {
+              "appGroupId": "group.com.kurankerimdiyor.expowidgets"
+            }
+          },
           "android": {
             "src": "./widgets",
             "widgets": [

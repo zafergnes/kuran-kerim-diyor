@@ -169,6 +169,15 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     setLanguage: (lang) => {
         set({ language: lang });
+        import('../services/widgetSyncService').then(({ WidgetSyncService }) => {
+            const state = get();
+            void WidgetSyncService.sync({
+                streak: state.streakCount,
+                todayCompleted: state.lastActiveDate === getTodayDateStr(),
+                longestStreak: state.longestStreak,
+                language: lang,
+            });
+        });
         // i18n ve AsyncStorage'i de senkronize et
         import('../services/i18n').then(({ default: i18n, applyRTL }) => {
             i18n.changeLanguage(lang);

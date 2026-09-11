@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DailyVerseService } from './dailyVerseService';
 
 export interface WidgetPayload {
+  cachedDate: string;
+  lastActiveDate: string;
   streak: number;
   todayCompleted: boolean;
   longestStreak: number;
@@ -69,10 +71,10 @@ export const WidgetSyncService = {
       const labelsConfig = WIDGET_LABELS[lang] || WIDGET_LABELS.tr;
 
       // Önbellekteki veya taze günün ayetini al
-      let dailyVerse = await DailyVerseService.getCachedDailyVerse();
+      let dailyVerse = await DailyVerseService.getCachedDailyVerse(lang);
       if (!dailyVerse) {
         try {
-          dailyVerse = await DailyVerseService.getDailyVerse();
+          dailyVerse = await DailyVerseService.getDailyVerse(lang);
         } catch {
           dailyVerse = {
             text: 'Şüphesiz her zorlukla beraber bir kolaylık vardır.',
@@ -85,6 +87,8 @@ export const WidgetSyncService = {
       const statusText = params.todayCompleted ? labelsConfig.completed : labelsConfig.pending;
 
       const payload: WidgetPayload = {
+        cachedDate: dailyVerse.cachedDate || '',
+        lastActiveDate: (await AsyncStorage.getItem('@app_last_active_date')) || '',
         streak: params.streak,
         todayCompleted: params.todayCompleted,
         longestStreak: params.longestStreak || params.streak,

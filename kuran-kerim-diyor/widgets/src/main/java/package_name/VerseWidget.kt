@@ -13,13 +13,19 @@ import kotlin.concurrent.thread
 
 class VerseWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        val pendingResult = goAsync()
+        thread {
+            try {
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidget(context, appWidgetManager, appWidgetId)
+                }
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-        thread {
             try {
                 // 1. Önce uygulamadan senkronize edilmiş yerel veriyi kontrol et (anında, internetsiz)
                 val prefs = context.getSharedPreferences(context.packageName + ".widgetdata", Context.MODE_PRIVATE)
@@ -30,12 +36,13 @@ class VerseWidget : AppWidgetProvider() {
                 var surahNumber = 94
                 var startAyah = 5
                 var title = "GÜNÜN AYETİ"
-                var streakBadge = "🔥 1 Gün"
+                var streakBadge = ""
                 var todayStatus = ""
 
                 if (!cachedJson.isNullOrEmpty()) {
                     try {
                         val payload = JSONObject(cachedJson)
+                        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
                         text = payload.optString("text", "")
                         reference = payload.optString("reference", "")
                         surahNumber = payload.optInt("surahNumber", 94)
@@ -47,6 +54,11 @@ class VerseWidget : AppWidgetProvider() {
                             streakBadge = labels.optString("streakBadge", streakBadge)
                             todayStatus = labels.optString("todayStatus", todayStatus)
                         }
+                        if (payload.optString("cachedDate") != today) {
+                            text = ""
+                            streakBadge = ""
+                            todayStatus = ""
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -55,9 +67,17 @@ class VerseWidget : AppWidgetProvider() {
                 // 2. Eğer yerel veri boşsa API'den çek
                 if (text.isEmpty()) {
                     try {
-                        val lang = java.util.Locale.getDefault().language
+                        val lang = try { JSONObject(cachedJson ?: "{}").optString("language", java.util.Locale.getDefault().language) } catch (_: Exception) { java.util.Locale.getDefault().language }
                         val supportedLangs = listOf("tr", "en", "de", "fr", "es", "ar")
                         val apiLang = if (supportedLangs.contains(lang)) lang else "tr"
+                        title = when (apiLang) {
+                            "en" -> "VERSE OF THE DAY"
+                            "de" -> "VERS DES TAGES"
+                            "fr" -> "VERSET DU JOUR"
+                            "es" -> "VERSÍCULO DEL DÍA"
+                            "ar" -> "آية اليوم"
+                            else -> "GÜNÜN AYETİ"
+                        }
 
                         val conn = URL("https://api.kurannediyor.com.tr/api/daily-context?lang=$apiLang").openConnection()
                         conn.connectTimeout = 4000
@@ -103,6 +123,5 @@ class VerseWidget : AppWidgetProvider() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
     }
 }
