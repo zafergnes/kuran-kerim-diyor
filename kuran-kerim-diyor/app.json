@@ -3,7 +3,7 @@
     "name": "Kur'an Ne Diyor?",
     "slug": "kuran-kerim-diyor",
     "scheme": "kuran-kerim-diyor",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon-v2.png",
     "userInterfaceStyle": "automatic",
