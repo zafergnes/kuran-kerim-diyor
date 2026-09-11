@@ -121,7 +121,7 @@ function DuaGeneratorContent() {
         intention: intention.trim(),
         language: lang,
         preferredName: preferredName.trim() || undefined,
-      });
+      }, { timeout: 60000 });
       setResult(res.data);
     } catch (err: unknown) {
       const isAxios = axios.isAxiosError(err);
@@ -138,6 +138,13 @@ function DuaGeneratorContent() {
           t(
             "dua.error_rate_limited",
             "Çok fazla istek gönderdiniz. Lütfen birkaç dakika sonra tekrar deneyiniz."
+          )
+        );
+      } else if (isAxios && (err.code === "ECONNABORTED" || err.code === "ETIMEDOUT")) {
+        setError(
+          t(
+            "dua.error_timeout",
+            "Dua hazırlanması beklenenden uzun sürdü. Lütfen tekrar deneyiniz."
           )
         );
       } else {

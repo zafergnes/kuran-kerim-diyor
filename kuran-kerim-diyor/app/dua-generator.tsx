@@ -116,13 +116,15 @@ export default function DuaGeneratorScreen() {
                 intention: intention.trim(),
                 language: lang,
                 preferredName: preferredName.trim() || undefined,
-            });
+            }, { timeout: 60000 });
             setResult(res.data);
         } catch (err: any) {
             if (err.response?.status === 503) {
                 setError(t('dua.error_not_configured', 'Yapay zeka dua servisi şu anda aktif değil. Lütfen daha sonra tekrar deneyiniz.'));
             } else if (err.response?.status === 429) {
                 setError(t('dua.error_rate_limited', 'Çok fazla istek gönderdiniz. Lütfen birkaç dakika sonra tekrar deneyiniz.'));
+            } else if (err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT') {
+                setError(t('dua.error_timeout', 'Dua hazırlanması beklenenden uzun sürdü. Lütfen tekrar deneyiniz.'));
             } else {
                 setError(t('dua.error_general', 'Dua oluşturulurken bir sorun oluştu. Lütfen niyetinizi kontrol edip tekrar deneyiniz.'));
             }
