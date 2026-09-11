@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DailyVerseService } from './dailyVerseService';
 
@@ -110,7 +111,8 @@ export const WidgetSyncService = {
       await AsyncStorage.setItem('@widget_synced_payload', jsonString);
 
       // Native @bittingz/expo-widgets modülü çağrısı
-      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+      const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+      if (!isExpoGo && (Platform.OS === 'android' || Platform.OS === 'ios')) {
         try {
           const { setWidgetData } = require('@bittingz/expo-widgets');
           if (typeof setWidgetData === 'function') {
@@ -120,9 +122,8 @@ export const WidgetSyncService = {
               setWidgetData(jsonString);
             }
           }
-        } catch (nativeErr) {
-          // Expo Go veya native modülün henüz linklenmediği ortamlarda sessizce tolere et
-          console.log('WidgetSyncService: native setWidgetData skipped:', nativeErr);
+        } catch {
+          // Widget native modülü yalnızca development/production build'lerde bulunur.
         }
       }
     } catch (error) {
