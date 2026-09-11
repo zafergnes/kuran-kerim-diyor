@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Animated }
 import { useAppTheme } from '../hooks/useAppTheme';
 import { Ayah } from '../services/quranData';
 import { useUserStore } from '../store/userStore';
-import { MessageSquare, Share2, Sparkles, ChevronRight, BookOpen } from 'lucide-react-native';
+import { MessageSquare, Share2, MessageCircle, ChevronRight, BookOpen } from 'lucide-react-native';
 import { CommentSheet } from './CommentSheet';
 import { AudioPlayer } from './AudioPlayer';
 import { VerseShareCard } from './VerseShareCard';
@@ -157,7 +157,7 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
                         accessibilityRole="button"
                         accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
                     >
-                        <Sparkles size={18} color={theme.primary} />
+                        <MessageCircle size={18} color={theme.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionBtn} onPress={() => setShowShare(true)}>
 

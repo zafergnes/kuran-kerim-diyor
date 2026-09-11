@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookmarkPlus, Copy, Heart, MessageSquare, Share2, Sparkles, X } from "lucide-react";
+import { BookmarkPlus, Copy, Heart, MessageSquare, MessageCircle, Share2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Ayah } from "@/types/quran";
 import { useAyahStats } from "@/hooks/useAyahStats";
@@ -190,7 +190,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
             className="grid h-8 w-8 place-items-center rounded-full border border-primary/30 bg-primary/5 text-primary transition hover:bg-primary/10"
             title={t("verse_chat.title")}
           >
-            <Sparkles size={14} />
+            <MessageCircle size={14} />
           </button>
           <button
             onClick={handleCopy}

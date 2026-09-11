@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Share2, BookOpen } from "lucide-react";
+import { CalendarDays, Share2, BookOpen } from "lucide-react";
 import { DailyVerseService, DailyVerse } from "@/services/dailyVerseService";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export function DailyVerseSection() {
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7">
       <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-primary">
         <span className="inline-flex items-center gap-2">
-          <Sparkles size={18} />
+          <CalendarDays size={18} />
           {t("daily_verse.title", "Günün Ayeti")}
         </span>
         <span className="rounded-full border border-border px-3 py-1 text-muted">

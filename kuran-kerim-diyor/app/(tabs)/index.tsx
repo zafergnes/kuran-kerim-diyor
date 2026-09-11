@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronLeft, Heart, Sparkles, Flame } from 'lucide-react-native';
+import { ChevronLeft, Heart, CalendarDays, Flame } from 'lucide-react-native';
 import { StreakModal } from '../../components/StreakModal';
 import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService';
 import { VerseShareCard } from '../../components/VerseShareCard';
@@ -289,7 +289,7 @@ export default function MainFeedScreen() {
 
                     {dailyVerse && (
                         <TouchableOpacity onPress={() => setShowDailyModal(true)} style={{ marginRight: 8, padding: 4 }}>
-                            <Sparkles size={24} color={theme.primary} />
+                            <CalendarDays size={24} color={theme.primary} />
                         </TouchableOpacity>
                     )}
                     <TouchableOpacity onPress={handleToggleFavorite} style={{ marginRight: 16, padding: 4 }}>

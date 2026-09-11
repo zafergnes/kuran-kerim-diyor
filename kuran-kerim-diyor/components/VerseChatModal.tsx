@@ -3,7 +3,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { Flag, Send, ShieldCheck, Sparkles, X } from 'lucide-react-native';
+import { Flag, Send, ShieldCheck, MessageCircle, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
@@ -101,7 +101,7 @@ export function VerseChatModal(props: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
-          <View style={styles.heading}><Sparkles size={18} color={theme.primary} /><View>
+          <View style={styles.heading}><MessageCircle size={18} color={theme.primary} /><View>
             <Text style={[styles.title, { color: theme.text }]}>{t('verse_chat.title', 'Ayet Üzerine Konuş')}</Text>
             <Text style={[styles.reference, { color: theme.muted }]}>{reference}</Text>
           </View></View>

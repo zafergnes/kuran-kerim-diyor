@@ -13,7 +13,7 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, Sparkles } from 'lucide-react-native';
+import { Play, Pause, MessageCircle } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
@@ -229,7 +229,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                         accessibilityRole="button"
                         accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
                     >
-                        <Sparkles size={17} color={theme.primary} />
+                        <MessageCircle size={17} color={theme.primary} />
                     </TouchableOpacity>
                     {isPlaying && (
                         <View 
