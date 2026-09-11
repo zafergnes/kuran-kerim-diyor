@@ -29,7 +29,7 @@ import {
     LifeBuoy,
     Palette,
 } from 'lucide-react-native';
-import { Audio } from 'expo-av';
+import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
 import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -74,7 +74,7 @@ export default function SettingsScreen() {
     const [showFontPicker, setShowFontPicker] = useState(false);
     const [showScriptPicker, setShowScriptPicker] = useState(false);
 
-    const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
+    const [previewSound, setPreviewSound] = useState<AudioSound | null>(null);
     const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -112,8 +112,8 @@ export default function SettingsScreen() {
 
         try {
             await Audio.setAudioModeAsync({
-                playsInSilentModeIOS: true,
-                staysActiveInBackground: false,
+                playsInSilentMode: true,
+                shouldPlayInBackground: false,
             });
 
             const url = `https://cdn.islamic.network/quran/audio/64/${reciterId}/1.mp3`;

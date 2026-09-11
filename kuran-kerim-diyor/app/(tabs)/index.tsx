@@ -90,8 +90,8 @@ export default function MainFeedScreen() {
     }, [params.showDaily]);
 
     const flatListRef = useRef<FlatList>(null);
-    const scrubTimer = useRef<NodeJS.Timeout | null>(null);
-    const autoNextTimer = useRef<NodeJS.Timeout | null>(null);
+    const scrubTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const autoNextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const currentIndexRef = useRef(Math.max(0, (currentAyah || 1) - 1));
     const storeRef = useRef({ barHeight: 0, surah, uiAyah, isScrubbing });
 
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     swipeHintOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         alignItems: 'center',

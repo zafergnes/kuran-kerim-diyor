@@ -7,15 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon-v2.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/android-icon-foreground-v2.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#003B49"
-    },
-    "notification": {
-      "icon": "./assets/android-icon-foreground-v2.png",
-      "color": "#D6A94F"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
@@ -41,6 +32,19 @@
     "plugins": [
       "expo-router",
       "expo-asset",
+      "expo-font",
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/android-icon-foreground-v2.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#003B49"
+        }
+      ],
+      "expo-status-bar",
+      "expo-audio",
       [
         "expo-localization",
         {
@@ -50,13 +54,20 @@
           }
         }
       ],
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-foreground-v2.png",
+          "color": "#D6A94F",
+          "mode": "production"
+        }
+      ],
       [
         "@bittingz/expo-widgets",
         {
           "ios": {
             "src": "./widgets/ios",
-            "deploymentTarget": "17.0",
+            "deploymentTarget": "16.2",
             "xcode": {
               "appGroupId": "group.com.kurankerimdiyor.expowidgets"
             }

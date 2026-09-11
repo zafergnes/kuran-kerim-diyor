@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
-import { Audio } from 'expo-av';
+import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
 import { Play, Pause } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
@@ -22,7 +22,7 @@ export function AudioPlayer({
     onPlayingChange,
     onScrubbingChange,
 }: AudioPlayerProps) {
-    const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [sound, setSound] = useState<AudioSound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [playProgress, setPlayProgress] = useState(0);
@@ -92,8 +92,8 @@ export function AudioPlayer({
         setIsLoading(true);
         try {
             await Audio.setAudioModeAsync({
-                playsInSilentModeIOS: true,
-                staysActiveInBackground: true,
+                playsInSilentMode: true,
+                shouldPlayInBackground: true,
             });
 
             const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`;

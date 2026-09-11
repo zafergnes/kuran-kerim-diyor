@@ -12,7 +12,7 @@ import { useUserStore } from '../store/userStore';
 import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
-import { Audio } from 'expo-av';
+import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
 import { Play, Pause, Sparkles } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { VerseChatModal } from './VerseChatModal';
@@ -49,7 +49,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     const { language, arabicTranslationLang, arabicFontFamily, selectedReciter } = useUserStore();
     const translationLanguage = language === 'ar' ? arabicTranslationLang : language;
     
-    const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [sound, setSound] = useState<AudioSound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(null);

@@ -1,11 +1,11 @@
-import { Audio } from 'expo-av';
+import { CompatSound as AudioSound } from './audioCompat';
 
-let activeSound: Audio.Sound | null = null;
+let activeSound: AudioSound | null = null;
 let activeOwnerId: string | null = null;
 let activeOnStop: (() => void) | null = null;
 
 export class GlobalAudioController {
-  static async play(sound: Audio.Sound, ownerId: string, onStop: () => void) {
+  static async play(sound: AudioSound, ownerId: string, onStop: () => void) {
     if (activeSound) {
       try {
         if (activeOwnerId !== ownerId) {
