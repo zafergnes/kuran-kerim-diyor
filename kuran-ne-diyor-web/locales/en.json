@@ -214,7 +214,8 @@
     "title": "Verse of the Day"
   },
   "web": {
-    "install_title": "Quran Says",
+    "install_title": "The Holy Quran Says",
+    "brand_alt": "The Holy Quran Says logo",
     "install_desc_ios": "Add to Home Screen for a better experience.",
     "install_desc_android": "Install the app for quick access and notifications.",
     "install_ios_guide": "Tap Share > Add to Home Screen.",

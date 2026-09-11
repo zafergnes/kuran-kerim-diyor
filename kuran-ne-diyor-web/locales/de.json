@@ -214,7 +214,8 @@
     "title": "Vers des Tages"
   },
   "web": {
-    "install_title": "Koran Sagt",
+    "install_title": "Der Heilige Koran Sagt",
+    "brand_alt": "Logo von Der Heilige Koran Sagt",
     "install_desc_ios": "Zum Startbildschirm hinzufügen für ein besseres Erlebnis.",
     "install_desc_android": "App installieren für Schnellzugriff und Benachrichtigungen.",
     "install_ios_guide": "Tippen Sie auf Teilen > Zum Startbildschirm hinzufügen.",

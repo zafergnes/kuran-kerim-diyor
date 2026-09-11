@@ -214,7 +214,8 @@
     "title": "Günün Ayeti"
   },
   "web": {
-    "install_title": "Kuran Ne Diyor",
+    "install_title": "Kur'an Ne Diyor?",
+    "brand_alt": "Kur'an Ne Diyor? logosu",
     "install_desc_ios": "Daha iyi bir deneyim için ana ekrana ekleyin.",
     "install_desc_android": "Hızlı erişim ve bildirimler için uygulamayı yükleyin.",
     "install_ios_guide": "Paylaş > Ana Ekrana Ekle seçeneğine dokunun.",

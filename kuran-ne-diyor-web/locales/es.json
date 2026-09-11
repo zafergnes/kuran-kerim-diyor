@@ -214,7 +214,8 @@
     "title": "Versículo del Día"
   },
   "web": {
-    "install_title": "El Corán Dice",
+    "install_title": "El Sagrado Corán Dice",
+    "brand_alt": "Logotipo de El Sagrado Corán Dice",
     "install_desc_ios": "Añadir a la pantalla de inicio para una mejor experiencia.",
     "install_desc_android": "Instala la aplicación para un acceso rápido y notificaciones.",
     "install_ios_guide": "Toca Compartir > Añadir a la pantalla de inicio.",

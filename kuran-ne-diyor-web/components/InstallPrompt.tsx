@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { X, Download, Share } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -89,9 +90,13 @@ export function InstallPrompt() {
     <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-border bg-card/90 p-4 shadow-lg backdrop-blur-md sm:bottom-6 sm:left-auto sm:right-6">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-xl font-bold text-white">
-            ق
-          </div>
+          <Image
+            src="/icons/icon-192x192.png"
+            alt={t("web.brand_alt", "Kur'an Ne Diyor? logosu")}
+            width={48}
+            height={48}
+            className="h-12 w-12 shrink-0 rounded-lg object-cover"
+          />
           <div>
             <h3 className="font-bold text-text text-sm">{t("web.install_title", "Kuran Ne Diyor")}</h3>
             <p className="text-xs text-muted font-semibold mt-0.5">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield, ShieldCheck, Sparkles, Flame } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
@@ -39,9 +40,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-md bg-primary text-lg font-bold text-white">
-              ق
-            </span>
+            <Image
+              src="/icons/icon-192x192.png"
+              alt={t("web.brand_alt", "Kur'an Ne Diyor? logosu")}
+              width={40}
+              height={40}
+              priority
+              className="rounded-md object-cover"
+            />
             <span>
               <span className="block text-base font-bold text-text">{t("web.install_title", "Kuran Ne Diyor")}</span>
               <span className="block text-xs font-semibold text-muted">Web</span>

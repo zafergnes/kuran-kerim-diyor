@@ -214,7 +214,8 @@
     "title": "Verset du Jour"
   },
   "web": {
-    "install_title": "Le Coran Dit",
+    "install_title": "Le Saint Coran Dit",
+    "brand_alt": "Logo du Saint Coran Dit",
     "install_desc_ios": "Ajouter à l'écran d'accueil pour une meilleure expérience.",
     "install_desc_android": "Installez l'application pour un accès rapide et des notifications.",
     "install_ios_guide": "Appuyez sur Partager > Ajouter à l'écran d'accueil.",
