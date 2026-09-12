@@ -4,15 +4,34 @@ import { Sparkles, Download, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 
+function parseVerseId(rawId: string): { surahNumber: number; ayahNumber: number } | null {
+  let decodedId: string;
+
+  try {
+    decodedId = decodeURIComponent(rawId);
+  } catch {
+    return null;
+  }
+
+  const match = decodedId.match(/^(\d{1,3}):(\d{1,3})$/);
+  if (!match) return null;
+
+  const surahNumber = Number(match[1]);
+  const ayahNumber = Number(match[2]);
+  if (!Number.isInteger(surahNumber) || !Number.isInteger(ayahNumber)) return null;
+
+  return { surahNumber, ayahNumber };
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const [surahNum, ayahNum] = id.split(":");
-  const surah = getSurah(Number(surahNum));
-  const ayah = getAyah(Number(surahNum), Number(ayahNum));
+  const verseId = parseVerseId(id);
+  const surah = verseId ? getSurah(verseId.surahNumber) : undefined;
+  const ayah = verseId ? getAyah(verseId.surahNumber, verseId.ayahNumber) : undefined;
 
   if (!surah || !ayah) {
     return {
@@ -47,10 +66,9 @@ export default async function VerseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [surahNum, ayahNum] = id.split(':');
-  
-  const surah = getSurah(Number(surahNum));
-  const ayah = getAyah(Number(surahNum), Number(ayahNum));
+  const verseId = parseVerseId(id);
+  const surah = verseId ? getSurah(verseId.surahNumber) : undefined;
+  const ayah = verseId ? getAyah(verseId.surahNumber, verseId.ayahNumber) : undefined;
   
   if (!surah || !ayah) {
     return (
@@ -91,7 +109,7 @@ export default async function VerseDetailPage({
 
             <div className="text-center mb-6">
               <a 
-                href={`kuran-kerim-diyor://ayet/${id}`}
+                href={`kuran-kerim-diyor://ayet/${surah.number}:${ayah.number}`}
                 className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-4 py-2 text-xs font-bold text-primary transition hover:bg-primary/30"
               >
                 UYGULAMADA AÇ
