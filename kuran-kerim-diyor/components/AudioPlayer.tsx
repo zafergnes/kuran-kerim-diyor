@@ -93,7 +93,7 @@ export function AudioPlayer({
         try {
             await Audio.setAudioModeAsync({
                 playsInSilentMode: true,
-                shouldPlayInBackground: true,
+                shouldPlayInBackground: false,
             });
 
             const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`;
