@@ -11,7 +11,6 @@ import { CelebrationModal } from '../components/CelebrationModal';
 
 import { useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { AnalyticsService } from '../services/analyticsService';
 import { useAppTheme } from '../hooks/useAppTheme';
@@ -36,24 +35,28 @@ export default function RootLayout() {
         if (!loaded && !error) return;
 
         const checkFirstLaunch = async () => {
-            const hasOnboarded = await AsyncStorage.getItem('hasOnboarded');
-            if (hasOnboarded !== 'true') {
-                router.replace('/onboarding');
-            }
-            
-            // Favorileri ve dil tercihini yukle
-            const { useUserStore } = await import('../store/userStore');
-            await useUserStore.getState().loadFavorites();
+            try {
+                const hasOnboarded = await AsyncStorage.getItem('hasOnboarded');
+                if (hasOnboarded !== 'true') {
+                    router.replace('/onboarding');
+                }
 
-            // Kayitli dil tercihi varsa i18n'e uygula, yoksa cihaz dilini kullan
-            const storedLang = await AsyncStorage.getItem('@app_language');
-            const language = storedLang ?? detectDeviceLanguage();
-            i18n.changeLanguage(language);
-            applyRTL(language as any);
-            // Store'u da guncelle
-            useUserStore.getState().setLanguage(language as any);
-            
-            SplashScreen.hideAsync();
+                // Favorileri ve dil tercihini yukle
+                const { useUserStore } = await import('../store/userStore');
+                await useUserStore.getState().loadFavorites();
+
+                // Kayitli dil tercihi varsa i18n'e uygula, yoksa cihaz dilini kullan
+                const storedLang = await AsyncStorage.getItem('@app_language');
+                const language = storedLang ?? detectDeviceLanguage();
+                await i18n.changeLanguage(language);
+                applyRTL(language as any);
+                // Store'u da guncelle
+                useUserStore.getState().setLanguage(language as any);
+            } catch (initializationError) {
+                console.error('[RootLayout] App initialization failed:', initializationError);
+            } finally {
+                await SplashScreen.hideAsync();
+            }
         };
 
         // Bildirim Kaydi ve Dinleyiciler (Sadece Expo Go disindaki ortamlarda)
