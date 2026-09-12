@@ -109,7 +109,7 @@ export default async function VerseDetailPage({
 
             <div className="text-center mb-6">
               <a 
-                href={`kuran-kerim-diyor://ayet/${surah.number}:${ayah.number}`}
+                href={`kuran-kerim-diyor://ayet?id=${surah.number}%3A${ayah.number}`}
                 className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-4 py-2 text-xs font-bold text-primary transition hover:bg-primary/30"
               >
                 UYGULAMADA AÇ
