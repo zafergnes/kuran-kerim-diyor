@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -13,8 +13,9 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, MessageCircle } from 'lucide-react-native';
+import { Play, Pause, MessageCircle, RotateCcw, RotateCw } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
+import { getAyahAudioTrack, WordTiming } from '../services/quranAudioTimingService';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
 
@@ -54,7 +55,13 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(null);
     const [playProgress, setPlayProgress] = useState(0);
+    const [durationMillis, setDurationMillis] = useState(0);
+    const [positionMillis, setPositionMillis] = useState(0);
+    const [playbackRate, setPlaybackRate] = useState(1);
+    const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
     const [chatAyah, setChatAyah] = useState<PageAyahItem | null>(null);
+    const wordTimingsRef = useRef<WordTiming[]>([]);
+    const playbackRequestRef = useRef(0);
 
     // Fetch all ayahs on this page
     const pageAyahs = useMemo(() => {
@@ -69,13 +76,20 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
 
     const ownerId = `page_${pageNumber}`;
 
+    const formatTime = (milliseconds: number) => {
+        const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+        return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
+    };
+
     useEffect(() => {
         return () => {
+            playbackRequestRef.current += 1;
             GlobalAudioController.stop(ownerId);
         };
     }, [pageNumber]);
 
     useEffect(() => {
+        playbackRequestRef.current += 1;
         if (sound) {
             GlobalAudioController.stop(ownerId);
         }
@@ -90,47 +104,70 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         setIsLoading(true);
         setCurrentPlayingIndex(index);
         setPlayProgress(0);
+        setPositionMillis(0);
+        setActiveWordIndex(null);
+        wordTimingsRef.current = [];
+        const playbackRequest = ++playbackRequestRef.current;
 
         try {
             const ayah = pageAyahs[index];
-            const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${ayah.ayah.globalNumber}.mp3`;
+            const track = await getAyahAudioTrack(
+                selectedReciter,
+                ayah.surahNumber,
+                ayah.ayah.number,
+                ayah.ayah.globalNumber,
+            );
+            if (playbackRequestRef.current !== playbackRequest) return;
+            wordTimingsRef.current = track.wordTimings;
 
             const { sound: newSound } = await Audio.Sound.createAsync(
-                { uri: url },
-                { shouldPlay: startProgress <= 0 }
+                { uri: track.url },
+                { shouldPlay: false }
             );
+
+            await newSound.setRateAsync(playbackRate);
+            await GlobalAudioController.play(newSound, ownerId, () => {
+                setIsPlaying(false);
+                setCurrentPlayingIndex(null);
+                setPlayProgress(0);
+                setPositionMillis(0);
+                setDurationMillis(0);
+                setActiveWordIndex(null);
+                setSound(null);
+            });
 
             if (startProgress > 0) {
                 const status = await newSound.getStatusAsync();
                 if (status.isLoaded && status.durationMillis) {
                     await newSound.setPositionAsync(startProgress * status.durationMillis);
                 }
-                await newSound.playAsync();
             }
 
             setSound(newSound);
-            setIsPlaying(true);
+            setCurrentPlayingIndex(index);
+            setPlayProgress(startProgress);
 
             newSound.setOnPlaybackStatusUpdate((status: any) => {
                 if (status.isLoaded) {
+                    const currentPosition = status.positionMillis || 0;
+                    setDurationMillis(status.durationMillis || 0);
+                    setPositionMillis(currentPosition);
                     if (status.durationMillis) {
-                        setPlayProgress(status.positionMillis / status.durationMillis);
+                        setPlayProgress(currentPosition / status.durationMillis);
                     }
+                    const activeSegment = wordTimingsRef.current.find(
+                        (segment) => currentPosition >= segment.startMillis && currentPosition < segment.endMillis,
+                    );
+                    setActiveWordIndex(activeSegment?.wordIndex ?? null);
                     if (status.didJustFinish) {
-                        newSound.unloadAsync().then(() => {
-                            setSound(null);
-                            playAyahAtIndex(index + 1);
-                        });
+                        setActiveWordIndex(null);
+                        void playAyahAtIndex(index + 1);
                     }
                 }
             });
 
-            await GlobalAudioController.play(newSound, ownerId, () => {
-                setIsPlaying(false);
-                setCurrentPlayingIndex(null);
-                setPlayProgress(0);
-                setSound(null);
-            });
+            await newSound.playAsync();
+            setIsPlaying(true);
         } catch (e) {
             console.error("Page playback error:", e);
             setIsPlaying(false);
@@ -144,13 +181,17 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         if (isLoading) return;
 
         if (isPlaying) {
-            await GlobalAudioController.stop(ownerId);
+            await GlobalAudioController.pause(ownerId);
+            setIsPlaying(false);
         } else {
             if (sound) {
                 await GlobalAudioController.play(sound, ownerId, () => {
                     setIsPlaying(false);
                     setCurrentPlayingIndex(null);
                     setPlayProgress(0);
+                    setPositionMillis(0);
+                    setDurationMillis(0);
+                    setActiveWordIndex(null);
                     setSound(null);
                 });
                 await sound.playAsync();
@@ -161,9 +202,30 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         }
     };
 
+    const seekBy = async (seconds: number) => {
+        if (!sound) return;
+        const status = await sound.getStatusAsync();
+        if (!status.isLoaded || !status.durationMillis) return;
+        const nextPosition = Math.min(
+            status.durationMillis,
+            Math.max(0, status.positionMillis + seconds * 1000),
+        );
+        await sound.setPositionAsync(nextPosition);
+        setPositionMillis(nextPosition);
+        setPlayProgress(nextPosition / status.durationMillis);
+    };
+
+    const cyclePlaybackRate = async () => {
+        const rates = [0.75, 1, 1.25];
+        const currentIndex = rates.indexOf(playbackRate);
+        const nextRate = rates[(currentIndex + 1) % rates.length];
+        setPlaybackRate(nextRate);
+        if (sound) await sound.setRateAsync(nextRate);
+    };
+
     const handleResponderGrantOrMove = (evt: any) => {
         const { locationX } = evt.nativeEvent;
-        const width = 120;
+        const width = 170;
         const percentage = Math.min(1, Math.max(0, locationX / width));
         
         setPlayProgress(percentage);
@@ -231,21 +293,39 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     >
                         <MessageCircle size={17} color={theme.primary} />
                     </TouchableOpacity>
-                    {isPlaying && (
-                        <View 
-                            style={styles.progressBarContainer}
-                            onStartShouldSetResponder={() => true}
-                            onMoveShouldSetResponder={() => true}
-                            onResponderGrant={handleResponderGrantOrMove}
-                            onResponderMove={handleResponderGrantOrMove}
-                            onResponderRelease={() => onAudioInteractionChange?.(false)}
-                            onResponderTerminate={() => onAudioInteractionChange?.(false)}
-                            onResponderTerminationRequest={() => false}
-                            onTouchStart={() => onAudioInteractionChange?.(true)}
-                        >
-                            <View style={styles.progressBarBg}>
-                                <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
-                                <View style={[styles.progressThumb, { left: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                    {sound && (
+                        <View style={styles.playerDetails}>
+                            <View style={styles.transportRow}>
+                                <TouchableOpacity onPress={() => void seekBy(-5)} style={styles.smallControl} accessibilityLabel="5 saniye geri">
+                                    <RotateCcw size={14} color={theme.primary} />
+                                    <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
+                                </TouchableOpacity>
+                                <Text style={[styles.timeText, { color: theme.muted }]}>
+                                    {formatTime(positionMillis)} / {formatTime(durationMillis)}
+                                </Text>
+                                <TouchableOpacity onPress={() => void seekBy(5)} style={styles.smallControl} accessibilityLabel="5 saniye ileri">
+                                    <RotateCw size={14} color={theme.primary} />
+                                    <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => void cyclePlaybackRate()} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Okuma hızı">
+                                    <Text style={[styles.rateText, { color: theme.primary }]}>{playbackRate}×</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View
+                                style={styles.progressBarContainer}
+                                onStartShouldSetResponder={() => true}
+                                onMoveShouldSetResponder={() => true}
+                                onResponderGrant={handleResponderGrantOrMove}
+                                onResponderMove={handleResponderGrantOrMove}
+                                onResponderRelease={() => onAudioInteractionChange?.(false)}
+                                onResponderTerminate={() => onAudioInteractionChange?.(false)}
+                                onResponderTerminationRequest={() => false}
+                                onTouchStart={() => onAudioInteractionChange?.(true)}
+                            >
+                                <View style={styles.progressBarBg}>
+                                    <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                                    <View style={[styles.progressThumb, { left: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                                </View>
                             </View>
                         </View>
                     )}
@@ -286,7 +366,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
 
                             const renderArabicWordText = (
                                 word: string,
-                                isHighlighted: boolean,
+                                isWordActive: boolean,
                             ) => {
                                 const cleanWord = word.replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '');
                                 const isAllah = cleanWord === 'الله' || cleanWord === 'اللَّه' || cleanWord === 'لله' || cleanWord === 'لِلَّهِ' || cleanWord === 'للَّه';
@@ -295,10 +375,11 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                         style={[
                                             styles.arabicWordText,
                                             {
-                                                fontFamily: getArabicFont(isHighlighted ? 'bold' : 'regular'),
-                                                color: isAllah ? '#D32F2F' : (isHighlighted ? theme.primary : theme.text),
+                                                fontFamily: getArabicFont(isWordActive ? 'bold' : 'regular'),
+                                                color: isAllah ? '#D32F2F' : (isWordActive ? theme.primary : theme.text),
                                                 fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
-                                                fontWeight: isAllah || isHighlighted ? 'bold' : 'normal',
+                                                fontWeight: isAllah || isWordActive ? 'bold' : 'normal',
+                                                backgroundColor: isWordActive ? `${theme.primary}18` : 'transparent',
                                             }
                                         ]}
                                     >
@@ -344,6 +425,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                  return (
                                                      <React.Fragment key={item.ayah.globalNumber}>
                                                          {words.map((word, wIdx) => {
+                                                             const isWordActive = isHighlighted && activeWordIndex === wIdx + 1;
                                                              return (
                                                                  <React.Fragment key={wIdx}>
                                                                      <Text onPress={() => {
@@ -351,7 +433,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                                              void playAyahAtIndex(pageAyahIndex);
                                                                          }
                                                                      }}>
-                                                                         {renderArabicWordText(word, isHighlighted)}
+                                                                         {renderArabicWordText(word, isWordActive)}
                                                                      </Text>
                                                                      <Text> </Text>
                                                                  </React.Fragment>
@@ -497,7 +579,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: 14,
         paddingVertical: 14,
         borderBottomWidth: StyleSheet.hairlineWidth,
     },
@@ -512,6 +594,7 @@ const styles = StyleSheet.create({
     pageAudioControls: {
         flexDirection: 'row',
         alignItems: 'center',
+        flexShrink: 1,
     },
     pageAudioBtn: {
         padding: 6,
@@ -527,13 +610,13 @@ const styles = StyleSheet.create({
         marginRight: 4,
     },
     progressBarContainer: {
-        width: 120,
-        height: 24,
+        width: 170,
+        height: 18,
         justifyContent: 'center',
         marginRight: 4,
     },
     progressBarBg: {
-        width: 120,
+        width: 170,
         height: 6,
         borderRadius: 3,
         backgroundColor: 'rgba(182, 154, 115, 0.2)',
@@ -550,6 +633,44 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         top: -3,
         marginLeft: -6,
+    },
+    playerDetails: {
+        width: 170,
+        marginHorizontal: 4,
+    },
+    transportRow: {
+        width: 170,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    smallControl: {
+        minWidth: 26,
+        height: 22,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    seekLabel: {
+        fontSize: 8,
+        fontWeight: '800',
+        marginLeft: -2,
+    },
+    timeText: {
+        fontSize: 8,
+        fontVariant: ['tabular-nums'],
+    },
+    rateButton: {
+        minWidth: 36,
+        height: 20,
+        borderWidth: 1,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rateText: {
+        fontSize: 9,
+        fontWeight: '800',
     },
     scrollArea: {
         flex: 1,

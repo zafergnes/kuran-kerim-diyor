@@ -56,6 +56,8 @@ export default function MainFeedScreen() {
         arabicFontFamily,
         streakCount,
         todayCompleted,
+        isInitialProgressLoad,
+        recordDailyActivity,
     } = useUserStore();
     const [showDeleteWarning, setShowDeleteWarning] = useState(false);
     const [dailyVerse, setDailyVerse] = useState<DailyVerse | null>(null);
@@ -88,6 +90,18 @@ export default function MainFeedScreen() {
             setShowDailyModal(true);
         }
     }, [params.showDaily]);
+
+    useEffect(() => {
+        if (readingLayout !== 'page' || isInitialProgressLoad || todayCompleted) return;
+
+        // Sayfa düzeninde ilk sayfa mevcut ilerlemeyle aynı olduğunda setProgress
+        // çağrılmıyordu. Kullanıcı sayfada gerçekten kaldığında günlük okumayı kaydet.
+        const readingTimer = setTimeout(() => {
+            void recordDailyActivity();
+        }, 3000);
+
+        return () => clearTimeout(readingTimer);
+    }, [currentPage, readingLayout, isInitialProgressLoad, todayCompleted, recordDailyActivity]);
 
     const flatListRef = useRef<FlatList>(null);
     const scrubTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -39,8 +39,17 @@ export class CompatSound {
     this.player.play();
   }
 
+  async pauseAsync(): Promise<void> {
+    this.player.pause();
+  }
+
+  async setRateAsync(rate: number): Promise<void> {
+    this.player.setPlaybackRate(rate, 'high');
+  }
+
   async stopAsync(): Promise<void> {
     this.player.pause();
+    await this.player.seekTo(0);
   }
 
   async unloadAsync(): Promise<void> {

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause } from 'lucide-react-native';
+import { Play, Pause, RotateCcw, RotateCw } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { useTranslation } from 'react-i18next';
 import { GlobalAudioController } from '../services/globalAudioController';
+import { getAyahAudioUrl } from '../services/quranAudioTimingService';
 
 interface AudioPlayerProps {
     globalAyahNumber: number;
@@ -26,6 +27,9 @@ export function AudioPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [playProgress, setPlayProgress] = useState(0);
+    const [durationMillis, setDurationMillis] = useState(0);
+    const [positionMillis, setPositionMillis] = useState(0);
+    const [playbackRate, setPlaybackRate] = useState(1);
     const { selectedReciter } = useUserStore();
     const { t } = useTranslation();
 
@@ -39,6 +43,11 @@ export function AudioPlayer({
         const normalizedProgress = Math.min(1, Math.max(0, progress));
         setPlayProgress(normalizedProgress);
         onProgressChange?.(normalizedProgress);
+    };
+
+    const formatTime = (milliseconds: number) => {
+        const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+        return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
     };
 
     // Clean up sound on unmount
@@ -62,7 +71,9 @@ export function AudioPlayer({
             if (status.isLoaded && status.durationMillis) {
                 const normalizedProgress = Math.min(1, Math.max(0, seekProgress));
                 updateProgress(normalizedProgress);
-                sound.setPositionAsync(normalizedProgress * status.durationMillis).catch(() => {});
+                const nextPosition = normalizedProgress * status.durationMillis;
+                setPositionMillis(nextPosition);
+                sound.setPositionAsync(nextPosition).catch(() => {});
             }
         }).catch(() => {});
     }, [seekProgress, sound]);
@@ -76,7 +87,8 @@ export function AudioPlayer({
 
         if (sound) {
             if (isPlaying) {
-                await GlobalAudioController.stop(ownerId);
+                await GlobalAudioController.pause(ownerId);
+                setIsPlaying(false);
             } else {
                 await GlobalAudioController.play(sound, ownerId, () => {
                     setIsPlaying(false);
@@ -96,35 +108,41 @@ export function AudioPlayer({
                 shouldPlayInBackground: false,
             });
 
-            const url = `https://cdn.islamic.network/quran/audio/64/${selectedReciter}/${globalAyahNumber}.mp3`;
+            const url = getAyahAudioUrl(selectedReciter, globalAyahNumber);
 
             const { sound: newSound } = await Audio.Sound.createAsync(
                 { uri: url },
-                { shouldPlay: true }
+                { shouldPlay: false }
             );
 
-            setSound(newSound);
-            setIsPlaying(true);
+            await newSound.setRateAsync(playbackRate);
+            await GlobalAudioController.play(newSound, ownerId, () => {
+                setIsPlaying(false);
+                updateProgress(0);
+                setPositionMillis(0);
+                setDurationMillis(0);
+                setSound(null);
+            });
 
             newSound.setOnPlaybackStatusUpdate((status: any) => {
                 if (status.isLoaded) {
+                    setDurationMillis(status.durationMillis || 0);
+                    setPositionMillis(status.positionMillis || 0);
                     if (status.durationMillis) {
                         updateProgress(status.positionMillis / status.durationMillis);
                     }
                     if (status.didJustFinish) {
                         setIsPlaying(false);
                         updateProgress(0);
-                        setSound(null);
-                        GlobalAudioController.stop(ownerId);
+                        setPositionMillis(0);
+                        newSound.setPositionAsync(0).catch(() => {});
                     }
                 }
             });
 
-            await GlobalAudioController.play(newSound, ownerId, () => {
-                setIsPlaying(false);
-                updateProgress(0);
-                setSound(null);
-            });
+            setSound(newSound);
+            await newSound.playAsync();
+            setIsPlaying(true);
         } catch (e) {
             console.error("Audio playback error:", e);
             setIsPlaying(false);
@@ -133,9 +151,30 @@ export function AudioPlayer({
         }
     };
 
+    const seekBy = async (seconds: number) => {
+        if (!sound) return;
+        const status = await sound.getStatusAsync();
+        if (!status.isLoaded || !status.durationMillis) return;
+        const nextPosition = Math.min(
+            status.durationMillis,
+            Math.max(0, status.positionMillis + seconds * 1000),
+        );
+        await sound.setPositionAsync(nextPosition);
+        setPositionMillis(nextPosition);
+        updateProgress(nextPosition / status.durationMillis);
+    };
+
+    const cyclePlaybackRate = async () => {
+        const rates = [0.75, 1, 1.25];
+        const currentIndex = rates.indexOf(playbackRate);
+        const nextRate = rates[(currentIndex + 1) % rates.length];
+        setPlaybackRate(nextRate);
+        if (sound) await sound.setRateAsync(nextRate);
+    };
+
     const handleResponderGrantOrMove = (evt: any) => {
         const { locationX } = evt.nativeEvent;
-        const width = 120;
+        const width = 190;
         const percentage = Math.min(1, Math.max(0, locationX / width));
         
         updateProgress(percentage);
@@ -161,8 +200,24 @@ export function AudioPlayer({
                     <Play size={28} color={theme.primary} />
                 )}
             </TouchableOpacity>
-            {isPlaying && (
+            {sound && (
                 <View style={styles.playbackContainer}>
+                    <View style={styles.transportRow}>
+                        <TouchableOpacity onPress={() => void seekBy(-5)} style={styles.smallControl} accessibilityLabel="5 saniye geri">
+                            <RotateCcw size={15} color={theme.primary} />
+                            <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
+                        </TouchableOpacity>
+                        <Text style={[styles.timeText, { color: theme.muted }]}>
+                            {formatTime(positionMillis)} / {formatTime(durationMillis)}
+                        </Text>
+                        <TouchableOpacity onPress={() => void seekBy(5)} style={styles.smallControl} accessibilityLabel="5 saniye ileri">
+                            <RotateCw size={15} color={theme.primary} />
+                            <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => void cyclePlaybackRate()} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Okuma hızı">
+                            <Text style={[styles.rateText, { color: theme.primary }]}>{playbackRate}×</Text>
+                        </TouchableOpacity>
+                    </View>
                     <View 
                         style={styles.progressBarContainer}
                         onStartShouldSetResponder={() => true}
@@ -203,16 +258,50 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         marginLeft: 8,
         justifyContent: 'center',
-        width: 120,
+        width: 190,
+    },
+    transportRow: {
+        width: 190,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    smallControl: {
+        minWidth: 28,
+        height: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    seekLabel: {
+        fontSize: 9,
+        fontWeight: '800',
+        marginLeft: -2,
+    },
+    timeText: {
+        fontSize: 9,
+        fontVariant: ['tabular-nums'],
+    },
+    rateButton: {
+        minWidth: 38,
+        height: 22,
+        borderWidth: 1,
+        borderRadius: 11,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rateText: {
+        fontSize: 10,
+        fontWeight: '800',
     },
     progressBarContainer: {
-        width: 120,
+        width: 190,
         height: 24,
         justifyContent: 'center',
         marginBottom: 2,
     },
     progressBarBg: {
-        width: 120,
+        width: 190,
         height: 6,
         borderRadius: 3,
         backgroundColor: 'rgba(182, 154, 115, 0.2)',

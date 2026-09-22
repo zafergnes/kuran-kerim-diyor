@@ -153,7 +153,8 @@ export default function SettingsScreen() {
         { id: 'ar.alafasy', initials: 'MA' },
         { id: 'ar.abdurrahmaansudais', initials: 'AS' },
         { id: 'ar.mahermuaiqly', initials: 'MM' },
-        { id: 'ar.abdulbasitmurattal', initials: 'AB' }
+        { id: 'ar.abdulbasitmurattal', initials: 'AB' },
+        { id: 'ar.husary', initials: 'MH' }
     ];
 
     const handleNotificationPress = async () => {
