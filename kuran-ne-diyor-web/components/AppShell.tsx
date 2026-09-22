@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               title={t("streak.title", "Günlük Seri")}
             >
               <Flame size={16} className={todayCompleted ? "fill-orange-500 text-orange-500" : "text-primary"} />
-              <span>{streakCount} {t("streak.badge_short", { count: streakCount, defaultValue: `${streakCount}g` })}</span>
+              <span>{t("streak.badge_short", { count: streakCount, defaultValue: `${streakCount}g` })}</span>
             </div>
             <Link
               href={user ? "/profile" : "/login"}
