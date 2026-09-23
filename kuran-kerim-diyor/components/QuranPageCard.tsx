@@ -13,11 +13,12 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, MessageCircle, RotateCcw, RotateCw } from 'lucide-react-native';
+import { Play, Pause, MessageCircle, RotateCcw, RotateCw, Repeat2 } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { getAyahAudioTrack, WordTiming } from '../services/quranAudioTimingService';
 import { VerseChatModal } from './VerseChatModal';
 import { AnalyticsService } from '../services/analyticsService';
+import { OfflineAudioService } from '../services/offlineAudioService';
 
 const toArabicDigits = (num: number): string => {
     const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -58,10 +59,13 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     const [durationMillis, setDurationMillis] = useState(0);
     const [positionMillis, setPositionMillis] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
+    const [repeatCount, setRepeatCount] = useState(1);
     const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
     const [chatAyah, setChatAyah] = useState<PageAyahItem | null>(null);
     const wordTimingsRef = useRef<WordTiming[]>([]);
     const playbackRequestRef = useRef(0);
+    const repeatRemainingRef = useRef(1);
+    const repeatCountRef = useRef(1);
 
     // Fetch all ayahs on this page
     const pageAyahs = useMemo(() => {
@@ -95,7 +99,12 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         }
     }, [selectedReciter]);
 
-    const playAyahAtIndex = async (index: number, startProgress = 0) => {
+    const playAyahAtIndex = async (
+        index: number,
+        startProgress = 0,
+        isSequenceContinuation = false,
+        targetWordIndex?: number,
+    ) => {
         if (index < 0 || index >= pageAyahs.length) {
             await GlobalAudioController.stop(ownerId);
             return;
@@ -108,17 +117,22 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         setActiveWordIndex(null);
         wordTimingsRef.current = [];
         const playbackRequest = ++playbackRequestRef.current;
+        if (!isSequenceContinuation) repeatRemainingRef.current = repeatCountRef.current;
 
         try {
             const ayah = pageAyahs[index];
-            const track = await getAyahAudioTrack(
-                selectedReciter,
-                ayah.surahNumber,
-                ayah.ayah.number,
-                ayah.ayah.globalNumber,
-            );
+            const track = await OfflineAudioService.getTrack(selectedReciter, ayah.ayah.globalNumber)
+                || await getAyahAudioTrack(
+                    selectedReciter,
+                    ayah.surahNumber,
+                    ayah.ayah.number,
+                    ayah.ayah.globalNumber,
+                );
             if (playbackRequestRef.current !== playbackRequest) return;
             wordTimingsRef.current = track.wordTimings;
+            const targetWord = targetWordIndex
+                ? track.wordTimings.find((segment) => segment.wordIndex === targetWordIndex)
+                : undefined;
 
             const { sound: newSound } = await Audio.Sound.createAsync(
                 { uri: track.url },
@@ -136,7 +150,9 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                 setSound(null);
             });
 
-            if (startProgress > 0) {
+            if (targetWord) {
+                await newSound.setPositionAsync(targetWord.startMillis);
+            } else if (startProgress > 0) {
                 const status = await newSound.getStatusAsync();
                 if (status.isLoaded && status.durationMillis) {
                     await newSound.setPositionAsync(startProgress * status.durationMillis);
@@ -146,6 +162,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
             setSound(newSound);
             setCurrentPlayingIndex(index);
             setPlayProgress(startProgress);
+            let wordEndMillis = targetWord?.endMillis ?? null;
 
             newSound.setOnPlaybackStatusUpdate((status: any) => {
                 if (status.isLoaded) {
@@ -159,9 +176,27 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                         (segment) => currentPosition >= segment.startMillis && currentPosition < segment.endMillis,
                     );
                     setActiveWordIndex(activeSegment?.wordIndex ?? null);
+                    if (wordEndMillis !== null && currentPosition >= wordEndMillis) {
+                        wordEndMillis = null;
+                        void newSound.pauseAsync().then(() => {
+                            setIsPlaying(false);
+                            setActiveWordIndex(null);
+                            if (repeatRemainingRef.current > 1 && targetWordIndex) {
+                                repeatRemainingRef.current -= 1;
+                                void playAyahAtIndex(index, 0, true, targetWordIndex);
+                            }
+                        });
+                        return;
+                    }
                     if (status.didJustFinish) {
                         setActiveWordIndex(null);
-                        void playAyahAtIndex(index + 1);
+                        if (repeatRemainingRef.current > 1) {
+                            repeatRemainingRef.current -= 1;
+                            void playAyahAtIndex(index, 0, true);
+                        } else {
+                            repeatRemainingRef.current = repeatCountRef.current;
+                            void playAyahAtIndex(index + 1, 0, true);
+                        }
                     }
                 }
             });
@@ -221,6 +256,14 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         const nextRate = rates[(currentIndex + 1) % rates.length];
         setPlaybackRate(nextRate);
         if (sound) await sound.setRateAsync(nextRate);
+    };
+
+    const cycleRepeatCount = () => {
+        const options = [1, 3, 5, 10];
+        const next = options[(options.indexOf(repeatCount) + 1) % options.length];
+        repeatRemainingRef.current = next;
+        repeatCountRef.current = next;
+        setRepeatCount(next);
     };
 
     const handleResponderGrantOrMove = (evt: any) => {
@@ -309,6 +352,10 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => void cyclePlaybackRate()} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Okuma hızı">
                                     <Text style={[styles.rateText, { color: theme.primary }]}>{playbackRate}×</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={cycleRepeatCount} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Ayet tekrar sayısı">
+                                    <Repeat2 size={11} color={theme.primary} />
+                                    <Text style={[styles.repeatText, { color: theme.primary }]}>{repeatCount}</Text>
                                 </TouchableOpacity>
                             </View>
                             <View
@@ -430,7 +477,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                                  <React.Fragment key={wIdx}>
                                                                      <Text onPress={() => {
                                                                          if (pageAyahIndex >= 0) {
-                                                                             void playAyahAtIndex(pageAyahIndex);
+                                                                             void playAyahAtIndex(pageAyahIndex, 0, false, wIdx + 1);
                                                                          }
                                                                      }}>
                                                                          {renderArabicWordText(word, isWordActive)}
@@ -667,10 +714,16 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'row',
     },
     rateText: {
         fontSize: 9,
         fontWeight: '800',
+    },
+    repeatText: {
+        fontSize: 8,
+        fontWeight: '800',
+        marginLeft: 2,
     },
     scrollArea: {
         flex: 1,

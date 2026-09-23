@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CheckCircle2, Heart, Sparkles, BookOpen, ShieldCheck } from 'lucide-react-native';
+import { CheckCircle2, Heart, Sparkles, ShieldCheck, Compass } from 'lucide-react-native';
 import { getAllSurahs } from '../../services/quranData';
 import { useProgress } from '../../hooks/useProgress';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,20 @@ export default function SurahsScreen() {
                 contentContainerStyle={{ paddingBottom: 24 }}
                 ListHeaderComponent={
                     <View style={styles.headerCardsContainer}>
+                        <TouchableOpacity
+                            onPress={() => router.push('/journey')}
+                            style={[styles.journeyCard, { backgroundColor: '#063B43' }]}
+                            activeOpacity={0.75}
+                        >
+                            <View style={styles.journeyIconCircle}>
+                                <Compass size={22} color="#D9B76F" />
+                            </View>
+                            <View style={styles.quickCardTextContainer}>
+                                <Text style={styles.journeyTitle}>{t('settings.journey_title')}</Text>
+                                <Text style={styles.journeyDesc}>{t('settings.journey_subtitle')}</Text>
+                            </View>
+                        </TouchableOpacity>
+
                         <TouchableOpacity
                             onPress={() => router.push('/ayetel-kursi')}
                             style={[styles.quickCard, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -161,6 +175,33 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         borderWidth: 1,
         gap: 12,
+    },
+    journeyCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        borderRadius: 18,
+        gap: 12,
+    },
+    journeyIconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(217, 183, 111, 0.14)',
+        borderWidth: 1,
+        borderColor: 'rgba(217, 183, 111, 0.28)',
+    },
+    journeyTitle: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '800',
+        marginBottom: 3,
+    },
+    journeyDesc: {
+        color: '#BBD0D2',
+        fontSize: 11,
     },
     quickIconCircle: {
         width: 40,

@@ -16,6 +16,7 @@ import { useUserStore } from '../../store/userStore';
 import { DeleteWarningModal } from '../../components/DeleteWarningModal';
 import { useAyahStats } from '../../hooks/useAyahStats';
 import { QuranPageCard } from '../../components/QuranPageCard';
+import { ReadingJourneyService } from '../../services/readingJourneyService';
 import { getPageFromSurahAyah } from '../../utils/quranHelpers';
 import { PAGE_START_MAP } from '../../utils/pageMapping';
 import { useTranslation } from 'react-i18next';
@@ -92,12 +93,13 @@ export default function MainFeedScreen() {
     }, [params.showDaily]);
 
     useEffect(() => {
-        if (readingLayout !== 'page' || isInitialProgressLoad || todayCompleted) return;
+        if (isInitialProgressLoad) return;
 
         // Sayfa düzeninde ilk sayfa mevcut ilerlemeyle aynı olduğunda setProgress
         // çağrılmıyordu. Kullanıcı sayfada gerçekten kaldığında günlük okumayı kaydet.
         const readingTimer = setTimeout(() => {
-            void recordDailyActivity();
+            if (readingLayout === 'page' && !todayCompleted) void recordDailyActivity();
+            void ReadingJourneyService.recordPage(currentPage);
         }, 3000);
 
         return () => clearTimeout(readingTimer);

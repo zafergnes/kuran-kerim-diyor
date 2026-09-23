@@ -7,6 +7,7 @@ import { useUserStore } from '../store/userStore';
 import { useTranslation } from 'react-i18next';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { getAyahAudioUrl } from '../services/quranAudioTimingService';
+import { OfflineAudioService } from '../services/offlineAudioService';
 
 interface AudioPlayerProps {
     globalAyahNumber: number;
@@ -108,7 +109,8 @@ export function AudioPlayer({
                 shouldPlayInBackground: false,
             });
 
-            const url = getAyahAudioUrl(selectedReciter, globalAyahNumber);
+            const offlineTrack = await OfflineAudioService.getTrack(selectedReciter, globalAyahNumber);
+            const url = offlineTrack?.url || getAyahAudioUrl(selectedReciter, globalAyahNumber);
 
             const { sound: newSound } = await Audio.Sound.createAsync(
                 { uri: url },

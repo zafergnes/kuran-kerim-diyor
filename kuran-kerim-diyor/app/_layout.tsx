@@ -181,6 +181,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="onboarding" options={{ headerShown: false }} />
                 <Stack.Screen name="settings" options={{ headerShown: false }} />
+                <Stack.Screen name="journey" options={{ headerShown: false }} />
                 <Stack.Screen name="names99" options={{ headerShown: false }} />
                 <Stack.Screen name="ayetel-kursi" options={{ headerShown: false }} />
                 <Stack.Screen name="dua-generator" options={{ headerShown: false }} />

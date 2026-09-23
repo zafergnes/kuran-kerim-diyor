@@ -28,6 +28,7 @@ import {
     ShieldCheck,
     LifeBuoy,
     Palette,
+    Compass,
 } from 'lucide-react-native';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
 import { useUserStore } from '../store/userStore';
@@ -328,6 +329,29 @@ export default function SettingsScreen() {
                                 </Text>
                                 <Text style={[styles.rowSub, { color: theme.muted }]}>
                                     {selectedArabicScript === 'diyanet' ? t('settings.script_diyanet_short') : t('settings.script_uthmani_short')}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* ── KUR’AN YOLCULUĞU ── */}
+                <Text style={[styles.sectionHeader, { color: theme.muted }]}>
+                    {t('settings.journey_section')}
+                </Text>
+                <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => router.push('/journey')}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(182, 154, 115, 0.14)' }]}>
+                                <Compass size={20} color={theme.primary} />
+                            </View>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.journey_title')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {t('settings.journey_subtitle')}
                                 </Text>
                             </View>
                         </View>
