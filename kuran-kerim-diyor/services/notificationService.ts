@@ -6,6 +6,36 @@ import { useUserStore } from '../store/userStore';
 
 export class NotificationService {
   /**
+   * İlk mağaza açılışında sistem izin penceresini gösterir. Kullanıcı daha önce
+   * karar verdiyse yeniden istemez; verilmiş izinde yalnızca kaydı tazeler.
+   */
+  static async requestOnLaunchIfNeeded() {
+    const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (isExpoGo || Platform.OS === 'web') return null;
+
+    try {
+      const Notifications = require('expo-notifications');
+      const { status } = await Notifications.getPermissionsAsync();
+
+      if (status === 'granted') {
+        return await this.registerForPushNotifications();
+      }
+
+      if (status === 'undetermined') {
+        const { status: requestedStatus } = await Notifications.requestPermissionsAsync();
+        if (requestedStatus === 'granted') {
+          return await this.registerForPushNotifications();
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[NotificationService] Launch permission request failed:', error);
+      return null;
+    }
+  }
+
+  /**
    * Mevcut izin zaten verilmişse token/dil bilgisini yeniler.
    * Ayarlar veya dil değişikliği gibi dolaylı eylemlerde izin penceresi açmaz.
    */

@@ -56,6 +56,12 @@ export default function RootLayout() {
                 console.error('[RootLayout] App initialization failed:', initializationError);
             } finally {
                 await SplashScreen.hideAsync();
+
+                // İlk gerçek cihaz açılışında bildirim iznini doğrudan iste.
+                // Expo Go ve web, servis içinde güvenli biçimde atlanır.
+                import('../services/notificationService').then(({ NotificationService }) => {
+                    void NotificationService.requestOnLaunchIfNeeded();
+                });
             }
         };
 
