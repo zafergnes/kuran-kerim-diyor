@@ -75,6 +75,18 @@
       [
         "@bittingz/expo-widgets",
         {
+          "ios": {
+            "src": "./widgets/ios",
+            "devTeamId": "CD5FK55DWW",
+            "deploymentTarget": "16.2",
+            "mode": "production",
+            "useLiveActivities": false,
+            "frequentUpdates": false,
+            "xcode": {
+              "widgetBundleIdentifier": "com.kurankerimdiyor.widget",
+              "appExtAPI": true
+            }
+          },
           "android": {
             "src": "./widgets",
             "widgets": [

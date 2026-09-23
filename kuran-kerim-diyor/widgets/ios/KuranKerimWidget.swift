@@ -212,6 +212,30 @@ struct KuranKerimWidgetEntryView : View {
 
     var body: some View {
         switch family {
+        case .accessoryInline:
+            Text("🔥 \(entry.streak) · \(entry.reference)")
+                .widgetURL(URL(string: "kuran-kerim-diyor://ayet?id=\(entry.surah):\(entry.ayah)"))
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                VStack(spacing: 0) {
+                    Image(systemName: "flame.fill")
+                    Text("\(entry.streak)").font(.headline).fontWeight(.bold)
+                }
+            }
+            .widgetURL(URL(string: "kuran-kerim-diyor://ayet?id=\(entry.surah):\(entry.ayah)"))
+        case .accessoryRectangular:
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(entry.reference).font(.caption).fontWeight(.bold)
+                    Spacer()
+                    Text("🔥 \(entry.streak)").font(.caption2).fontWeight(.bold)
+                }
+                Text(entry.text)
+                    .font(.caption2)
+                    .lineLimit(2)
+            }
+            .widgetURL(URL(string: "kuran-kerim-diyor://ayet?id=\(entry.surah):\(entry.ayah)"))
         case .systemMedium:
             mediumView
         default:
@@ -311,11 +335,22 @@ struct KuranKerimWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             KuranKerimWidgetEntryView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .compatibleWidgetBackground()
         }
         .configurationDisplayName("Kuran Kerim Diyor")
         .description("Günün ayetini ve okuma serinizi ana ekranınızda görün.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func compatibleWidgetBackground() -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(.background, for: .widget)
+        } else {
+            self.background(Color(hex: "F7F3EA"))
+        }
     }
 }
 

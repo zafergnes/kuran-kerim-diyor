@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <TextView
+        android:id="@+id/preview_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GÜNÜN AYETİ"
+        android:textColor="#B69A73"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="🔥 7 Gün"
+        android:textColor="#9E7D47"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:background="@drawable/streak_badge_bg"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/preview_title"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="20dp"
+        android:text="“Şüphesiz her zorlukla beraber bir kolaylık vardır.”"
+        android:textColor="#262626"
+        android:textSize="16sp"
+        android:fontFamily="serif"
+        android:maxLines="4" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="İnşirah 94:5"
+        android:textColor="#B69A73"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+</RelativeLayout>
