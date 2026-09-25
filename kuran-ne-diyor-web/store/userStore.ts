@@ -14,6 +14,8 @@ const LANGUAGE_KEY = "@app_language";
 const ARABIC_SHOW_KEY = "@arabic_show_translation";
 const ARABIC_LANG_KEY = "@arabic_translation_lang";
 const RECITER_KEY = "@app_selected_reciter";
+const THEME_KEY = "@app_theme_preference";
+const FONT_SCALE_KEY = "@app_content_font_scale";
 
 type LocalCollection = {
   id: string;
@@ -44,6 +46,8 @@ type UserState = {
   readingLayout: "single" | "page";
   arabicFontFamily: "noto-naskh" | "amiri";
   selectedArabicScript: "uthmani" | "diyanet";
+  themePreference: "sepia" | "light" | "dark" | "system";
+  contentFontScale: number;
   isInitialProgressLoad: boolean;
   seenAchievements: string[];
   hatimCount: number;
@@ -70,6 +74,8 @@ type UserState = {
   setReadingLayout: (layout: "single" | "page") => void;
   setArabicFontFamily: (font: "noto-naskh" | "amiri") => void;
   setSelectedArabicScript: (script: "uthmani" | "diyanet") => void;
+  setThemePreference: (theme: "sepia" | "light" | "dark" | "system") => void;
+  setContentFontScale: (scale: number) => void;
   loadRemoteData: () => Promise<void>;
   toggleFavorite: (ayahId: string, surahNumber: number, ayahNumber: number) => Promise<void>;
   createCollection: (name: string, initialAyah?: { ayahId: string; surahNumber: number; ayahNumber: number }) => Promise<void>;
@@ -188,6 +194,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   readingLayout: "page",
   arabicFontFamily: "noto-naskh",
   selectedArabicScript: "diyanet",
+  themePreference: "sepia",
+  contentFontScale: 1.0,
   isInitialProgressLoad: true,
   seenAchievements: [],
   hatimCount: 0,
@@ -270,12 +278,25 @@ export const useUserStore = create<UserState>((set, get) => ({
       arabicFontFamily: (window.localStorage.getItem("@app_arabic_font") as "noto-naskh" | "amiri" | null) ?? "noto-naskh",
       selectedArabicScript: (window.localStorage.getItem("@app_arabic_script") as "uthmani" | "diyanet" | null) ?? 
         (((window.localStorage.getItem(LANGUAGE_KEY) as AppLanguage | null) ?? "tr") === "tr" ? "diyanet" : "uthmani"),
+      themePreference: (window.localStorage.getItem(THEME_KEY) as "sepia" | "light" | "dark" | "system" | null) ?? "sepia",
+      contentFontScale: parseFloat(window.localStorage.getItem(FONT_SCALE_KEY) || "1.0"),
       streakCount: parseInt(window.localStorage.getItem("@app_streak_count") || "0", 10),
       lastActiveDate: window.localStorage.getItem("@app_last_active_date"),
       longestStreak: parseInt(window.localStorage.getItem("@app_longest_streak") || "0", 10),
       todayCompleted: window.localStorage.getItem("@app_last_active_date") === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
       isInitialProgressLoad: true,
     });
+
+    const currentTheme = (window.localStorage.getItem(THEME_KEY) as "sepia" | "light" | "dark" | "system" | null) ?? "sepia";
+    const currentScale = parseFloat(window.localStorage.getItem(FONT_SCALE_KEY) || "1.0");
+    if (typeof document !== "undefined") {
+      if (currentTheme === "system") {
+        document.documentElement.removeAttribute("data-theme");
+      } else {
+        document.documentElement.setAttribute("data-theme", currentTheme);
+      }
+      document.documentElement.style.setProperty("--content-font-scale", String(currentScale));
+    }
 
     if (window.localStorage.getItem("userToken")) {
       await get().refreshMe();
@@ -619,5 +640,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   setSelectedArabicScript: (script) => {
     set({ selectedArabicScript: script });
     if (canUseStorage()) window.localStorage.setItem("@app_arabic_script", script);
+  },
+
+  setThemePreference: (theme) => {
+    set({ themePreference: theme });
+    if (canUseStorage()) {
+      window.localStorage.setItem(THEME_KEY, theme);
+      if (theme === "system") {
+        document.documentElement.removeAttribute("data-theme");
+      } else {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    }
+  },
+
+  setContentFontScale: (scale) => {
+    const clamped = Math.min(Math.max(scale, 0.8), 1.6);
+    set({ contentFontScale: clamped });
+    if (canUseStorage()) {
+      window.localStorage.setItem(FONT_SCALE_KEY, String(clamped));
+      document.documentElement.style.setProperty("--content-font-scale", String(clamped));
+    }
   },
 }));

@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import type { AppLanguage } from "@/types/quran";
-import { Loader2, Play, Headphones, Check, Bell } from "lucide-react";
+import { Loader2, Play, Headphones, Check, Bell, Sun, Moon, Palette, Laptop, Type, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { WebNotificationService } from "@/services/webNotificationService";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
@@ -30,6 +30,10 @@ export function SettingsClient() {
   useAppInit();
   const language = useUserStore((state) => state.language);
   const setLanguage = useUserStore((state) => state.setLanguage);
+  const themePreference = useUserStore((state) => state.themePreference);
+  const setThemePreference = useUserStore((state) => state.setThemePreference);
+  const contentFontScale = useUserStore((state) => state.contentFontScale);
+  const setContentFontScale = useUserStore((state) => state.setContentFontScale);
   const showArabicTranslation = useUserStore((state) => state.showArabicTranslation);
   const setShowArabicTranslation = useUserStore((state) => state.setShowArabicTranslation);
   const arabicTranslationLang = useUserStore((state) => state.arabicTranslationLang);
@@ -161,6 +165,179 @@ export function SettingsClient() {
               {item.label}
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Tema ve Görünüm */}
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <Palette className="text-primary" size={24} />
+          <h2 className="text-2xl font-bold text-text">{t("settings.theme_title", "Görünüm ve Tema")}</h2>
+        </div>
+        <p className="text-xs font-semibold text-muted mb-4">
+          {t("settings.theme_desc", "Gözünüzü yormayan sıcak sepya parşömen, aydınlık veya gece temalarından dilediğinizi seçin.")}
+        </p>
+
+        <div className="grid gap-3 sm:grid-cols-4">
+          {/* Sepya (Varsayılan & Önerilen) */}
+          <button
+            type="button"
+            onClick={() => setThemePreference("sepia")}
+            className={`flex flex-col items-start p-4 rounded-xl border text-left transition relative ${
+              themePreference === "sepia"
+                ? "border-amber-600 bg-amber-500/10 shadow-sm ring-1 ring-amber-600"
+                : "border-border hover:bg-background"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full mb-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FAF4E8] border border-[#E3D7C1] text-[#A0703B]">
+                <Palette size={16} />
+              </span>
+              {themePreference === "sepia" && <Check size={16} className="text-amber-600" />}
+            </div>
+            <div className="font-bold text-text text-sm">{t("theme.sepia", "Sepya (Önerilen)")}</div>
+            <div className="text-[11px] text-muted mt-1">{t("theme.sepia_desc", "Sıcak parşömen kağıdı tonu, göz dostu")}</div>
+            <div className="mt-3 flex gap-1.5 w-full">
+              <div className="h-4 w-4 rounded-full bg-[#F4EBD9] border border-[#E3D7C1]" title="Arka Plan" />
+              <div className="h-4 w-4 rounded-full bg-[#FAF4E8] border border-[#E3D7C1]" title="Kart" />
+              <div className="h-4 w-4 rounded-full bg-[#A0703B]" title="Vurgu" />
+            </div>
+          </button>
+
+          {/* Açık */}
+          <button
+            type="button"
+            onClick={() => setThemePreference("light")}
+            className={`flex flex-col items-start p-4 rounded-xl border text-left transition relative ${
+              themePreference === "light"
+                ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary"
+                : "border-border hover:bg-background"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full mb-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-gray-200 text-emerald-700">
+                <Sun size={16} />
+              </span>
+              {themePreference === "light" && <Check size={16} className="text-primary" />}
+            </div>
+            <div className="font-bold text-text text-sm">{t("theme.light", "Açık")}</div>
+            <div className="text-[11px] text-muted mt-1">{t("theme.light_desc", "Aydınlık ve ferah klasik görünüm")}</div>
+            <div className="mt-3 flex gap-1.5 w-full">
+              <div className="h-4 w-4 rounded-full bg-[#F8F9FA] border border-gray-300" />
+              <div className="h-4 w-4 rounded-full bg-white border border-gray-300" />
+              <div className="h-4 w-4 rounded-full bg-[#1B4332]" />
+            </div>
+          </button>
+
+          {/* Koyu */}
+          <button
+            type="button"
+            onClick={() => setThemePreference("dark")}
+            className={`flex flex-col items-start p-4 rounded-xl border text-left transition relative ${
+              themePreference === "dark"
+                ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary"
+                : "border-border hover:bg-background"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full mb-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900 border border-gray-700 text-emerald-400">
+                <Moon size={16} />
+              </span>
+              {themePreference === "dark" && <Check size={16} className="text-primary" />}
+            </div>
+            <div className="font-bold text-text text-sm">{t("theme.dark", "Koyu (Gece)")}</div>
+            <div className="text-[11px] text-muted mt-1">{t("theme.dark_desc", "Düşük ışıkta dinlendirici karanlık tema")}</div>
+            <div className="mt-3 flex gap-1.5 w-full">
+              <div className="h-4 w-4 rounded-full bg-[#121417] border border-gray-700" />
+              <div className="h-4 w-4 rounded-full bg-[#1A1D21] border border-gray-700" />
+              <div className="h-4 w-4 rounded-full bg-[#2D6A4F]" />
+            </div>
+          </button>
+
+          {/* Sistem */}
+          <button
+            type="button"
+            onClick={() => setThemePreference("system")}
+            className={`flex flex-col items-start p-4 rounded-xl border text-left transition relative ${
+              themePreference === "system"
+                ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary"
+                : "border-border hover:bg-background"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full mb-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-card border border-border text-text">
+                <Laptop size={16} />
+              </span>
+              {themePreference === "system" && <Check size={16} className="text-primary" />}
+            </div>
+            <div className="font-bold text-text text-sm">{t("theme.system", "Sistem")}</div>
+            <div className="text-[11px] text-muted mt-1">{t("theme.system_desc", "Cihazınızın sistem temasına göre otomatik uyum sağlar")}</div>
+            <div className="mt-3 flex gap-1.5 w-full">
+              <div className="h-4 w-4 rounded-full bg-primary/20 border border-border" />
+              <div className="h-4 w-4 rounded-full bg-card border border-border" />
+            </div>
+          </button>
+        </div>
+      </section>
+
+      {/* Yazı Boyutu ve Okuma Ölçeği */}
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <Type className="text-primary" size={24} />
+          <h2 className="text-2xl font-bold text-text">{t("settings.font_size_title", "Metin Boyutu ve Ölçeklendirme")}</h2>
+        </div>
+        <p className="text-xs font-semibold text-muted mb-4">
+          {t("settings.font_size_desc", "Arapça ayet metinlerini ve mealleri okuma konforunuza göre büyütün veya küçültün.")}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <button
+            type="button"
+            onClick={() => setContentFontScale(Math.max(0.85, Number((contentFontScale - 0.15).toFixed(2))))}
+            disabled={contentFontScale <= 0.85}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-background text-sm font-bold text-text hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition"
+          >
+            <ZoomOut size={16} />
+            <span>{t("common.smaller", "Küçült")}</span>
+          </button>
+
+          <span className="px-4 py-2 rounded-xl bg-primary/10 text-primary font-bold text-base min-w-[70px] text-center">
+            %{Math.round(contentFontScale * 100)}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setContentFontScale(Math.min(1.5, Number((contentFontScale + 0.15).toFixed(2))))}
+            disabled={contentFontScale >= 1.5}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-background text-sm font-bold text-text hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition"
+          >
+            <ZoomIn size={16} />
+            <span>{t("common.larger", "Büyüt")}</span>
+          </button>
+
+          {contentFontScale !== 1.0 && (
+            <button
+              type="button"
+              onClick={() => setContentFontScale(1.0)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-muted hover:text-text transition ml-auto"
+            >
+              <RotateCcw size={14} />
+              <span>{t("common.reset", "Varsayılan")}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Canlı Önizleme Kutusu */}
+        <div className="rounded-xl border border-border bg-background p-5 text-center">
+          <p className="text-[11px] font-semibold text-muted mb-3 uppercase tracking-wider">
+            {t("settings.live_preview", "Canlı Önizleme")}
+          </p>
+          <p className="arabic-font-noto reader-arabic text-text leading-[2.2] mb-3" dir="rtl">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          </p>
+          <p className="reader-translation text-secondary font-medium leading-relaxed">
+            Rahmân ve Rahîm olan Allah&apos;ın adıyla.
+          </p>
         </div>
       </section>
 

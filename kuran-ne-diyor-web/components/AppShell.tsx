@@ -8,6 +8,8 @@ import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
 import { InstallPrompt } from "./InstallPrompt";
 import { CelebrationModal } from "./CelebrationModal";
+import { ThemeSwitcher } from "./ThemeSwitcher";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -54,22 +56,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
           <div className="flex items-center gap-2 lg:hidden">
+            <ThemeSwitcher compact />
+            <LanguageSwitcher compact />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="grid h-10 w-10 place-items-center rounded-md border border-border bg-background text-primary transition hover:bg-card"
+              className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-primary shadow-xs transition hover:bg-background"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden items-center gap-1.5 lg:flex">
             {navItems.slice(0, 5).map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-secondary transition hover:bg-background hover:text-text"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-secondary transition hover:bg-background hover:text-text"
                 >
                   <Icon size={18} />
                   {item.label}
@@ -87,9 +91,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Flame size={16} className={todayCompleted ? "fill-orange-500 text-orange-500" : "text-primary"} />
               <span>{t("streak.badge_short", { count: streakCount, defaultValue: `${streakCount}g` })}</span>
             </div>
+
+            <div className="h-5 w-px bg-border mx-1" />
+
+            <ThemeSwitcher />
+            <LanguageSwitcher />
+
             <Link
               href={user ? "/profile" : "/login"}
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-white transition hover:opacity-90"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-xs transition hover:opacity-90"
             >
               {user ? <User size={18} /> : <LogIn size={18} />}
               {user ? user.name || t("tabs.profile", "Profil") : t("profile.login", "Giriş")}
@@ -104,23 +114,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-[100] lg:hidden">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/40" 
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs" 
             onClick={() => setIsMobileMenuOpen(false)} 
           />
           
           {/* Sidebar */}
-          <div className="absolute top-0 bottom-0 right-0 w-1/2 bg-card p-4 shadow-2xl flex flex-col border-l border-border overflow-y-auto">
-            <div className="mb-6 flex justify-end">
+          <div className="absolute top-0 bottom-0 right-0 w-4/5 max-w-sm bg-card p-5 shadow-2xl flex flex-col border-l border-border overflow-y-auto">
+            <div className="mb-5 flex items-center justify-between border-b border-border pb-3">
+              <span className="text-sm font-bold text-primary">{t("profile.settings", "Menü")}</span>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-primary transition hover:bg-muted"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-primary transition hover:bg-card"
                 aria-label="Menüyü Kapat"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
+
+            <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-border bg-background p-2.5">
+              <span className="text-xs font-bold text-muted">{t("settings.app_theme", "Tema")}</span>
+              <ThemeSwitcher />
+            </div>
+
+            <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-border bg-background p-2.5">
+              <span className="text-xs font-bold text-muted">Dil / Language</span>
+              <LanguageSwitcher />
+            </div>
             
-            <nav className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-1.5">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -128,9 +149,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex h-12 items-center gap-3 rounded-md px-3 text-sm font-bold text-text transition hover:bg-background"
+                    className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-text transition hover:bg-background"
                   >
-                    <Icon size={20} className="text-primary shrink-0" />
+                    <Icon size={19} className="text-primary shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );
@@ -139,9 +160,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="mt-4 flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-white transition hover:opacity-90"
+                  className="mt-4 flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-bold text-white shadow-xs transition hover:opacity-90"
                 >
-                  <LogIn size={20} className="shrink-0" />
+                  <LogIn size={18} className="shrink-0" />
                   <span className="truncate">{t("profile.login", "Giriş yap")}</span>
                 </Link>
               )}

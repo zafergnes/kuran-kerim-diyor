@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookmarkPlus, Copy, Heart, MessageSquare, MessageCircle, Share2, X } from "lucide-react";
+import { BookmarkPlus, Copy, Heart, MessageSquare, Share2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Ayah } from "@/types/quran";
 import { useAyahStats } from "@/hooks/useAyahStats";
@@ -157,7 +157,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
       )}
 
       <p
-        className={`${arabicFontClass} text-center text-3xl leading-[2.3] text-text sm:text-[34px] break-words`}
+        className={`${arabicFontClass} reader-arabic text-center text-text break-words`}
         style={{ wordSpacing: "0.15em" }}
         dir="rtl"
       >
@@ -165,7 +165,7 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
       </p>
       {shouldShowTranslation && (
         <div className="flex flex-col items-center">
-          <p className="mx-auto mt-7 max-w-3xl text-center text-base leading-8 text-secondary sm:text-lg">{translation}</p>
+          <p className="reader-translation mx-auto mt-6 max-w-3xl text-center text-secondary">{translation}</p>
           {isSajdah && (
             <p className="mt-3 text-xs italic font-semibold text-[#D32F2F] text-center">
               ⚠️ {t("common.sajdah_warning", "Bu ayet okunduğunda veya dinlendiğinde Tilavet Secdesi yapılması gerekir.")}
@@ -187,47 +187,48 @@ export function AyahCard({ ayah, surahName, surahNumber, highlighted }: AyahCard
           <AudioPlayer globalAyahNumber={ayah.globalNumber} />
           <button
             onClick={() => setShowVerseChat(true)}
-            className="grid h-8 w-8 place-items-center rounded-full border border-primary/30 bg-primary/5 text-primary transition hover:bg-primary/10"
-            title={t("verse_chat.title")}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/35 bg-primary/10 px-3 text-xs font-bold text-primary shadow-xs transition hover:bg-primary/20 hover:scale-[1.02]"
+            title={t("verse_chat.title", "Kur'an Ne Diyor? — Ayet Tefekkürü")}
           >
-            <MessageCircle size={14} />
+            <Sparkles size={14} className="text-primary animate-pulse" />
+            <span>{t("verse_chat.short_cta", "Kur'an Ne Diyor?")}</span>
           </button>
           <button
             onClick={handleCopy}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-primary shadow-xs transition hover:bg-background"
             title={t("common.copy", "Kopyala")}
           >
-            <Copy size={18} />
+            <Copy size={16} />
           </button>
           <button
             onClick={handleShare}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-primary shadow-xs transition hover:bg-background"
             title={t("common.share", "Paylaş")}
           >
-            <Share2 size={18} />
+            <Share2 size={16} />
           </button>
           <button
             onClick={handleFavorite}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-primary shadow-xs transition hover:bg-background"
             title={t("favorites.title", "Favori")}
           >
-            <Heart size={18} fill={isFavorited ? "currentColor" : "none"} />
+            <Heart size={16} fill={isFavorited ? "currentColor" : "none"} />
           </button>
           <button
             onClick={() => setShowCollections(true)}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-primary shadow-xs transition hover:bg-background"
             title={t("favorites.add_to_collections", "Koleksiyona ekle")}
           >
-            <BookmarkPlus size={18} />
+            <BookmarkPlus size={16} />
           </button>
           <button
             onClick={() => setShowComments(true)}
-            className="relative grid h-10 w-10 place-items-center rounded-md border border-border text-primary transition hover:bg-background"
+            className="relative grid h-9 w-9 place-items-center rounded-lg border border-border text-primary shadow-xs transition hover:bg-background"
             title={t("comments.title", "Yorumlar")}
           >
-            <MessageSquare size={18} />
+            <MessageSquare size={16} />
             {stats && stats.commentCount > 0 && (
-              <span className="absolute -right-2 -top-2 grid min-h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 grid min-h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-white">
                 {stats.commentCount}
               </span>
             )}

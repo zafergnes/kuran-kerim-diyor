@@ -372,5 +372,19 @@
       "Sat",
       "Sun"
     ]
+  },
+  "theme": {
+    "sepia": "Sepia",
+    "sepia_desc": "Warm parchment paper tone, easy on the eyes",
+    "light": "Light",
+    "light_desc": "Clean and bright classic appearance",
+    "dark": "Dark",
+    "dark_desc": "Comfortable low-light dark theme",
+    "system": "System",
+    "system_desc": "Automatically adapts to device theme"
+  },
+  "reader": {
+    "prev_page": "Previous Page",
+    "next_page": "Next Page"
   }
 }

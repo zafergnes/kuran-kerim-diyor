@@ -119,6 +119,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} ${notoNaskh.variable} h-full antialiased bg-background text-text`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('@app_theme_preference')||'sepia';if(t==='system'){if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}}else{document.documentElement.setAttribute('data-theme',t)}var s=localStorage.getItem('@app_content_font_scale');if(s){document.documentElement.style.setProperty('--content-font-scale',s)}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <script
           type="application/ld+json"

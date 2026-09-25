@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, List, Loader2, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, List, Loader2, Pause, Play, BookOpen, Layers, Type, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AyahCard } from "@/components/AyahCard";
 import { useAppInit } from "@/hooks/useAppInit";
@@ -33,8 +33,12 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
   
   const setProgress = useUserStore((state) => state.setProgress);
   const arabicFontFamily = useUserStore((state) => state.arabicFontFamily);
+  const setArabicFontFamily = useUserStore((state) => state.setArabicFontFamily);
   const readingLayout = useUserStore((state) => state.readingLayout);
+  const setReadingLayout = useUserStore((state) => state.setReadingLayout);
   const selectedReciter = useUserStore((state) => state.selectedReciter);
+  const contentFontScale = useUserStore((state) => state.contentFontScale);
+  const setContentFontScale = useUserStore((state) => state.setContentFontScale);
   
   const arabicFontClass = arabicFontFamily === "amiri" ? "arabic-font-amiri" : "arabic-font-noto";
 
@@ -237,6 +241,20 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
     return () => scroller.removeEventListener("scroll", onScroll);
   }, [listMode, setProgress, surah, readingLayout, surahPages, totalLength]);
 
+  // Keyboard navigation (ArrowLeft / ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft") {
+        if (activeIndex > 0) scrollToIndex(activeIndex - 1);
+      } else if (e.key === "ArrowRight") {
+        if (activeIndex < totalLength - 1) scrollToIndex(activeIndex + 1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, totalLength]);
+
   const scrollToIndex = (index: number, smooth = true) => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -277,32 +295,112 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
           </p>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {surah.number > 1 && (
-            <Link
-              href={`/surah/${surah.number - 1}`}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
+        {/* Reader Control Toolbar */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {surah.number > 1 && (
+              <Link
+                href={`/surah/${surah.number - 1}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-bold text-secondary shadow-xs transition hover:bg-card hover:text-text"
+              >
+                <ChevronLeft size={16} />
+                <span>{t("common.previous", "Önceki")}</span>
+              </Link>
+            )}
+            {surah.number < 114 && (
+              <Link
+                href={`/surah/${surah.number + 1}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-bold text-secondary shadow-xs transition hover:bg-card hover:text-text"
+              >
+                <span>{t("common.next", "Sonraki")}</span>
+                <ChevronRight size={16} />
+              </Link>
+            )}
+          </div>
+
+          {/* Reading Mode Selector & Font Settings */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Layout Toggle */}
+            <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+              <button
+                onClick={() => {
+                  setReadingLayout("page");
+                  setListMode(false);
+                }}
+                className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-bold transition ${
+                  readingLayout === "page" && !listMode
+                    ? "bg-card text-primary shadow-xs"
+                    : "text-muted hover:text-text"
+                }`}
+                title="Sayfa Sayfa (Mushaf Görünümü)"
+              >
+                <BookOpen size={14} />
+                <span className="hidden sm:inline">{t("surah.page_view", "Sayfa")}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setReadingLayout("single");
+                  setListMode(false);
+                }}
+                className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-bold transition ${
+                  readingLayout === "single" && !listMode
+                    ? "bg-card text-primary shadow-xs"
+                    : "text-muted hover:text-text"
+                }`}
+                title="Ayet Ayet (Tekli Görünüm)"
+              >
+                <Layers size={14} />
+                <span className="hidden sm:inline">{t("surah.single_view", "Ayet")}</span>
+              </button>
+              <button
+                onClick={() => setListMode(!listMode)}
+                className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-bold transition ${
+                  listMode ? "bg-card text-primary shadow-xs" : "text-muted hover:text-text"
+                }`}
+                title="Liste Görünümü"
+              >
+                <List size={14} />
+                <span className="hidden sm:inline">{t("surah.list_view", "Liste")}</span>
+              </button>
+            </div>
+
+            {/* Arabic Font Selector */}
+            <button
+              onClick={() => setArabicFontFamily(arabicFontFamily === "amiri" ? "noto-naskh" : "amiri")}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs font-bold text-secondary shadow-xs transition hover:bg-card hover:text-text"
+              title="Arapça Hat Değiştir (Amiri / Noto Naskh)"
             >
-              <ChevronLeft size={18} />
-              {t("common.previous", "Önceki")}
-            </Link>
-          )}
-          <button
-            onClick={() => setListMode((value) => !value)}
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
-          >
-            <List size={18} />
-            {listMode ? t("surah.swipe_view", "Kaydırmalı oku") : t("surah.list_view", "Liste görünümü")}
-          </button>
-          {surah.number < 114 && (
-            <Link
-              href={`/surah/${surah.number + 1}`}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold text-secondary hover:bg-background"
-            >
-              {t("common.next", "Sonraki")}
-              <ChevronRight size={18} />
-            </Link>
-          )}
+              <Type size={14} className="text-primary" />
+              <span className="capitalize">{arabicFontFamily === "amiri" ? "Amiri" : "Naskh"}</span>
+            </button>
+
+            {/* Font Scale Stepper */}
+            <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+              <button
+                onClick={() => setContentFontScale(contentFontScale - 0.1)}
+                disabled={contentFontScale <= 0.85}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition hover:bg-card hover:text-text disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                title="Yazı Boyutunu Küçült"
+              >
+                <ZoomOut size={14} />
+              </button>
+              <button
+                onClick={() => setContentFontScale(1.0)}
+                className="px-2 text-xs font-extrabold text-primary"
+                title="Yazı Boyutunu Sıfırla (%100)"
+              >
+                %{Math.round(contentFontScale * 100)}
+              </button>
+              <button
+                onClick={() => setContentFontScale(contentFontScale + 0.1)}
+                disabled={contentFontScale >= 1.5}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition hover:bg-card hover:text-text disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                title="Yazı Boyutunu Büyüt"
+              >
+                <ZoomIn size={14} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -357,6 +455,25 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                     </div>
                     <span className="text-xs font-semibold text-muted">{surah.name[lang] || surah.name.tr}</span>
                   </div>
+
+                  {pageAyahs.length > 1 && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      <span className="text-[11px] font-semibold text-muted shrink-0 mr-1">{t("common.ayah", "Ayet")}:</span>
+                      {pageAyahs.map((a) => (
+                        <button
+                          key={a.number}
+                          onClick={() => {
+                            const el = document.getElementById(`ayah-${a.number}`);
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary hover:text-white transition shrink-0"
+                        >
+                          {a.number}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="grid gap-5">
                     {pageAyahs.map((ayah, idx) => (
                       <AyahCard
@@ -446,6 +563,25 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                           </div>
                           <span className="text-xs font-semibold text-muted">{surah.name[lang] || surah.name.tr}</span>
                         </div>
+
+                        {pageAyahs.length > 1 && (
+                          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <span className="text-[11px] font-semibold text-muted shrink-0 mr-1">{t("common.ayah", "Ayet")}:</span>
+                            {pageAyahs.map((a) => (
+                              <button
+                                key={a.number}
+                                onClick={() => {
+                                  const el = document.getElementById(`ayah-${a.number}`);
+                                  if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary hover:text-white transition shrink-0"
+                              >
+                                {a.number}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="grid gap-5">
                           {pageAyahs.map((ayah, idx) => (
                             <AyahCard
@@ -456,6 +592,30 @@ export function SurahReaderClient({ surah }: SurahReaderClientProps) {
                               highlighted={playingPageNum === pageNum && playingAyahIndex === idx}
                             />
                           ))}
+                        </div>
+
+                        <div className="mt-8 pt-4 border-t border-border flex items-center justify-between">
+                          <button
+                            onClick={() => scrollToIndex(activeIndex - 1)}
+                            disabled={activeIndex === 0}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background text-sm font-medium text-text hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition"
+                          >
+                            <ChevronLeft size={16} />
+                            <span className="hidden sm:inline">{t("reader.prev_page", "Önceki Sayfa")}</span>
+                            <span className="sm:hidden">{t("common.prev", "Önceki")}</span>
+                          </button>
+                          <span className="text-xs font-semibold text-muted">
+                            {t("common.page", "Sayfa")} {pageNum} ({activeIndex + 1} / {totalLength})
+                          </span>
+                          <button
+                            onClick={() => scrollToIndex(activeIndex + 1)}
+                            disabled={activeIndex >= totalLength - 1}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background text-sm font-medium text-text hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition"
+                          >
+                            <span className="hidden sm:inline">{t("reader.next_page", "Sonraki Sayfa")}</span>
+                            <span className="sm:hidden">{t("common.next", "Sonraki")}</span>
+                            <ChevronRight size={16} />
+                          </button>
                         </div>
                       </div>
                     </div>

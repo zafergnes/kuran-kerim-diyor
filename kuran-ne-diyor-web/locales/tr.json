@@ -372,5 +372,19 @@
       "Cmt",
       "Paz"
     ]
+  },
+  "theme": {
+    "sepia": "Sepya",
+    "sepia_desc": "Sıcak parşömen kağıdı tonu, göz dostu",
+    "light": "Açık",
+    "light_desc": "Aydınlık ve ferah klasik görünüm",
+    "dark": "Koyu",
+    "dark_desc": "Düşük ışıkta dinlendirici karanlık tema",
+    "system": "Sistem",
+    "system_desc": "Cihazınızın sistem temasına göre otomatik uyum sağlar"
+  },
+  "reader": {
+    "prev_page": "Önceki Sayfa",
+    "next_page": "Sonraki Sayfa"
   }
 }
