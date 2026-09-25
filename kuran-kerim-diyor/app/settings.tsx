@@ -25,7 +25,6 @@ import {
     Pause,
     Type,
     FileText,
-    ShieldCheck,
     LifeBuoy,
     Palette,
     Compass,
@@ -35,8 +34,8 @@ import { useUserStore } from '../store/userStore';
 import { LANGUAGES, AppLanguage } from '../constants/languages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationService } from '../services/notificationService';
-import { AnalyticsService } from '../services/analyticsService';
 import { useAppTheme, ThemePreference } from '../hooks/useAppTheme';
+import { FontSizeModal } from '../components/FontSizeModal';
 
 // Arapca kullanicilar icin meal dilinden hariclenenler
 const TRANSLATION_LANGS = (Object.keys(LANGUAGES) as AppLanguage[]).filter(l => l !== 'ar');
@@ -64,11 +63,13 @@ export default function SettingsScreen() {
         setArabicFontFamily,
         selectedArabicScript,
         setSelectedArabicScript,
+        fontSizeScale,
     } = useUserStore();
 
     const isArabicUser = language === 'ar';
     const [showAppLanguagePicker, setShowAppLanguagePicker] = useState(false);
     const [showThemePicker, setShowThemePicker] = useState(false);
+    const [showFontSizeModal, setShowFontSizeModal] = useState(false);
     const [showLangPicker, setShowLangPicker] = useState(false);
     const [showReciterPicker, setShowReciterPicker] = useState(false);
     const [showLayoutPicker, setShowLayoutPicker] = useState(false);
@@ -78,11 +79,6 @@ export default function SettingsScreen() {
     const [previewSound, setPreviewSound] = useState<AudioSound | null>(null);
     const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-    const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-
-    useEffect(() => {
-        AnalyticsService.isEnabled().then(setAnalyticsEnabled);
-    }, []);
 
     useEffect(() => {
         return () => {
@@ -410,7 +406,7 @@ export default function SettingsScreen() {
                     {t('settings.appearance_section')}
                 </Text>
                 <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                    <TouchableOpacity style={styles.row} onPress={() => setShowThemePicker(true)}>
+                    <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => setShowThemePicker(true)}>
                         <View style={styles.rowLeft}>
                             <View style={[styles.iconWrap, { backgroundColor: 'rgba(175, 82, 222, 0.12)' }]}>
                                 <Palette size={20} color="#AF52DE" />
@@ -426,22 +422,32 @@ export default function SettingsScreen() {
                         </View>
                         <ChevronRight size={18} color={theme.muted} />
                     </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.row} onPress={() => setShowFontSizeModal(true)}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}>
+                                <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '700', color: theme.primary }}>a</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: '800', color: theme.primary, marginLeft: 1 }}>A</Text>
+                                </View>
+                            </View>
+                            <View>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('settings.font_size', 'Yazı Boyutu')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    %{Math.round((fontSizeScale || 1.0) * 100)} • {t('settings.font_size_sub', 'Arapça ve meal metin boyutunu ayarla')}
+                                </Text>
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={[styles.sectionHeader, { color: theme.muted }]}>
                     {t('settings.privacy_section', 'Gizlilik ve Destek')}
                 </Text>
                 <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                    <View style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
-                        <View style={styles.rowLeft}>
-                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(52, 199, 89, 0.12)' }]}><ShieldCheck size={20} color="#34C759" /></View>
-                            <View style={{ flex: 1, marginRight: 8 }}>
-                                <Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.analytics_title', 'Anonim kullanım analitiği')}</Text>
-                                <Text style={[styles.rowSub, { color: theme.muted }]}>{t('settings.analytics_desc', 'Mesaj içeriği ve reklam kimliği toplamadan uygulamayı geliştirmemize yardımcı olur.')}</Text>
-                            </View>
-                        </View>
-                        <Switch value={analyticsEnabled} onValueChange={(enabled) => { setAnalyticsEnabled(enabled); void AnalyticsService.setEnabled(enabled); }} trackColor={{ false: theme.border, true: theme.primary }} thumbColor="#fff" />
-                    </View>
                     <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/privacy?lang=${language}`)}>
                         <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}><FileText size={20} color="#0A84FF" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.privacy_policy', 'Gizlilik Politikası')}</Text></View><ChevronRight size={18} color={theme.muted} />
                     </TouchableOpacity>
@@ -511,7 +517,7 @@ export default function SettingsScreen() {
                         <Text style={[styles.langModalTitle, { color: theme.text }]}>
                             {t('settings.app_theme')}
                         </Text>
-                        {(['system', 'light', 'dark'] as ThemePreference[]).map(option => (
+                        {(['system', 'light', 'sepia', 'dark'] as ThemePreference[]).map(option => (
                             <TouchableOpacity
                                 key={option}
                                 style={[styles.langItem, { borderBottomColor: theme.border }]}
@@ -817,6 +823,12 @@ export default function SettingsScreen() {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            {/* ── Yazı Boyutu ve Hat Stili Modalı ── */}
+            <FontSizeModal
+                visible={showFontSizeModal}
+                onClose={() => setShowFontSizeModal(false)}
+            />
         </View>
     );
 }

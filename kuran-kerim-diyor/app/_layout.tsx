@@ -1,3 +1,4 @@
+import '../utils/preventFontScaling';
 import { Stack } from 'expo-router';
 import { useFonts, Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';

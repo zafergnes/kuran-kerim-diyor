@@ -45,6 +45,13 @@ export default function AyetRedirect() {
         const ayahNumber = Number(ayah);
         if (Number.isInteger(surahNumber) && Number.isInteger(ayahNumber)) {
           await useUserStore.getState().setProgress(surahNumber, ayahNumber);
+          if (isActive) {
+            router.replace({
+              pathname: '/(tabs)',
+              params: { surah: surahNumber.toString(), ayah: ayahNumber.toString(), t: Date.now().toString() }
+            });
+            return;
+          }
         }
       }
 

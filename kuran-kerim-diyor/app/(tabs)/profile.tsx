@@ -10,7 +10,7 @@ import { BookOpen, MessageSquare, Heart, Settings, LogOut, UserX, ChevronRight, 
 import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
-import { quranData } from '../../services/quranData';
+import { getSurah } from '../../services/quranData';
 import { AnalyticsService } from '../../services/analyticsService';
 import { useAppTheme } from '../../hooks/useAppTheme';
 
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
     let mostReadAyahText = "";
     if (mostReadKey && mostReadCount > 0) {
         const [surahNum, ayahNum] = mostReadKey.split(":").map(Number);
-        const surah = quranData.find((s) => s.number === surahNum);
+        const surah = getSurah(surahNum);
         const surahName = surah ? (surah.name[language] || surah.name.tr) : "";
         mostReadAyahText = t("achievements.most_read_ayah_val", {
             surahName,

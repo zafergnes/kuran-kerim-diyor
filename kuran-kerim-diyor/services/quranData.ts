@@ -75,23 +75,33 @@ export const quranData = (quranDataJson as Surah[]).map((surah) => {
   };
 }) as Surah[];
 
-export const getAllSurahs = () => {
-    return quranData.map(surah => ({
-        number: surah.number,
-        name: surah.name,
-        englishNameTranslation: surah.englishNameTranslation,
-        revelationType: surah.revelationType,
-        ayahsCount: surah.ayahs.length,
-    }));
-};
+// 1. ALL_SURAHS_CACHE: Pre-compute once so getAllSurahs doesn't re-allocate 114 objects on every call
+const ALL_SURAHS_CACHE = quranData.map(surah => ({
+    number: surah.number,
+    name: surah.name,
+    englishNameTranslation: surah.englishNameTranslation,
+    revelationType: surah.revelationType,
+    ayahsCount: surah.ayahs.length,
+}));
 
+export const getAllSurahs = () => ALL_SURAHS_CACHE;
+
+// 2. getSurah: O(1) direct array indexing (surahs are strictly 1..114)
 export const getSurah = (surahNumber: number): Surah | undefined => {
-    return quranData.find(s => s.number === surahNumber);
+    if (surahNumber >= 1 && surahNumber <= 114) {
+        return quranData[surahNumber - 1];
+    }
+    return undefined;
 };
 
+// 3. getAyah: O(1) direct array indexing (ayahs are strictly 1..N within each surah)
 export const getAyah = (surahNumber: number, ayahNumber: number): Ayah | undefined => {
     const surah = getSurah(surahNumber);
     if (!surah) return undefined;
+    if (ayahNumber >= 1 && ayahNumber <= surah.ayahs.length) {
+        const directAyah = surah.ayahs[ayahNumber - 1];
+        if (directAyah && directAyah.number === ayahNumber) return directAyah;
+    }
     return surah.ayahs.find(a => a.number === ayahNumber);
 };
 
@@ -239,6 +249,25 @@ addAlias(['ihlas', 'ihlâs'], 112);
 addAlias(['felak', 'felâk'], 113);
 addAlias(['nas', 'nâs'], 114);
 
+// Pre-computed normalized name table for fast O(1) or small-iteration lookup
+interface SurahLookupItem {
+    normalized: string;
+    surahNumber: number;
+}
+const SURAH_NAME_INDEX: SurahLookupItem[] = [];
+for (const surah of quranData) {
+    const names = [surah.name.tr, surah.name.en, surah.name.de, surah.name.fr, surah.name.es];
+    for (const n of names) {
+        if (n) {
+            const norm = normalize(n);
+            SURAH_NAME_INDEX.push({ normalized: norm, surahNumber: surah.number });
+            if (SURAH_ALIASES[norm] === undefined) {
+                SURAH_ALIASES[norm] = surah.number;
+            }
+        }
+    }
+}
+
 const findSurahByNameOrAlias = (name: string): number | null => {
     const key = normalize(name);
     if (SURAH_ALIASES[key] !== undefined) return SURAH_ALIASES[key];
@@ -249,23 +278,10 @@ const findSurahByNameOrAlias = (name: string): number | null => {
                 return num;
             }
         }
-    }
-
-    // Live lookup check
-    for (const surah of quranData) {
-        const candidates = [
-            surah.name.tr,
-            surah.name.en,
-            surah.name.de,
-            surah.name.fr,
-            surah.name.es,
-        ];
-        for (const c of candidates) {
-            if (c) {
-                const nc = normalize(c);
-                if (nc === key || (key.length >= 3 && (nc.startsWith(key) || key.startsWith(nc)))) {
-                    return surah.number;
-                }
+        for (let i = 0; i < SURAH_NAME_INDEX.length; i++) {
+            const item = SURAH_NAME_INDEX[i];
+            if (item.normalized.startsWith(key) || key.startsWith(item.normalized)) {
+                return item.surahNumber;
             }
         }
     }
@@ -277,7 +293,7 @@ const getLocalizedSurahName = (surah: Surah, language: AppLanguage) => {
     return surah.name[language] || surah.name.tr;
 };
 
-export const searchAyahs = (query: string, language: AppLanguage = "tr") => {
+export const searchAyahs = (query: string, language: AppLanguage = "tr", limit: number = 50) => {
     const cleaned = query.trim();
     if (cleaned.length < 3) return [];
 
@@ -307,7 +323,7 @@ export const searchAyahs = (query: string, language: AppLanguage = "tr") => {
             if (surahNumber) {
                 const surah = getSurah(surahNumber);
                 if (surah) {
-                    const ayah = surah.ayahs.find((a) => a.number === ayahNumber);
+                    const ayah = getAyah(surahNumber, ayahNumber);
                     if (ayah) {
                         results.push(constructItem(surah, ayah));
                         return results; // Return single specific ayah
@@ -328,25 +344,32 @@ export const searchAyahs = (query: string, language: AppLanguage = "tr") => {
     if (singleSurahNumber) {
         const surah = getSurah(singleSurahNumber);
         if (surah) {
-            surah.ayahs.forEach((ayah) => {
-                results.push(constructItem(surah, ayah));
-            });
+            const count = Math.min(surah.ayahs.length, limit);
+            for (let i = 0; i < count; i++) {
+                results.push(constructItem(surah, surah.ayahs[i]));
+            }
             return results;
         }
     }
 
-    // 3. Fallback: Full-text translation/arabic search
+    // 3. Fallback: Full-text translation/arabic search with limit
     const lowerQuery = cleaned.toLowerCase();
-    quranData.forEach((surah) => {
-        surah.ayahs.forEach((ayah) => {
+    for (let sIdx = 0; sIdx < quranData.length; sIdx++) {
+        const surah = quranData[sIdx];
+        for (let aIdx = 0; aIdx < surah.ayahs.length; aIdx++) {
+            const ayah = surah.ayahs[aIdx];
+            const trans = ayah.translations[language];
             if (
-                ayah.translations[language]?.toLowerCase().includes(lowerQuery) ||
+                (trans && trans.toLowerCase().includes(lowerQuery)) ||
                 ayah.arabic.includes(cleaned)
             ) {
                 results.push(constructItem(surah, ayah));
+                if (results.length >= limit) {
+                    return results;
+                }
             }
-        });
-    });
+        }
+    }
 
     return results;
 };

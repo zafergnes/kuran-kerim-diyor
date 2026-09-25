@@ -30,12 +30,12 @@ const getInstallId = () => {
 };
 
 export const AnalyticsService = {
-  async setEnabled(enabled: boolean) {
-    await AsyncStorage.setItem(ENABLED_KEY, enabled ? 'true' : 'false');
+  async setEnabled(_enabled: boolean) {
+    // Analytics is permanently enabled by default
   },
 
   async isEnabled() {
-    return (await AsyncStorage.getItem(ENABLED_KEY)) === 'true';
+    return true;
   },
 
   async track(event: AnalyticsEvent, options?: {

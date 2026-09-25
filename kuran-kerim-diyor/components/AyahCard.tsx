@@ -1,17 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { Ayah } from '../services/quranData';
 import { useUserStore } from '../store/userStore';
-import { MessageSquare, Share2, MessageCircle, ChevronRight, BookOpen } from 'lucide-react-native';
-import { CommentSheet } from './CommentSheet';
+import { ChevronRight, BookOpen } from 'lucide-react-native';
 import { AudioPlayer } from './AudioPlayer';
-import { VerseShareCard } from './VerseShareCard';
+import { AyahActionBar } from './AyahActionBar';
 import { useTranslation } from 'react-i18next';
-import { useAyahStats } from '../hooks/useAyahStats';
 import { splitBismillah, isSajdahAyah, hasBismillah } from '../utils/quranHelpers';
-import { VerseChatModal } from './VerseChatModal';
-import { AnalyticsService } from '../services/analyticsService';
 
 interface AyahCardProps {
     ayah: Ayah;
@@ -23,13 +19,9 @@ interface AyahCardProps {
     onNextSurah?: () => void;
 }
 
-export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChange, isLastAyah, nextSurahName, onNextSurah }: AyahCardProps) {
-    const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript } = useUserStore();
-    const { stats, refresh } = useAyahStats(surahNumber, ayah.number);
+export const AyahCard = React.memo(function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChange, isLastAyah, nextSurahName, onNextSurah }: AyahCardProps) {
+    const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript, fontSizeScale } = useUserStore();
     const { theme } = useAppTheme();
-    const [showComments, setShowComments] = useState(false);
-    const [showShare, setShowShare] = useState(false);
-    const [showVerseChat, setShowVerseChat] = useState(false);
     const [audioProgress, setAudioProgress] = useState(0);
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const nextSurahAnim = useRef(new Animated.Value(0)).current;
@@ -116,13 +108,31 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
                     </View>
                 )}
 
-                <Text style={[styles.arabicText, { color: theme.text }]}>
+                <Text
+                    style={[
+                        styles.arabicText,
+                        {
+                            color: theme.text,
+                            fontSize: Math.round(34 * (fontSizeScale || 1.0)),
+                            lineHeight: Math.round(56 * (fontSizeScale || 1.0)),
+                        }
+                    ]}
+                >
                     {renderArabicText(finalArabicText.replace(/\s+/g, '\u2002'))}
                 </Text>
 
                 {shouldShowTranslation && translationText ? (
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={[styles.translationText, { color: theme.secondary }]}>
+                        <Text
+                            style={[
+                                styles.translationText,
+                                {
+                                    color: theme.secondary,
+                                    fontSize: Math.round(18 * (fontSizeScale || 1.0)),
+                                    lineHeight: Math.round(28 * (fontSizeScale || 1.0)),
+                                }
+                            ]}
+                        >
                             {translationText}
                         </Text>
                         {isSajdah && (
@@ -135,6 +145,12 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
             </ScrollView>
 
             <View style={styles.footer}>
+                <View style={styles.metaRow}>
+                    <Text style={[styles.metaText, { color: theme.muted }]}>
+                        {surahName} • {t('common.ayah')} {ayah.number}
+                    </Text>
+                </View>
+
                 <AudioPlayer
                     globalAyahNumber={ayah.globalNumber}
                     onProgressChange={setAudioProgress}
@@ -143,38 +159,13 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
                     onScrubbingChange={onAudioInteractionChange}
                 />
 
-                <Text style={[styles.metaText, { color: theme.muted, marginHorizontal: 16 }]}>
-                    {surahName} • {t('common.ayah')} {ayah.number}
-                </Text>
-
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                        style={styles.compactAiButton}
-                        onPress={() => {
-                            setShowVerseChat(true);
-                            void AnalyticsService.track('AI_CHAT_OPEN', { screen: 'single_verse', metadata: { surahNumber, ayahNumber: ayah.number } });
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
-                    >
-                        <MessageCircle size={18} color={theme.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => setShowShare(true)}>
-
-                        <Share2 size={24} color={theme.primary} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => setShowComments(true)}>
-                        <View style={styles.commentBadgeContainer}>
-                            <MessageSquare size={24} color={theme.primary} />
-                            {stats && stats.commentCount > 0 && (
-                                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                                    <Text style={styles.badgeText}>{stats.commentCount}</Text>
-                                </View>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                <AyahActionBar
+                    surahNumber={surahNumber}
+                    ayahNumber={ayah.number}
+                    surahName={surahName}
+                    translation={translationText || rawArabicText}
+                    analyticsScreen="single_verse"
+                />
             </View>
 
             {/* Son ayet: Sonraki Sure kartı */}
@@ -210,63 +201,17 @@ export function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChang
                     </TouchableOpacity>
                 </Animated.View>
             )}
-
-            <Modal visible={showComments} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => {
-                setShowComments(false);
-                refresh();
-            }}>
-                <View style={{ flex: 1, backgroundColor: theme.background }}>
-                    <View style={styles.sheetHeader}>
-                        <TouchableOpacity onPress={() => {
-                            setShowComments(false);
-                            refresh();
-                        }}>
-                            <Text style={{ color: theme.primary, fontSize: 16, padding: 16, fontWeight: 'bold' }}>{t('common.close')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <CommentSheet surahNo={surahNumber} ayahNo={ayah.number} onClose={() => {
-                        setShowComments(false);
-                        refresh();
-                    }} />
-                </View>
-            </Modal>
-
-            <Modal visible={showShare} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowShare(false)}>
-                <View style={{ flex: 1, backgroundColor: theme.background }}>
-                    <View style={styles.sheetHeader}>
-                        <TouchableOpacity onPress={() => setShowShare(false)}>
-                            <Text style={{ color: theme.primary, fontSize: 16, padding: 16, fontWeight: 'bold' }}>{t('common.close')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-                        <VerseShareCard 
-                            text={translationText || rawArabicText} 
-                            reference={`${surahName} ${surahNumber}:${ayah.number}`}
-                            onClose={() => setShowShare(false)}
-                        />
-                    </ScrollView>
-                </View>
-            </Modal>
-
-            <VerseChatModal
-                visible={showVerseChat}
-                onClose={() => setShowVerseChat(false)}
-                surahNumber={surahNumber}
-                ayahNumber={ayah.number}
-                reference={`${surahName} ${ayah.number}`}
-                translation={translationText || rawArabicText}
-            />
         </View>
     );
-}
+});
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        paddingVertical: 24,
-        paddingLeft: 24,
-        paddingRight: 64,
+        justifyContent: 'space-between',
+        paddingTop: 16,
+        paddingBottom: 20,
+        paddingHorizontal: 16,
     },
     content: {
         flex: 1,
@@ -276,7 +221,9 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 40,
+        paddingVertical: 24,
+        paddingRight: 36,
+        paddingLeft: 8,
     },
     bismillahContainer: {
         marginBottom: 20,
@@ -327,54 +274,21 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     footer: {
-        paddingVertical: 24,
-        alignItems: 'center',
+        paddingTop: 8,
+        paddingBottom: 4,
+        gap: 10,
+        width: '100%',
+    },
+    metaRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 2,
     },
     metaText: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    actionBtn: {
-        padding: 8,
-    },
-    compactAiButton: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(182, 154, 115, 0.10)',
-    },
-    commentBadgeContainer: {
-        position: 'relative',
-    },
-    badge: {
-        position: 'absolute',
-        top: -8,
-        right: -8,
-        minWidth: 18,
-        height: 18,
-        borderRadius: 9,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 4,
-    },
-    badgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    sheetHeader: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        alignItems: 'flex-start',
+        letterSpacing: 0.3,
     },
     nextSurahBanner: {
         marginHorizontal: 20,

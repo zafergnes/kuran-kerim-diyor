@@ -3,13 +3,14 @@
     "name": "Kur'an Ne Diyor?",
     "slug": "kuran-kerim-diyor",
     "scheme": "kuran-kerim-diyor",
-    "version": "1.0.1",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon-v2.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
+      "buildNumber": "5",
       "appleTeamId": "CD5FK55DWW",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -18,7 +19,7 @@
       }
     },
     "android": {
-      "versionCode": 1,
+      "versionCode": 5,
       "package": "com.kurankerimdiyor",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
@@ -59,8 +60,22 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["tr", "en", "ar", "de", "fr", "es"],
-            "android": ["tr", "en", "ar", "de", "fr", "es"]
+            "ios": [
+              "tr",
+              "en",
+              "ar",
+              "de",
+              "fr",
+              "es"
+            ],
+            "android": [
+              "tr",
+              "en",
+              "ar",
+              "de",
+              "fr",
+              "es"
+            ]
           }
         }
       ],

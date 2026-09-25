@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { searchAyahs } from '../../services/quranData';
@@ -14,7 +14,7 @@ const formatFavCount = (n: number) => {
     return (n / 1000).toFixed(1) + 'k';
 };
 
-const SearchResultItem = ({ item, theme, language, onPress }: any) => {
+const SearchResultItem = React.memo(({ item, theme, language, onPress }: any) => {
     const { t } = useTranslation();
     const ayahId = `${item.surahNumber}_${item.ayah.number}`;
     const { favoriteCount } = useAyahStats(item.surahNumber, item.ayah.number);
@@ -49,7 +49,7 @@ const SearchResultItem = ({ item, theme, language, onPress }: any) => {
             </Text>
         </TouchableOpacity>
     );
-};
+});
 
 export default function SearchScreen() {
     const { theme } = useAppTheme();
@@ -60,14 +60,19 @@ export default function SearchScreen() {
 
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<any[]>([]);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handleSearch = (text: string) => {
         setQuery(text);
-        // Sondaki kısım rakamla bitiyorsa referans olabilir (sebe 50, 34:50 vb.)
-        const endsWithDigit = /\d$/.test(text.trim());
-        if (text.length > 2 || (endsWithDigit && text.trim().length >= 3)) {
-            const res = searchAyahs(text, language);
-            setResults(res);
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+        const trimmed = text.trim();
+        const endsWithDigit = /\d$/.test(trimmed);
+        if (trimmed.length > 2 || (endsWithDigit && trimmed.length >= 3)) {
+            debounceTimerRef.current = setTimeout(() => {
+                const res = searchAyahs(text, language);
+                setResults(res);
+            }, 120);
         } else {
             setResults([]);
         }

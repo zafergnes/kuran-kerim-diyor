@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, Modal, Switch, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,7 +16,6 @@ const { width } = Dimensions.get('window');
 export default function OnboardingScreen() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showLangPicker, setShowLangPicker] = useState(false);
-    const [analyticsConsent, setAnalyticsConsent] = useState(false);
     const flatListRef = useRef<FlatList>(null);
     const router = useRouter();
     const { theme } = useAppTheme();
@@ -60,7 +59,6 @@ export default function OnboardingScreen() {
 
     const finishOnboarding = async (skipped = false) => {
         await AsyncStorage.setItem('hasOnboarded', 'true');
-        await AnalyticsService.setEnabled(skipped ? false : analyticsConsent);
         await AnalyticsService.track(skipped ? 'ONBOARDING_SKIP' : 'ONBOARDING_COMPLETE', {
             screen: `onboarding_${currentIndex + 1}`,
             metadata: { layout: readingLayout, language },
@@ -186,16 +184,7 @@ export default function OnboardingScreen() {
                                             </View>
                                         )}
                                     </TouchableOpacity>
-                                    <View style={[styles.choiceCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={[styles.choiceTitle, { color: theme.text }]}>{t('settings.analytics_title')}</Text>
-                                            <Text style={[styles.choiceDesc, { color: theme.muted }]}>{t('settings.analytics_desc')}</Text>
-                                            <TouchableOpacity onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/privacy?lang=${language}`)}>
-                                                <Text style={{ color: theme.primary, fontSize: 12, fontWeight: '600', marginTop: 6 }}>{t('settings.privacy_policy')}</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                        <Switch value={analyticsConsent} onValueChange={setAnalyticsConsent} trackColor={{ false: theme.border, true: theme.primary }} thumbColor="#fff" />
-                                    </View>
+
                                 </View>
                             </View>
                         );

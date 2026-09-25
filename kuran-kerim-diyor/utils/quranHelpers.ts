@@ -22,47 +22,68 @@ const isBefore = (s1: number, a1: number, s2: number, a2: number): boolean => {
 
 /**
  * Find which page (1-604) a given surah and ayah belongs to.
+ * Binary search: O(log 604) <= 10 comparisons instead of linear 604 iterations.
  */
 export const getPageFromSurahAyah = (surah: number, ayah: number): number => {
-    for (let i = PAGE_START_MAP.length - 1; i >= 0; i--) {
-        const start = PAGE_START_MAP[i];
+    let low = 0;
+    let high = PAGE_START_MAP.length - 1;
+    let result = 0;
+
+    while (low <= high) {
+        const mid = (low + high) >> 1;
+        const start = PAGE_START_MAP[mid];
         if (isAfterOrEqual(surah, ayah, start.surah, start.ayah)) {
-            return i + 1; // 1-indexed page number
+            result = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
         }
     }
-    return 1;
+    return result + 1;
 };
+
+// In-memory cache for fast 0ms retrieval of computed pages
+const PAGE_AYAH_CACHE = new Map<string, PageAyahItem[]>();
 
 /**
  * Returns all ayahs contained in a specific page (1-604) along with their surah name.
+ * Uses direct surah slicing and memory cache (avoids scanning 6,236 verses on every call).
  */
 export const getPageAyahs = (pageNumber: number, language: AppLanguage = 'tr'): PageAyahItem[] => {
     if (pageNumber < 1 || pageNumber > 604) return [];
     
+    const cacheKey = `${pageNumber}_${language}`;
+    const cached = PAGE_AYAH_CACHE.get(cacheKey);
+    if (cached) return cached;
+
     const startIndex = pageNumber - 1;
     const start = PAGE_START_MAP[startIndex];
     const end = pageNumber < 604 ? PAGE_START_MAP[pageNumber] : null;
     
     const pageAyahs: PageAyahItem[] = [];
-    
-    for (const surah of quranData) {
-        if (surah.number < start.surah) continue;
-        if (end && surah.number > end.surah) break;
-        
-        for (const ayah of surah.ayahs) {
-            const isAfterStart = isAfterOrEqual(surah.number, ayah.number, start.surah, start.ayah);
-            const isBeforeEnd = end ? isBefore(surah.number, ayah.number, end.surah, end.ayah) : true;
-            
-            if (isAfterStart && isBeforeEnd) {
+    const endSurah = end ? end.surah : 114;
+
+    for (let s = start.surah; s <= endSurah; s++) {
+        const surah = quranData[s - 1];
+        if (!surah) continue;
+
+        const surahName = surah.name[language] || surah.name.tr;
+        const startAyahIndex = (s === start.surah) ? Math.max(0, start.ayah - 1) : 0;
+        const endAyahIndex = (end && s === end.surah) ? end.ayah - 1 : surah.ayahs.length;
+
+        for (let a = startAyahIndex; a < endAyahIndex; a++) {
+            const ayah = surah.ayahs[a];
+            if (ayah) {
                 pageAyahs.push({
                     surahNumber: surah.number,
-                    surahName: surah.name[language] || surah.name.tr,
+                    surahName,
                     ayah
                 });
             }
         }
     }
     
+    PAGE_AYAH_CACHE.set(cacheKey, pageAyahs);
     return pageAyahs;
 };
 

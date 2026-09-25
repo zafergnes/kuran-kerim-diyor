@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,6 +6,8 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
+    PanResponder,
+    Modal,
 } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
@@ -13,10 +15,11 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, MessageCircle, RotateCcw, RotateCw, Repeat2 } from 'lucide-react-native';
+import { Play, Pause, Sparkles, RotateCcw, RotateCw, Repeat2, X, ChevronLeft, ChevronRight, ChevronUp, Compass } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { getAyahAudioTrack, WordTiming } from '../services/quranAudioTimingService';
 import { VerseChatModal } from './VerseChatModal';
+import { AyahActionBar } from './AyahActionBar';
 import { AnalyticsService } from '../services/analyticsService';
 import { OfflineAudioService } from '../services/offlineAudioService';
 
@@ -31,25 +34,48 @@ const toArabicDigits = (num: number): string => {
 interface QuranPageCardProps {
     pageNumber: number;
     containerHeight: number;
-    highlightedAyahId: string | null;
+    highlightedAyahId?: string | null;
     activeMode: 'arabic' | 'translation';
     onToggleMode: (mode: 'arabic' | 'translation') => void;
     onAudioInteractionChange?: (isInteracting: boolean) => void;
+    onNextPage?: () => void;
+    onPrevPage?: () => void;
+    onAyahChange?: (surahNumber: number, ayahNumber: number) => void;
 }
 
-export const QuranPageCard: React.FC<QuranPageCardProps> = ({
+export const QuranPageCard = React.memo<QuranPageCardProps>(({
     pageNumber,
     containerHeight,
     highlightedAyahId,
     activeMode,
     onToggleMode,
     onAudioInteractionChange,
+    onNextPage,
+    onPrevPage,
+    onAyahChange,
 }) => {
     const { t } = useTranslation();
-    const { theme } = useAppTheme();
+    const { theme, colorScheme } = useAppTheme();
+    const activeBlue = colorScheme === 'dark' ? '#60A5FA' : (colorScheme === 'sepia' ? '#1D6FB8' : '#2563EB');
+    const inactiveBlue = colorScheme === 'dark' ? '#64748B' : (colorScheme === 'sepia' ? '#8C7E70' : '#94A3B8');
+    const activeBlueBg = colorScheme === 'dark'
+        ? 'rgba(96, 165, 250, 0.16)'
+        : (colorScheme === 'sepia' ? 'rgba(29, 111, 184, 0.12)' : 'rgba(37, 99, 235, 0.12)');
     
-    const { language, arabicTranslationLang, arabicFontFamily, selectedReciter } = useUserStore();
+    const {
+        language,
+        arabicTranslationLang,
+        arabicFontFamily,
+        setArabicFontFamily,
+        selectedReciter,
+        fontSizeScale,
+        setFontSizeScale,
+    } = useUserStore();
     const translationLanguage = language === 'ar' ? arabicTranslationLang : language;
+
+    const baseArabicSize = arabicFontFamily === 'noto-naskh' ? 21 : 23;
+    const arabicFontSize = Math.round(baseArabicSize * (fontSizeScale || 1.0));
+    const translationFontSize = Math.round(15 * (fontSizeScale || 1.0));
     
     const [sound, setSound] = useState<AudioSound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -60,12 +86,20 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
     const [positionMillis, setPositionMillis] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [repeatCount, setRepeatCount] = useState(1);
+    const [pageTrackWidth, setPageTrackWidth] = useState(300);
     const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
     const [chatAyah, setChatAyah] = useState<PageAyahItem | null>(null);
+    const [selectedAyahId, setSelectedAyahId] = useState<string | null>(null);
     const wordTimingsRef = useRef<WordTiming[]>([]);
     const playbackRequestRef = useRef(0);
     const repeatRemainingRef = useRef(1);
     const repeatCountRef = useRef(1);
+
+    const scrollViewRef = useRef<ScrollView>(null);
+    const stripScrollRef = useRef<ScrollView>(null);
+    const ayahYOffsetsRef = useRef<Record<number, number>>({});
+    const [showBackToTop, setShowBackToTop] = useState(false);
+    const hasInitialScrolledRef = useRef(false);
 
     // Fetch all ayahs on this page
     const pageAyahs = useMemo(() => {
@@ -77,6 +111,62 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         if (pageAyahs.length === 0) return '';
         return pageAyahs[0].surahName;
     }, [pageAyahs]);
+
+    const scrollToAyah = useCallback((ayahNum: number, animated = true) => {
+        const targetY = ayahYOffsetsRef.current[ayahNum];
+        if (typeof targetY === 'number') {
+            scrollViewRef.current?.scrollTo({
+                y: Math.max(0, targetY - 14),
+                animated,
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        if (highlightedAyahId) {
+            setSelectedAyahId(highlightedAyahId);
+            const parts = highlightedAyahId.split('_');
+            if (parts.length === 2) {
+                const ayahNum = Number(parts[1]);
+                setTimeout(() => {
+                    scrollToAyah(ayahNum, true);
+                }, 150);
+            }
+        } else if (pageAyahs.length > 0 && !selectedAyahId) {
+            setSelectedAyahId(`${pageAyahs[0].surahNumber}_${pageAyahs[0].ayah.number}`);
+        }
+    }, [highlightedAyahId, pageAyahs, scrollToAyah]);
+
+    useEffect(() => {
+        if (currentPlayingIndex !== null && pageAyahs[currentPlayingIndex]) {
+            const playing = pageAyahs[currentPlayingIndex];
+            setSelectedAyahId(`${playing.surahNumber}_${playing.ayah.number}`);
+        }
+    }, [currentPlayingIndex, pageAyahs]);
+
+    const selectedAyah = useMemo(() => {
+        if (!pageAyahs || pageAyahs.length === 0) return null;
+        if (selectedAyahId) {
+            const found = pageAyahs.find(item => `${item.surahNumber}_${item.ayah.number}` === selectedAyahId);
+            if (found) return found;
+        }
+        return pageAyahs[0];
+    }, [pageAyahs, selectedAyahId]);
+
+    // Üstteki yatay ayet şeridini seçili ayete göre ortala
+    useEffect(() => {
+        if (selectedAyah && pageAyahs.length > 1) {
+            const idx = pageAyahs.findIndex(
+                (item) => item.ayah.number === selectedAyah.ayah.number && item.surahNumber === selectedAyah.surahNumber
+            );
+            if (idx >= 0 && stripScrollRef.current) {
+                stripScrollRef.current.scrollTo({
+                    x: Math.max(0, idx * 46 - 80),
+                    animated: true,
+                });
+            }
+        }
+    }, [selectedAyah, pageAyahs]);
 
     const ownerId = `page_${pageNumber}`;
 
@@ -266,22 +356,77 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         setRepeatCount(next);
     };
 
-    const handleResponderGrantOrMove = (evt: any) => {
-        const { locationX } = evt.nativeEvent;
-        const width = 170;
-        const percentage = Math.min(1, Math.max(0, locationX / width));
-        
-        setPlayProgress(percentage);
-
-        if (sound) {
-            sound.getStatusAsync().then(status => {
-                if (status.isLoaded && status.durationMillis) {
-                    const targetPos = percentage * status.durationMillis;
-                    sound.setPositionAsync(targetPos).catch(() => {});
-                }
-            });
-        }
+    const handleStopAudio = async () => {
+        playbackRequestRef.current += 1;
+        await GlobalAudioController.stop(ownerId);
+        setSound(null);
+        setIsPlaying(false);
+        setCurrentPlayingIndex(null);
+        setPlayProgress(0);
+        setPositionMillis(0);
+        setDurationMillis(0);
+        setActiveWordIndex(null);
     };
+
+    const isPageScrubbingRef = useRef(false);
+    const initialPageXRef = useRef(0);
+    const pageTrackWidthRef = useRef(pageTrackWidth);
+    pageTrackWidthRef.current = pageTrackWidth;
+    const pageSoundRef = useRef(sound);
+    pageSoundRef.current = sound;
+    const onAudioInteractionChangeRef = useRef(onAudioInteractionChange);
+    onAudioInteractionChangeRef.current = onAudioInteractionChange;
+
+    const pagePanResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onStartShouldSetPanResponder: () => true,
+                onStartShouldSetPanResponderCapture: () => true,
+                onMoveShouldSetPanResponder: () => true,
+                onMoveShouldSetPanResponderCapture: () => true,
+                onPanResponderGrant: (evt) => {
+                    isPageScrubbingRef.current = true;
+                    onAudioInteractionChangeRef.current?.(true);
+                    const locX = evt.nativeEvent.locationX;
+                    initialPageXRef.current = locX;
+                    const w = pageTrackWidthRef.current > 0 ? pageTrackWidthRef.current : 300;
+                    const percentage = Math.min(1, Math.max(0, locX / w));
+                    setPlayProgress(percentage);
+                    if (pageSoundRef.current) {
+                        pageSoundRef.current.getStatusAsync().then((status) => {
+                            if (status.isLoaded && status.durationMillis) {
+                                const targetPos = percentage * status.durationMillis;
+                                pageSoundRef.current?.setPositionAsync(targetPos).catch(() => {});
+                            }
+                        });
+                    }
+                },
+                onPanResponderMove: (evt, gestureState) => {
+                    const w = pageTrackWidthRef.current > 0 ? pageTrackWidthRef.current : 300;
+                    const currentX = initialPageXRef.current + gestureState.dx;
+                    const percentage = Math.min(1, Math.max(0, currentX / w));
+                    setPlayProgress(percentage);
+                    if (pageSoundRef.current) {
+                        pageSoundRef.current.getStatusAsync().then((status) => {
+                            if (status.isLoaded && status.durationMillis) {
+                                const targetPos = percentage * status.durationMillis;
+                                pageSoundRef.current?.setPositionAsync(targetPos).catch(() => {});
+                            }
+                        });
+                    }
+                },
+                onPanResponderRelease: () => {
+                    isPageScrubbingRef.current = false;
+                    onAudioInteractionChangeRef.current?.(false);
+                },
+                onPanResponderTerminate: () => {
+                    isPageScrubbingRef.current = false;
+                    onAudioInteractionChangeRef.current?.(false);
+                },
+                onPanResponderTerminationRequest: () => false,
+            }),
+        []
+    );
 
     const seekToProgress = (progress: number) => {
         if (!isPlaying || !sound) return;
@@ -312,8 +457,8 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
         <View style={[styles.cardContainer, { height: containerHeight, backgroundColor: theme.background }]}>
             {/* Header Information */}
             <View style={[styles.pageHeader, { borderBottomColor: theme.border }]}>
-                <View>
-                    <Text style={[styles.surahTitle, { color: theme.text }]}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={[styles.surahTitle, { color: theme.text }]} numberOfLines={1}>
                         {pageTitle}
                     </Text>
                     <Text style={[styles.pageNumberText, { color: theme.muted }]}>
@@ -321,78 +466,110 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                     </Text>
                 </View>
 
-                {/* Page Audio Player Controls */}
-                <View style={styles.pageAudioControls}>
-                    <TouchableOpacity
-                        style={styles.compactAiButton}
-                        onPress={() => {
-                            const highlighted = pageAyahs.find((item) => `${item.surahNumber}_${item.ayah.number}` === activeHighlightId);
-                            setChatAyah(highlighted || pageAyahs[0] || null);
-                            const target = highlighted || pageAyahs[0];
-                            if (target) void AnalyticsService.track('AI_CHAT_OPEN', { screen: 'page_reader', metadata: { surahNumber: target.surahNumber, ayahNumber: target.ayah.number } });
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
-                    >
-                        <MessageCircle size={17} color={theme.primary} />
-                    </TouchableOpacity>
-                    {sound && (
-                        <View style={styles.playerDetails}>
-                            <View style={styles.transportRow}>
-                                <TouchableOpacity onPress={() => void seekBy(-5)} style={styles.smallControl} accessibilityLabel="5 saniye geri">
-                                    <RotateCcw size={14} color={theme.primary} />
-                                    <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
-                                </TouchableOpacity>
-                                <Text style={[styles.timeText, { color: theme.muted }]}>
-                                    {formatTime(positionMillis)} / {formatTime(durationMillis)}
-                                </Text>
-                                <TouchableOpacity onPress={() => void seekBy(5)} style={styles.smallControl} accessibilityLabel="5 saniye ileri">
-                                    <RotateCw size={14} color={theme.primary} />
-                                    <Text style={[styles.seekLabel, { color: theme.primary }]}>5</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => void cyclePlaybackRate()} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Okuma hızı">
-                                    <Text style={[styles.rateText, { color: theme.primary }]}>{playbackRate}×</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={cycleRepeatCount} style={[styles.rateButton, { borderColor: theme.border }]} accessibilityLabel="Ayet tekrar sayısı">
-                                    <Repeat2 size={11} color={theme.primary} />
-                                    <Text style={[styles.repeatText, { color: theme.primary }]}>{repeatCount}</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View
-                                style={styles.progressBarContainer}
-                                onStartShouldSetResponder={() => true}
-                                onMoveShouldSetResponder={() => true}
-                                onResponderGrant={handleResponderGrantOrMove}
-                                onResponderMove={handleResponderGrantOrMove}
-                                onResponderRelease={() => onAudioInteractionChange?.(false)}
-                                onResponderTerminate={() => onAudioInteractionChange?.(false)}
-                                onResponderTerminationRequest={() => false}
-                                onTouchStart={() => onAudioInteractionChange?.(true)}
-                            >
-                                <View style={styles.progressBarBg}>
-                                    <View style={[styles.progressBarFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
-                                    <View style={[styles.progressThumb, { left: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
-                                </View>
-                            </View>
-                        </View>
+                {/* Header Action Buttons (Swapped: Arabic -> AI | Translation -> Play) */}
+                <View style={styles.pageHeaderRight}>
+                    {isArabic ? (
+                        /* Arapça modunda: Sağ üstte Yapay Zeka Sohbet butonu */
+                        <TouchableOpacity
+                            style={[styles.headerAiButton, { backgroundColor: theme.primary }]}
+                            onPress={() => {
+                                const target = selectedAyah || pageAyahs[0];
+                                setChatAyah(target || null);
+                                if (target) void AnalyticsService.track('AI_CHAT_OPEN', { screen: 'page_reader', metadata: { surahNumber: target.surahNumber, ayahNumber: target.ayah.number } });
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('verse_chat.title', 'Ayet Üzerine Konuş')}
+                        >
+                            <Sparkles size={18} color="#fff" />
+                        </TouchableOpacity>
+                    ) : (
+                        /* Meal modunda: Sağ üstte Sayfayı Dinle (Play) butonu */
+                        <TouchableOpacity
+                            style={[
+                                styles.headerPlayBtn,
+                                {
+                                    backgroundColor: isPlaying ? theme.primary : theme.card,
+                                    borderColor: theme.border,
+                                }
+                            ]}
+                            onPress={handlePlayPause}
+                            accessibilityRole="button"
+                            accessibilityLabel={isPlaying ? t('common.pause', 'Durdur') : t('common.listen', 'Sayfayı Dinle')}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator color={isPlaying ? '#fff' : theme.primary} size="small" />
+                            ) : isPlaying ? (
+                                <Pause size={18} color="#fff" />
+                            ) : (
+                                <Play size={18} color={theme.primary} style={{ marginLeft: 2 }} />
+                            )}
+                        </TouchableOpacity>
                     )}
-                    <TouchableOpacity style={styles.pageAudioBtn} onPress={handlePlayPause}>
-                        {isLoading ? (
-                            <ActivityIndicator color={theme.primary} size="small" />
-                        ) : isPlaying ? (
-                            <Pause size={20} color={theme.primary} />
-                        ) : (
-                            <Play size={20} color={theme.primary} />
-                        )}
-                    </TouchableOpacity>
                 </View>
             </View>
 
+            {/* Hızlı Ayet Atlama Şeridi (Quick Ayah Navigation Strip) */}
+            {pageAyahs.length > 1 && (
+                <View style={[styles.ayahStripContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+                    <View style={styles.ayahStripLabelWrap}>
+                        <Compass size={13} color={theme.muted} style={{ marginRight: 4 }} />
+                        <Text style={[styles.ayahStripLabel, { color: theme.muted }]}>
+                            {t('common.ayah_short', 'Ayet')}:
+                        </Text>
+                    </View>
+                    <ScrollView
+                        ref={stripScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.ayahStripScroll}
+                    >
+                        {pageAyahs.map((item) => {
+                            const isSelected = selectedAyah?.ayah.number === item.ayah.number && selectedAyah?.surahNumber === item.surahNumber;
+                            return (
+                                <TouchableOpacity
+                                    key={`${item.surahNumber}_${item.ayah.number}`}
+                                    style={[
+                                        styles.ayahChip,
+                                        {
+                                            backgroundColor: isSelected ? theme.primary : `${theme.primary}12`,
+                                            borderColor: isSelected ? theme.primary : `${theme.primary}25`,
+                                        }
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedAyahId(`${item.surahNumber}_${item.ayah.number}`);
+                                        onAyahChange?.(item.surahNumber, item.ayah.number);
+                                        scrollToAyah(item.ayah.number);
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[styles.ayahChipText, { color: isSelected ? '#fff' : theme.text }]}>
+                                        {item.ayah.number}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
+            )}
+
             {/* Scrollable Content */}
             <ScrollView
+                ref={scrollViewRef}
                 style={styles.scrollArea}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: (sound || isPlaying || isLoading) ? 310 : 200 }
+                ]}
+                showsVerticalScrollIndicator={true}
+                scrollEventThrottle={32}
+                onScroll={(e) => {
+                    const y = e.nativeEvent.contentOffset.y;
+                    if (y > 180 && !showBackToTop) {
+                        setShowBackToTop(true);
+                    } else if (y <= 180 && showBackToTop) {
+                        setShowBackToTop(false);
+                    }
+                }}
             >
                 {isArabic ? (
                     /* ARABIC FLOW LAYOUT */
@@ -424,7 +601,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                             {
                                                 fontFamily: getArabicFont(isWordActive ? 'bold' : 'regular'),
                                                 color: isAllah ? '#D32F2F' : (isWordActive ? theme.primary : theme.text),
-                                                fontSize: arabicFontFamily === 'noto-naskh' ? 21 : 23,
+                                                fontSize: arabicFontSize,
                                                 fontWeight: isAllah || isWordActive ? 'bold' : 'normal',
                                                 backgroundColor: isWordActive ? `${theme.primary}18` : 'transparent',
                                             }
@@ -454,7 +631,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                  </Text>
                                              </View>
                                         )}
-                                        <Text style={styles.arabicParagraphText}>
+                                        <Text style={[styles.arabicParagraphText, { lineHeight: Math.round(arabicFontSize * 1.85) }]}>
                                              {group.items.map((item) => {
                                                  const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
                                                  const isSajdah = isSajdahAyah(item.surahNumber, item.ayah.number);
@@ -469,13 +646,39 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                      (pageAyah) => pageAyah.ayah.globalNumber === item.ayah.globalNumber,
                                                  );
 
+                                                 const isSelected = selectedAyahId === `${item.surahNumber}_${item.ayah.number}`;
                                                  return (
                                                      <React.Fragment key={item.ayah.globalNumber}>
+                                                         <Text
+                                                             style={[
+                                                                 styles.ayahStartBadge,
+                                                                 {
+                                                                     fontFamily: getArabicFont('bold'),
+                                                                     color: isHighlighted || isSelected ? activeBlue : inactiveBlue,
+                                                                     backgroundColor: isHighlighted || isSelected ? activeBlueBg : 'transparent',
+                                                                     borderRadius: 6,
+                                                                     fontSize: Math.round(16 * (fontSizeScale || 1.0)),
+                                                                 }
+                                                             ]}
+                                                             onLayout={(e) => {
+                                                                 ayahYOffsetsRef.current[item.ayah.number] = e.nativeEvent.layout.y;
+                                                             }}
+                                                             onPress={() => {
+                                                                 setSelectedAyahId(`${item.surahNumber}_${item.ayah.number}`);
+                                                                 onAyahChange?.(item.surahNumber, item.ayah.number);
+                                                                 if (pageAyahIndex >= 0) {
+                                                                     void playAyahAtIndex(pageAyahIndex);
+                                                                 }
+                                                             }}
+                                                         >
+                                                             {` ﴿ `}
+                                                         </Text>
                                                          {words.map((word, wIdx) => {
                                                              const isWordActive = isHighlighted && activeWordIndex === wIdx + 1;
                                                              return (
                                                                  <React.Fragment key={wIdx}>
                                                                      <Text onPress={() => {
+                                                                         setSelectedAyahId(`${item.surahNumber}_${item.ayah.number}`);
                                                                          if (pageAyahIndex >= 0) {
                                                                              void playAyahAtIndex(pageAyahIndex, 0, false, wIdx + 1);
                                                                          }
@@ -491,11 +694,14 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                                  styles.ayahNumberBadge,
                                                                  {
                                                                      fontFamily: getArabicFont('bold'),
-                                                                     color: isHighlighted ? theme.primary : theme.muted,
-                                                                     fontSize: 16,
+                                                                     color: isHighlighted || isSelected ? activeBlue : inactiveBlue,
+                                                                     backgroundColor: isHighlighted || isSelected ? activeBlueBg : 'transparent',
+                                                                     borderRadius: 8,
+                                                                     fontSize: Math.round(16 * (fontSizeScale || 1.0)),
                                                                  }
                                                              ]}
                                                              onPress={() => {
+                                                                 setSelectedAyahId(`${item.surahNumber}_${item.ayah.number}`);
                                                                  if (pageAyahIndex >= 0) {
                                                                      void playAyahAtIndex(pageAyahIndex);
                                                                  }
@@ -504,7 +710,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                                              {` ﴾${toArabicDigits(item.ayah.number)}﴿ `}
                                                          </Text>
                                                          {isSajdah && (
-                                                             <Text style={{ fontSize: 18, color: theme.primary, marginLeft: 2 }}>
+                                                             <Text style={{ fontSize: Math.round(18 * (fontSizeScale || 1.0)), color: '#D32F2F', marginLeft: 2 }}>
                                                                  ۩
                                                              </Text>
                                                          )}
@@ -524,10 +730,11 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                             const { isSajdahAyah } = require('../utils/quranHelpers');
                             const isNewSurah = item.ayah.number === 1;
                             const isHighlighted = activeHighlightId === `${item.surahNumber}_${item.ayah.number}`;
+                            const isSelected = selectedAyahId === `${item.surahNumber}_${item.ayah.number}`;
                             const isSajdah = isSajdahAyah(item.surahNumber, item.ayah.number);
                             
                             return (
-                                <View key={item.ayah.globalNumber} style={styles.translationRow}>
+                                <View key={item.ayah.globalNumber} style={styles.translationRow} onLayout={(e) => { ayahYOffsetsRef.current[item.ayah.number] = e.nativeEvent.layout.y; }}>
                                     {isNewSurah && (
                                         <View style={[styles.surahDivider, { borderColor: theme.border, backgroundColor: theme.card, marginBottom: 16 }]}>
                                             <Text style={[styles.surahDividerText, { color: theme.primary }]}>
@@ -535,30 +742,43 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                                             </Text>
                                         </View>
                                     )}
-                                    <View
+                                    <TouchableOpacity
+                                        activeOpacity={0.75}
+                                        onPress={() => { setSelectedAyahId(`${item.surahNumber}_${item.ayah.number}`); onAyahChange?.(item.surahNumber, item.ayah.number); }}
                                         style={[
                                             styles.translationCard,
                                             {
-                                                backgroundColor: isHighlighted ? theme.primary + '10' : 'transparent',
-                                                borderColor: isHighlighted ? theme.primary : (isSajdah ? 'rgba(211, 47, 47, 0.3)' : 'transparent'),
-                                                borderWidth: 1,
+                                                backgroundColor: isHighlighted 
+                                                    ? activeBlueBg 
+                                                    : isSelected 
+                                                        ? `${activeBlue}15` 
+                                                        : 'transparent',
+                                                borderColor: isHighlighted 
+                                                    ? activeBlue 
+                                                    : isSelected 
+                                                        ? activeBlue 
+                                                        : (isSajdah ? 'rgba(211, 47, 47, 0.3)' : 'transparent'),
+                                                borderWidth: isHighlighted || isSelected ? 1.5 : 1,
                                                 borderRadius: 12,
-                                                padding: isHighlighted || isSajdah ? 12 : 4,
+                                                padding: isHighlighted || isSelected || isSajdah ? 12 : 6,
                                             }
                                         ]}
                                     >
-                                        <Text style={[styles.translationText, { color: theme.text }]}>
-                                            <Text style={[styles.translationAyahNo, { color: theme.primary }]}>
+                                        <Text style={[styles.translationText, { color: theme.text, fontSize: translationFontSize, lineHeight: Math.round(translationFontSize * 1.6) }]}>
+                                            <Text style={[styles.translationAyahNo, { color: isHighlighted || isSelected ? activeBlue : inactiveBlue, fontSize: Math.round(14 * (fontSizeScale || 1.0)) }]}>
                                                 {`[${item.ayah.number}] `}
                                             </Text>
                                             {item.ayah.translations[translationLanguage as AppLanguage] || item.ayah.translations.tr}
+                                            <Text style={[styles.translationAyahNo, { color: isHighlighted || isSelected ? activeBlue : inactiveBlue, fontWeight: '700', fontSize: Math.round(14 * (fontSizeScale || 1.0)) }]}>
+                                                {` ﴾${item.ayah.number}﴿`}
+                                            </Text>
                                             {isSajdah && (
-                                                <Text style={{ color: '#D32F2F', fontWeight: 'bold', fontSize: 12 }}>
+                                                <Text style={{ color: '#D32F2F', fontWeight: 'bold', fontSize: Math.round(12 * (fontSizeScale || 1.0)) }}>
                                                     {` [۩ ${t('common.sajdah_warning_short', 'Secde Ayeti')}]`}
                                                 </Text>
                                             )}
                                         </Text>
-                                    </View>
+                                    </TouchableOpacity>
                                 </View>
                             );
                         })}
@@ -566,43 +786,238 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
                 )}
             </ScrollView>
 
-            {/* Sabit Alt Kontrol Paneli (Footer Toggle) */}
-            <View style={[styles.footerToggleContainer, { borderTopColor: theme.border }]}>
-                <View style={[styles.pillContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {/* Sabit Alt Kontrol Paneli (Ses Çalar Paneli + Seçili Ayet Aksiyon Barı + Footer Toggle) */}
+            <View style={[styles.bottomControlPanel, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+                {/* Aktif Ses Oynatıcı Paneli (Sayfa Modu İçin Ergonomik Alt Panel) */}
+                {(sound || isPlaying || isLoading) && (
+                    <View style={[styles.pageAudioDeck, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                        {/* Üst Satır: Çalan Ayet + Tekrar + Hız + Kapat */}
+                        <View style={styles.pageAudioDeckTop}>
+                            <View style={styles.playingAyahIndicator}>
+                                <View style={[styles.playingPulseDot, { backgroundColor: isPlaying ? '#4CAF50' : theme.primary }]} />
+                                <Text style={[styles.playingAyahText, { color: theme.text }]} numberOfLines={1}>
+                                    {currentPlayingIndex !== null && pageAyahs[currentPlayingIndex]
+                                        ? `${pageAyahs[currentPlayingIndex].surahName} ${pageAyahs[currentPlayingIndex].ayah.number}`
+                                        : `${pageTitle} (${language === 'tr' ? 'Sayfa' : 'Page'} ${pageNumber})`}
+                                </Text>
+                            </View>
+
+                            <View style={styles.deckTopControls}>
+                                <TouchableOpacity
+                                    onPress={cycleRepeatCount}
+                                    style={[styles.deckChip, { borderColor: theme.border, backgroundColor: theme.card }]}
+                                    accessibilityLabel="Ayet tekrarı"
+                                >
+                                    <Repeat2 size={12} color={theme.primary} />
+                                    <Text style={[styles.deckChipText, { color: theme.primary }]}>{repeatCount}x</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => void cyclePlaybackRate()}
+                                    style={[styles.deckChip, { borderColor: theme.border, backgroundColor: theme.card }]}
+                                    accessibilityLabel="Okuma hızı"
+                                >
+                                    <Text style={[styles.deckChipText, { color: theme.primary }]}>{playbackRate}×</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={handleStopAudio}
+                                    style={styles.closeDeckBtn}
+                                    accessibilityLabel="Durdur ve kapat"
+                                >
+                                    <X size={16} color={theme.muted} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Geniş İlerleme Çubuğu — PanResponder ve Geniş HitSlop ile Sayfa Kaydırmayı Önler */}
+                        <View
+                            style={styles.deckScrubberWrapper}
+                            hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
+                            onLayout={(e) => setPageTrackWidth(e.nativeEvent.layout.width)}
+                            {...pagePanResponder.panHandlers}
+                        >
+                            <View style={[styles.deckTrackBg, { backgroundColor: theme.primary + '20' }]}>
+                                <View style={[styles.deckTrackFill, { width: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                                <View style={[styles.deckTrackThumb, { left: `${playProgress * 100}%`, backgroundColor: theme.primary }]} />
+                            </View>
+                        </View>
+
+                        {/* Alt Kontroller: Geri/İleri 5s, Oynat/Duraklat, Süreler */}
+                        <View style={styles.deckTransportRow}>
+                            <Text style={[styles.deckTimeText, { color: theme.muted }]}>
+                                {formatTime(positionMillis)}
+                            </Text>
+
+                            <View style={styles.deckTransportCluster}>
+                                <TouchableOpacity
+                                    onPress={() => void seekBy(-5)}
+                                    style={[styles.deckSeekBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                    accessibilityLabel="5 saniye geri"
+                                    activeOpacity={0.7}
+                                >
+                                    <RotateCcw size={15} color={theme.primary} />
+                                    <Text style={[styles.deckSeekNum, { color: theme.primary }]}>5</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={handlePlayPause}
+                                    style={[styles.deckMainPlayBtn, { backgroundColor: theme.primary }]}
+                                    accessibilityLabel={isPlaying ? 'Durdur' : 'Oynat'}
+                                    activeOpacity={0.8}
+                                >
+                                    {isLoading ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : isPlaying ? (
+                                        <Pause size={20} color="#fff" />
+                                    ) : (
+                                        <Play size={20} color="#fff" style={{ marginLeft: 2 }} />
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => void seekBy(5)}
+                                    style={[styles.deckSeekBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                    accessibilityLabel="5 saniye ileri"
+                                    activeOpacity={0.7}
+                                >
+                                    <RotateCw size={15} color={theme.primary} />
+                                    <Text style={[styles.deckSeekNum, { color: theme.primary }]}>5</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={[styles.deckTimeText, { color: theme.muted }]}>
+                                {formatTime(durationMillis)}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                {selectedAyah && (
+                    <View style={styles.selectedAyahContainer}>
+                        <View style={styles.selectedAyahInfoRow}>
+                            <Text style={[styles.selectedAyahInfoText, { color: theme.muted }]}>
+                                {t('common.selected_ayah', 'Seçili Ayet')}: <Text style={{ color: theme.text, fontWeight: '700' }}>{selectedAyah.surahName} {selectedAyah.ayah.number}</Text>
+                            </Text>
+                        </View>
+                        <AyahActionBar
+                            surahNumber={selectedAyah.surahNumber}
+                            ayahNumber={selectedAyah.ayah.number}
+                            surahName={selectedAyah.surahName}
+                            translation={selectedAyah.ayah.translations[translationLanguage as AppLanguage] || selectedAyah.ayah.translations.tr}
+                            analyticsScreen="page_reader"
+                            primaryAction={isArabic ? "play" : "ai"}
+                            isPlaying={isPlaying && currentPlayingIndex !== null && pageAyahs[currentPlayingIndex]?.ayah.number === selectedAyah.ayah.number}
+                            onPlayPress={() => {
+                                const idx = pageAyahs.findIndex(p => p.ayah.number === selectedAyah.ayah.number && p.surahNumber === selectedAyah.surahNumber);
+                                if (idx >= 0) {
+                                    void playAyahAtIndex(idx);
+                                } else {
+                                    void handlePlayPause();
+                                }
+                            }}
+                        />
+                    </View>
+                )}
+
+                <View style={styles.pageBottomNavRow}>
                     <TouchableOpacity
                         style={[
-                            styles.pillButton,
-                            isArabic && { backgroundColor: theme.primary }
+                            styles.pageNavBtn,
+                            {
+                                backgroundColor: theme.background,
+                                borderColor: theme.border,
+                                opacity: pageNumber <= 1 ? 0.35 : 1,
+                            }
                         ]}
-                        onPress={() => onToggleMode('arabic')}
+                        disabled={pageNumber <= 1}
+                        onPress={onPrevPage}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.prev_page', 'Önceki Sayfa')}
+                        activeOpacity={0.7}
                     >
-                        <Text
-                            style={[
-                                styles.pillButtonText,
-                                { color: isArabic ? '#fff' : theme.muted }
-                            ]}
-                        >
-                            {t('common.arabic')}
+                        <ChevronLeft size={16} color={theme.text} />
+                        <Text style={[styles.pageNavBtnText, { color: theme.text }]}>
+                            {t('common.prev', 'Önceki')}
                         </Text>
                     </TouchableOpacity>
+
+                    <View style={[styles.pillContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                        <TouchableOpacity
+                            style={[
+                                styles.pillButton,
+                                isArabic && { backgroundColor: theme.primary }
+                            ]}
+                            onPress={() => onToggleMode('arabic')}
+                        >
+                            <Text
+                                style={[
+                                    styles.pillButtonText,
+                                    { color: isArabic ? '#fff' : theme.muted }
+                                ]}
+                            >
+                                {t('common.arabic')}
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.pillButton,
+                                !isArabic && { backgroundColor: theme.primary }
+                            ]}
+                            onPress={() => onToggleMode('translation')}
+                        >
+                            <Text
+                                style={[
+                                    styles.pillButtonText,
+                                    { color: !isArabic ? '#fff' : theme.muted }
+                                ]}
+                            >
+                                {t('common.translation')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
                         style={[
-                            styles.pillButton,
-                            !isArabic && { backgroundColor: theme.primary }
+                            styles.pageNavBtn,
+                            {
+                                backgroundColor: theme.background,
+                                borderColor: theme.border,
+                                opacity: pageNumber >= 604 ? 0.35 : 1,
+                            }
                         ]}
-                        onPress={() => onToggleMode('translation')}
+                        disabled={pageNumber >= 604}
+                        onPress={onNextPage}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.next_page', 'Sonraki Sayfa')}
+                        activeOpacity={0.7}
                     >
-                        <Text
-                            style={[
-                                styles.pillButtonText,
-                                { color: !isArabic ? '#fff' : theme.muted }
-                            ]}
-                        >
-                            {t('common.translation')}
+                        <Text style={[styles.pageNavBtnText, { color: theme.text }]}>
+                            {t('common.next', 'Sonraki')}
                         </Text>
+                        <ChevronRight size={16} color={theme.text} />
                     </TouchableOpacity>
                 </View>
             </View>
+            {/* Kayan Yukarı Çık Butonu (Floating Back-to-Top Button) */}
+            {showBackToTop && (
+                <TouchableOpacity
+                    style={[
+                        styles.floatingBackToTop,
+                        {
+                            backgroundColor: theme.card,
+                            borderColor: theme.border,
+                            bottom: (sound || isPlaying || isLoading) ? 230 : 160,
+                        }
+                    ]}
+                    onPress={() => scrollViewRef.current?.scrollTo({ y: 0, animated: true })}
+                    activeOpacity={0.8}
+                    accessibilityLabel={t("common.scroll_to_top", "Yukarı Çık")}
+                >
+                    <ChevronUp size={20} color={theme.primary} />
+                </TouchableOpacity>
+            )}
+
             {chatAyah && (
                 <VerseChatModal
                     visible
@@ -615,7 +1030,7 @@ export const QuranPageCard: React.FC<QuranPageCardProps> = ({
             )}
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     cardContainer: {
@@ -638,92 +1053,143 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
-    pageAudioControls: {
+    pageHeaderRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        flexShrink: 1,
+        gap: 8,
     },
-    pageAudioBtn: {
-        padding: 6,
-        marginLeft: 4,
-    },
-    compactAiButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+    headerAiButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(182, 154, 115, 0.10)',
-        marginRight: 4,
     },
-    progressBarContainer: {
-        width: 170,
-        height: 18,
+    headerPlayBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        borderWidth: 1,
+        alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 4,
     },
-    progressBarBg: {
-        width: 170,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: 'rgba(182, 154, 115, 0.2)',
-        position: 'relative',
+    pageAudioDeck: {
+        width: '100%',
+        borderRadius: 16,
+        borderWidth: 1,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        gap: 8,
     },
-    progressBarFill: {
-        height: '100%',
-        borderRadius: 3,
-    },
-    progressThumb: {
-        position: 'absolute',
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        top: -3,
-        marginLeft: -6,
-    },
-    playerDetails: {
-        width: 170,
-        marginHorizontal: 4,
-    },
-    transportRow: {
-        width: 170,
+    pageAudioDeckTop: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        width: '100%',
     },
-    smallControl: {
-        minWidth: 26,
-        height: 22,
+    playingAyahIndicator: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        gap: 6,
+        flex: 1,
     },
-    seekLabel: {
-        fontSize: 8,
-        fontWeight: '800',
-        marginLeft: -2,
+    playingPulseDot: {
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
     },
-    timeText: {
-        fontSize: 8,
-        fontVariant: ['tabular-nums'],
+    playingAyahText: {
+        fontSize: 12,
+        fontWeight: '700',
     },
-    rateButton: {
-        minWidth: 36,
-        height: 20,
+    deckTopControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    deckChip: {
+        paddingHorizontal: 8,
+        height: 24,
+        borderRadius: 12,
         borderWidth: 1,
-        borderRadius: 10,
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row',
+        gap: 3,
     },
-    rateText: {
-        fontSize: 9,
+    deckChipText: {
+        fontSize: 11,
         fontWeight: '800',
     },
-    repeatText: {
-        fontSize: 8,
-        fontWeight: '800',
+    closeDeckBtn: {
+        padding: 4,
         marginLeft: 2,
+    },
+    deckScrubberWrapper: {
+        width: '100%',
+        height: 42,
+        justifyContent: 'center',
+    },
+    deckTrackBg: {
+        width: '100%',
+        height: 6,
+        borderRadius: 3,
+        position: 'relative',
+    },
+    deckTrackFill: {
+        height: '100%',
+        borderRadius: 3,
+    },
+    deckTrackThumb: {
+        position: 'absolute',
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        top: -4,
+        marginLeft: -7,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    deckTransportRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    deckTimeText: {
+        fontSize: 11,
+        fontWeight: '600',
+        fontVariant: ['tabular-nums'],
+        minWidth: 36,
+    },
+    deckTransportCluster: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    deckSeekBtn: {
+        width: 34,
+        height: 30,
+        borderRadius: 15,
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1,
+    },
+    deckSeekNum: {
+        fontSize: 10,
+        fontWeight: '800',
+    },
+    deckMainPlayBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     scrollArea: {
         flex: 1,
@@ -731,7 +1197,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: 20,
         paddingTop: 16,
-        paddingBottom: 100, // Toggle pill bottom padding
+        paddingBottom: 190, // Bottom control panel padding
     },
     arabicFlowContainer: {
         width: '100%',
@@ -754,6 +1220,9 @@ const styles = StyleSheet.create({
     },
     arabicWordText: {
         textAlign: 'right',
+    },
+    ayahStartBadge: {
+        textAlign: 'center',
     },
     ayahNumberBadge: {
         textAlign: 'center',
@@ -790,22 +1259,64 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 14,
     },
-    footerToggleContainer: {
+    bottomControlPanel: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        paddingVertical: 16,
-        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingTop: 10,
+        paddingBottom: 16,
         borderTopWidth: StyleSheet.hairlineWidth,
-        backgroundColor: 'transparent',
+        gap: 10,
+        alignItems: 'center',
+    },
+    selectedAyahContainer: {
+        width: '100%',
+        gap: 6,
+    },
+    selectedAyahInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 4,
+    },
+    selectedAyahInfoText: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    pageBottomNavRow: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 2,
+    },
+    pageNavBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
+        height: 38,
+        borderRadius: 19,
+        borderWidth: 1,
+        gap: 4,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+    },
+    pageNavBtnText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     pillContainer: {
         flexDirection: 'row',
         borderRadius: 24,
         borderWidth: 1,
         padding: 4,
-        width: 220,
+        width: 172,
         elevation: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -822,5 +1333,52 @@ const styles = StyleSheet.create({
     pillButtonText: {
         fontSize: 14,
         fontWeight: '600',
+    },
+    ayahStripContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    ayahStripLabelWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    ayahStripLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    ayahStripScroll: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingRight: 16,
+    },
+    ayahChip: {
+        minWidth: 34,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 8,
+    },
+    ayahChipText: {
+        fontSize: 12,
+        fontWeight: '700',
+        fontVariant: ['tabular-nums'],
+    },
+    floatingBackToTop: {
+        position: 'absolute',
+        right: 18,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 99,
     },
 });

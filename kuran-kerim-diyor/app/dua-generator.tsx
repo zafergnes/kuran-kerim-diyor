@@ -25,6 +25,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/useAppTheme';
 import apiClient from '../services/apiClient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface InvokedName {
     arabic: string;
@@ -52,6 +53,7 @@ export default function DuaGeneratorScreen() {
     const { t, i18n } = useTranslation();
     const { theme } = useAppTheme();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const params = useLocalSearchParams<{ name?: string }>();
 
     const [intention, setIntention] = useState('');
@@ -157,7 +159,14 @@ export default function DuaGeneratorScreen() {
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.card }]}>
+            <View style={[
+                styles.header, 
+                { 
+                    borderBottomColor: theme.border, 
+                    backgroundColor: theme.card,
+                    paddingTop: Math.max(insets.top, 16) + 10,
+                }
+            ]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <ChevronLeft size={24} color={theme.text} />
                 </TouchableOpacity>
@@ -167,7 +176,10 @@ export default function DuaGeneratorScreen() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 20) + 40 }]} 
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Verse Banner */}
                 <View style={[styles.verseBanner, { backgroundColor: 'rgba(182, 154, 115, 0.1)', borderColor: 'rgba(182, 154, 115, 0.25)' }]}>
                     <Text style={[styles.verseArabic, { color: theme.primary }]}>
@@ -398,7 +410,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingTop: 52,
         paddingBottom: 14,
         borderBottomWidth: 1,
     },

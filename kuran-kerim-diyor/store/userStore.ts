@@ -28,6 +28,7 @@ interface UserState {
     readingLayout: 'single' | 'page';
     arabicFontFamily: 'noto-naskh' | 'amiri';
     selectedArabicScript: 'uthmani' | 'diyanet';
+    fontSizeScale: number;
 
     // Auth state
     userId: string | null;
@@ -61,6 +62,7 @@ interface UserState {
     setReadingLayout: (layout: 'single' | 'page') => void;
     setArabicFontFamily: (font: 'noto-naskh' | 'amiri') => void;
     setSelectedArabicScript: (script: 'uthmani' | 'diyanet') => void;
+    setFontSizeScale: (scale: number) => void;
     addCollection: (name: string, initialAyahId?: string) => void;
     deleteCollection: (colId: string) => void;
     addAyahToCollection: (ayahId: string, colId: string) => void;
@@ -134,7 +136,7 @@ const calculateUnlockedAchievements = (state: {
 
 export const useUserStore = create<UserState>((set, get) => ({
     language: 'tr', // Default
-    themePreference: 'system',
+    themePreference: 'sepia',
     currentSurah: 1,
     currentAyah: 1,
     completedSurahs: [],
@@ -147,6 +149,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     readingLayout: 'page',
     arabicFontFamily: 'noto-naskh',
     selectedArabicScript: 'diyanet',
+    fontSizeScale: 1.4,
 
     isInitialProgressLoad: true,
     seenAchievements: [],
@@ -363,7 +366,7 @@ export const useUserStore = create<UserState>((set, get) => ({
             if (storedFavs) set({ favorites: JSON.parse(storedFavs) });
 
             const storedTheme = await AsyncStorage.getItem('@app_theme');
-            if (storedTheme === 'system' || storedTheme === 'light' || storedTheme === 'dark') {
+            if (storedTheme === 'system' || storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'sepia') {
                 set({ themePreference: storedTheme });
             }
             
@@ -460,6 +463,14 @@ export const useUserStore = create<UserState>((set, get) => ({
                 set({ selectedArabicScript: currentLang === 'tr' ? 'diyanet' : 'uthmani' });
             }
 
+            const storedScale = await AsyncStorage.getItem('@app_font_size_scale');
+            if (storedScale) {
+                const parsed = parseFloat(storedScale);
+                if (!isNaN(parsed) && parsed >= 0.75 && parsed <= 1.7) {
+                    set({ fontSizeScale: parsed });
+                }
+            }
+
             // Streak yükleme
             const storedStreak = await AsyncStorage.getItem('@app_streak_count');
             const storedLastActive = await AsyncStorage.getItem('@app_last_active_date');
@@ -550,6 +561,14 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ selectedArabicScript: script });
         import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
             AsyncStorage.setItem('@app_arabic_script', script);
+        });
+    },
+
+    setFontSizeScale: (scale: number) => {
+        const clamped = Math.min(2.0, Math.max(0.8, Math.round(scale * 100) / 100));
+        set({ fontSizeScale: clamped });
+        import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+            AsyncStorage.setItem('@app_font_size_scale', String(clamped));
         });
     },
 

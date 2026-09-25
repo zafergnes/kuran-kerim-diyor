@@ -1,9 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
+  StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { Flag, Send, ShieldCheck, MessageCircle, X } from 'lucide-react-native';
+import { Flag, Send, ShieldCheck, Sparkles, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
@@ -24,7 +24,7 @@ export function VerseChatModal(props: Props) {
   const { visible, onClose, surahNumber, ayahNumber, reference, translation } = props;
   const { t } = useTranslation();
   const language = useUserStore((state) => state.language);
-  const { theme } = useAppTheme();
+  const { theme, colorScheme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const [messages, setMessages] = useState<VerseChatMessage[]>([]);
@@ -93,19 +93,41 @@ export function VerseChatModal(props: Props) {
     ]);
   };
 
+  const topSafeArea = Platform.OS === 'android'
+    ? Math.max(insets.top, (StatusBar.currentHeight || 0)) + 6
+    : Math.max(insets.top, 14);
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      statusBarTranslucent={Platform.OS === 'android'}
+      onRequestClose={onClose}
+    >
+      <StatusBar
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent={Platform.OS === 'android'}
+      />
       <KeyboardAvoidingView
         style={[styles.root, { backgroundColor: theme.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
-        <View style={[styles.header, { borderBottomColor: theme.border }]}>
-          <View style={styles.heading}><MessageCircle size={18} color={theme.primary} /><View>
-            <Text style={[styles.title, { color: theme.text }]}>{t('verse_chat.title', 'Ayet Üzerine Konuş')}</Text>
-            <Text style={[styles.reference, { color: theme.muted }]}>{reference}</Text>
-          </View></View>
-          <TouchableOpacity onPress={onClose} style={styles.close}><X size={20} color={theme.text} /></TouchableOpacity>
+        <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: topSafeArea }]}>
+          <View style={styles.heading}>
+            <View style={[styles.aiIconBadge, { backgroundColor: theme.primary + '18' }]}>
+              <Sparkles size={18} color={theme.primary} />
+            </View>
+            <View>
+              <Text style={[styles.title, { color: theme.text }]}>{t('verse_chat.title', 'Ayet Üzerine Konuş')}</Text>
+              <Text style={[styles.reference, { color: theme.muted }]}>{reference}</Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={onClose} style={[styles.close, { backgroundColor: theme.card }]} accessibilityRole="button" accessibilityLabel={t('common.close', 'Kapat')}>
+            <X size={18} color={theme.text} />
+          </TouchableOpacity>
         </View>
         <ScrollView
           ref={scrollRef}
@@ -144,11 +166,126 @@ export function VerseChatModal(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth },
-  heading: { flexDirection: 'row', alignItems: 'center', gap: 9 }, title: { fontSize: 17, fontWeight: '700' }, reference: { fontSize: 11, marginTop: 2 }, close: { padding: 7 },
-  scroll: { flex: 1 }, content: { padding: 16, gap: 12 }, verse: { padding: 12, borderRadius: 12, borderWidth: 1 }, verseText: { textAlign: 'center', fontSize: 14, lineHeight: 20 },
-  notice: { flexDirection: 'row', gap: 7, alignItems: 'center' }, noticeText: { flex: 1, fontSize: 11, lineHeight: 16 }, suggestions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  suggestion: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, borderWidth: 1 }, message: { maxWidth: '88%', padding: 11, borderRadius: 14 }, user: { alignSelf: 'flex-end', borderBottomRightRadius: 3 }, assistant: { alignSelf: 'flex-start', borderBottomLeftRadius: 3 },
-  report: { flexDirection: 'row', gap: 5, alignItems: 'center', alignSelf: 'flex-start', padding: 5 }, composer: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  input: { flex: 1, minHeight: 42, maxHeight: 100, borderWidth: 1, borderRadius: 17, paddingHorizontal: 13, paddingVertical: 10 }, send: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  root: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  heading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  aiIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  reference: {
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  close: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    gap: 12,
+  },
+  verse: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  verseText: {
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  notice: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  noticeText: {
+    flex: 1,
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  suggestions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  suggestion: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  message: {
+    maxWidth: '88%',
+    padding: 12,
+    borderRadius: 16,
+  },
+  user: {
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
+  },
+  assistant: {
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  report: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    padding: 6,
+  },
+  composer: {
+    padding: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 110,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+  },
+  send: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

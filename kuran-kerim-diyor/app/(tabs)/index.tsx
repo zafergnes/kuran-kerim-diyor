@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Text, PanResponder, GestureResponderEvent, I18nManager, Animated, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronLeft, Heart, CalendarDays, Flame } from 'lucide-react-native';
+import { ChevronLeft, CalendarDays, Flame, Type } from 'lucide-react-native';
 import { StreakModal } from '../../components/StreakModal';
+import { FontSizeModal } from '../../components/FontSizeModal';
 import { DailyVerseService, DailyVerse } from '../../services/dailyVerseService';
 import { VerseShareCard } from '../../components/VerseShareCard';
 import { Modal, ScrollView } from 'react-native';
@@ -13,19 +14,12 @@ import { useProgress } from '../../hooks/useProgress';
 import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { useUserStore } from '../../store/userStore';
-import { DeleteWarningModal } from '../../components/DeleteWarningModal';
-import { useAyahStats } from '../../hooks/useAyahStats';
 import { QuranPageCard } from '../../components/QuranPageCard';
 import { ReadingJourneyService } from '../../services/readingJourneyService';
 import { getPageFromSurahAyah } from '../../utils/quranHelpers';
 import { PAGE_START_MAP } from '../../utils/pageMapping';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../../hooks/useAppTheme';
-
-const formatFavCount = (n: number) => {
-    if (n < 1000) return n.toString();
-    return (n / 1000).toFixed(1) + 'k';
-};
 
 const { width } = Dimensions.get('window');
 
@@ -49,10 +43,6 @@ export default function MainFeedScreen() {
     const [barHeight, setBarHeight] = useState(0);
     const [isScrubbing, setIsScrubbing] = useState(false);
     const { 
-        favorites, 
-        toggleFavorite, 
-        hideFavoriteDeleteWarning, 
-        setHideFavoriteDeleteWarning,
         readingLayout,
         arabicFontFamily,
         streakCount,
@@ -60,13 +50,13 @@ export default function MainFeedScreen() {
         isInitialProgressLoad,
         recordDailyActivity,
     } = useUserStore();
-    const [showDeleteWarning, setShowDeleteWarning] = useState(false);
     const [dailyVerse, setDailyVerse] = useState<DailyVerse | null>(null);
     const [showDailyModal, setShowDailyModal] = useState(false);
     const [showStreakModal, setShowStreakModal] = useState(false);
-    const [activePageMode, setActivePageMode] = useState<'arabic' | 'translation'>('arabic');
+    const [activePageMode, setActivePageMode] = useState<'arabic' | 'translation'>('translation');
     const [highlightedAyahId, setHighlightedAyahId] = useState<string | null>(null);
     const [isAudioInteracting, setIsAudioInteracting] = useState(false);
+    const [showFontModal, setShowFontModal] = useState(false);
 
     useEffect(() => {
         setHighlightedAyahId(`${currentSurah}_${currentAyah}`);
@@ -91,6 +81,17 @@ export default function MainFeedScreen() {
             setShowDailyModal(true);
         }
     }, [params.showDaily]);
+
+    useEffect(() => {
+        if (params.surah && params.ayah) {
+            const s = Number(params.surah);
+            const a = Number(params.ayah);
+            if (Number.isInteger(s) && Number.isInteger(a)) {
+                setProgress(s, a);
+                setHighlightedAyahId(`${s}_${a}`);
+            }
+        }
+    }, [params.surah, params.ayah, params.t, setProgress]);
 
     useEffect(() => {
         if (isInitialProgressLoad) return;
@@ -224,6 +225,24 @@ export default function MainFeedScreen() {
         }, 100);
     }, [surah, setProgress]);
 
+    const handleNextPage = useCallback((pageNum: number) => {
+        const targetPage = Math.min(604, pageNum + 1);
+        try {
+            flatListRef.current?.scrollToIndex({ index: targetPage - 1, animated: true });
+        } catch (_) {}
+    }, []);
+
+    const handlePrevPage = useCallback((pageNum: number) => {
+        const targetPage = Math.max(1, pageNum - 1);
+        try {
+            flatListRef.current?.scrollToIndex({ index: targetPage - 1, animated: true });
+        } catch (_) {}
+    }, []);
+
+    const handleAyahChange = useCallback((surahNum: number, ayahNum: number) => {
+        setProgress(surahNum, ayahNum);
+    }, [setProgress]);
+
     const nextSurah = surah && surah.number < 114 ? getSurah(surah.number + 1) : undefined;
 
     useEffect(() => {
@@ -232,100 +251,63 @@ export default function MainFeedScreen() {
         });
     }, []);
 
-    const favoriteId = surah ? `${surah.number}_${uiAyah}` : null;
-    // Map içinde key var mı kontrolü
-    const isFavorited = favoriteId ? !!favorites[favoriteId] : false;
-    
-    const { favoriteCount: globalFavCount, incrementOptimistic } = useAyahStats(surah?.number || 0, uiAyah);
-    
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const executeToggle = React.useCallback(() => {
-        if (!favoriteId) return;
-        toggleFavorite(favoriteId);
-        incrementOptimistic(isFavorited ? -1 : 1);
-        
-        Animated.sequence([
-            Animated.spring(scaleAnim, {
-                toValue: 1.3,
-                useNativeDriver: true,
-                speed: 20
-            }),
-            Animated.spring(scaleAnim, {
-                toValue: 1,
-                useNativeDriver: true,
-                speed: 20
-            })
-        ]).start();
-    }, [favoriteId, toggleFavorite, incrementOptimistic, isFavorited, scaleAnim]);
-
-    const handleToggleFavorite = React.useCallback(() => {
-        if (!favoriteId) return;
-        // Eğer favoriden çikariyorsak ve uyarilmasini gizlemediyse uyar
-        if (isFavorited && !hideFavoriteDeleteWarning) {
-            setShowDeleteWarning(true);
-        } else {
-            executeToggle();
-        }
-    }, [favoriteId, isFavorited, hideFavoriteDeleteWarning, executeToggle]);
-
-    const handleConfirmDelete = (dontAskAgain: boolean) => {
-        if (dontAskAgain) {
-            setHideFavoriteDeleteWarning(true);
-        }
-        setShowDeleteWarning(false);
-        executeToggle();
-    };
-
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 8 }}>
+                    {/* Yazı Boyutu Butonu (aA) */}
+                    <TouchableOpacity
+                        onPress={() => setShowFontModal(true)}
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'baseline',
+                            justifyContent: 'center',
+                            paddingHorizontal: 8,
+                            paddingVertical: 5,
+                            borderRadius: 14,
+                            backgroundColor: theme.card,
+                            borderWidth: 1,
+                            borderColor: theme.border,
+                            marginRight: 6,
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('settings.font_size', 'Yazı Boyutu')}
+                    >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: theme.text }}>a</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '800', color: theme.text, marginLeft: 1 }}>A</Text>
+                    </TouchableOpacity>
+
                     {/* Streak Button */}
                     <TouchableOpacity
                         onPress={() => setShowStreakModal(true)}
                         style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            marginRight: 10,
-                            paddingHorizontal: 8,
-                            paddingVertical: 4,
+                            marginRight: 8,
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
                             borderRadius: 14,
                             backgroundColor: todayCompleted ? 'rgba(226, 88, 34, 0.12)' : 'rgba(182, 154, 115, 0.10)',
                             borderWidth: 1,
                             borderColor: todayCompleted ? '#E25822' : 'transparent',
-                            gap: 4,
+                            gap: 5,
                         }}
                     >
                         <Flame size={17} color="#E25822" fill={todayCompleted ? '#E25822' : 'transparent'} />
-                        <Text style={{ fontSize: 12, fontWeight: '800', color: theme.text }}>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: theme.text }}>
                             {streakCount}
                         </Text>
                     </TouchableOpacity>
 
                     {dailyVerse && (
-                        <TouchableOpacity onPress={() => setShowDailyModal(true)} style={{ marginRight: 8, padding: 4 }}>
-                            <CalendarDays size={24} color={theme.primary} />
+                        <TouchableOpacity onPress={() => setShowDailyModal(true)} style={{ padding: 6 }}>
+                            <CalendarDays size={22} color={theme.primary} />
                         </TouchableOpacity>
-                    )}
-                    <TouchableOpacity onPress={handleToggleFavorite} style={{ marginRight: 16, padding: 4 }}>
-                        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                            <Heart 
-                                size={24} 
-                                color={theme.primary} 
-                                fill={isFavorited ? theme.primary : 'transparent'} 
-                            />
-                        </Animated.View>
-                    </TouchableOpacity>
-                    {globalFavCount > 0 && (
-                        <Text style={{ fontSize: 10, color: theme.primary, marginRight: 16, marginTop: -4, fontWeight: 'bold' }}>
-                            {formatFavCount(globalFavCount)}
-                        </Text>
                     )}
                 </View>
             ),
         });
-    }, [navigation, isFavorited, handleToggleFavorite, theme.primary, theme.text, scaleAnim, globalFavCount, dailyVerse, streakCount, todayCompleted]);
+    }, [navigation, theme.primary, theme.text, dailyVerse, streakCount, todayCompleted, t]);
 
     if (!surah) return null;
 
@@ -395,17 +377,25 @@ export default function MainFeedScreen() {
                 ref={flatListRef}
                 data={readingLayout === 'page' ? PAGES_ARRAY : surah.ayahs}
                 keyExtractor={(item) => readingLayout === 'page' ? item.toString() : (item as any).globalNumber.toString()}
+                windowSize={3}
+                maxToRenderPerBatch={2}
+                initialNumToRender={1}
+                removeClippedSubviews={Platform.OS === 'android'}
                 renderItem={({ item }) => {
                     if (readingLayout === 'page') {
+                        const pageNum = item as number;
                         return (
                             <View style={{ height: containerHeight, width }}>
                                 <QuranPageCard
-                                    pageNumber={item as number}
+                                    pageNumber={pageNum}
                                     containerHeight={containerHeight}
                                     highlightedAyahId={highlightedAyahId}
                                     activeMode={activePageMode}
                                     onToggleMode={setActivePageMode}
                                     onAudioInteractionChange={setIsAudioInteracting}
+                                    onNextPage={() => handleNextPage(pageNum)}
+                                    onPrevPage={() => handlePrevPage(pageNum)}
+                                    onAyahChange={handleAyahChange}
                                 />
                             </View>
                         );
@@ -475,11 +465,6 @@ export default function MainFeedScreen() {
                     <Text style={styles.swipeHintText}>{t('common.swipe_hint')}</Text>
                 </View>
             )}
-            <DeleteWarningModal 
-                visible={showDeleteWarning}
-                onCancel={() => setShowDeleteWarning(false)}
-                onConfirm={handleConfirmDelete}
-            />
 
             {/* Günün Ayeti Modalı */}
             <Modal
@@ -513,6 +498,12 @@ export default function MainFeedScreen() {
             <StreakModal 
                 visible={showStreakModal}
                 onClose={() => setShowStreakModal(false)}
+            />
+
+            {/* Yazı Boyutu ve Hat Stili Modalı */}
+            <FontSizeModal
+                visible={showFontModal}
+                onClose={() => setShowFontModal(false)}
             />
         </View>
     );

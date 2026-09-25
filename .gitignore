@@ -42,3 +42,4 @@ yarn-error.*
 
 # Local git backups
 *.git-backup/
+ekran görüntüleri/
