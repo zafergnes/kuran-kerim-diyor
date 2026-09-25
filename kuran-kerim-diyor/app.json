@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
-      "buildNumber": "5",
+      "buildNumber": "10",
       "appleTeamId": "CD5FK55DWW",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -19,7 +19,7 @@
       }
     },
     "android": {
-      "versionCode": 5,
+      "versionCode": 10,
       "package": "com.kurankerimdiyor",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

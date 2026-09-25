@@ -1007,7 +1007,9 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
                         {
                             backgroundColor: theme.card,
                             borderColor: theme.border,
-                            bottom: (sound || isPlaying || isLoading) ? 230 : 160,
+                            bottom: (sound || isPlaying || isLoading)
+                                ? (selectedAyah ? 295 : 240)
+                                : 160,
                         }
                     ]}
                     onPress={() => scrollViewRef.current?.scrollTo({ y: 0, animated: true })}
@@ -1124,6 +1126,7 @@ const styles = StyleSheet.create({
     closeDeckBtn: {
         padding: 4,
         marginLeft: 2,
+        zIndex: 100,
     },
     deckScrubberWrapper: {
         width: '100%',
