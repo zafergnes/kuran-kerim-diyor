@@ -19,6 +19,7 @@ import verseChatRoutes from './routes/verse-chat.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import supportRoutes from './routes/support.routes';
 import duaGeneratorRoutes from './routes/dua-generator.routes';
+import hadithRoutes from './routes/hadith.routes';
 import { startModerationWorker } from './services/worker.service';
 import { NotificationService } from './services/notification.service';
 
@@ -72,6 +73,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/verse-chat', verseChatRoutes);
 app.use('/api/dua-generator', duaGeneratorRoutes);
+app.use('/api/hadith', hadithRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/support', supportRoutes);
 

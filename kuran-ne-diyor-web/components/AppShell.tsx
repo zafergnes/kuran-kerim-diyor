@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield, ShieldCheck, Sparkles, Flame } from "lucide-react";
+import { BookOpen, Heart, Home, LogIn, MessageSquare, Search, Settings, User, Menu, X, Shield, ShieldCheck, Sparkles, Flame, ScrollText } from "lucide-react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { useUserStore } from "@/store/userStore";
+import { HADITH_STRINGS } from "@/services/hadithData";
 import { InstallPrompt } from "./InstallPrompt";
 import { CelebrationModal } from "./CelebrationModal";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -17,11 +18,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useUserStore((state) => state.user);
   const streakCount = useUserStore((state) => state.streakCount);
   const todayCompleted = useUserStore((state) => state.todayCompleted);
+  const language = useUserStore((state) => state.language);
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: "/", label: t("tabs.quran", "Ana Sayfa"), icon: Home },
+    { href: "/hadis", label: (HADITH_STRINGS[language] ?? HADITH_STRINGS.tr).title, icon: ScrollText },
     { href: "/names", label: t("names.nav_title", "Esma-ül Hüsna"), icon: Heart },
     { href: "/dua-generator", label: t("dua.nav_title", "Dua Asistanı"), icon: Sparkles },
     { href: "/search", label: t("tabs.search", "Ara"), icon: Search },

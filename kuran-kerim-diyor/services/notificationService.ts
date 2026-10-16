@@ -1,10 +1,28 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Localization from 'expo-localization';
 import { Platform } from 'react-native';
 import apiClient from './apiClient';
 import { useUserStore } from '../store/userStore';
 
+const DAILY_HADITH_KEY = '@notifications_daily_hadith';
+
 export class NotificationService {
+  /** Akşam hadis bildirimi tercihi; varsayılan olarak açıktır. */
+  static async isDailyHadithEnabled() {
+    try {
+      return (await AsyncStorage.getItem(DAILY_HADITH_KEY)) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  /** Tercihi kaydeder; izin verilmişse sunucudaki kaydı izin penceresi açmadan günceller. */
+  static async setDailyHadithEnabled(enabled: boolean) {
+    await AsyncStorage.setItem(DAILY_HADITH_KEY, enabled ? 'true' : 'false');
+    await this.refreshRegistrationIfGranted();
+  }
+
   /**
    * İlk mağaza açılışında sistem izin penceresini gösterir. Kullanıcı daha önce
    * karar verdiyse yeniden istemez; verilmiş izinde yalnızca kaydı tazeler.
@@ -121,6 +139,7 @@ export class NotificationService {
           token,
           timezone,
           language,
+          dailyHadith: await this.isDailyHadithEnabled(),
           userId
         });
         console.log('[NotificationService] Push registration completed.');

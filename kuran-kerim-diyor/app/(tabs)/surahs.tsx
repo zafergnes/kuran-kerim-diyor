@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CheckCircle2, Heart, Sparkles, ShieldCheck, Compass } from 'lucide-react-native';
+import { CheckCircle2, Heart, Sparkles, ShieldCheck, Compass, ScrollText } from 'lucide-react-native';
 import { getAllSurahs } from '../../services/quranData';
 import { useProgress } from '../../hooks/useProgress';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { useUserStore } from '../../store/userStore';
+import { getDailyHadithIndex, HADITH_STRINGS, HADITHS, hadithExcerpt } from '../../services/hadithData';
 
 export default function SurahsScreen() {
     const { t } = useTranslation();
@@ -13,6 +15,10 @@ export default function SurahsScreen() {
     const { theme } = useAppTheme();
     const router = useRouter();
     const { setProgress, completedSurahs } = useProgress();
+    const language = useUserStore((state) => state.language);
+    const hadithStrings = HADITH_STRINGS[language] ?? HADITH_STRINGS.tr;
+    const dailyHadith = HADITHS[getDailyHadithIndex()];
+    const hadithPreview = hadithExcerpt(dailyHadith.text[language] ?? dailyHadith.text.tr, 90);
 
     const handlePress = (surahNumber: number) => {
         setProgress(surahNumber, 1);
@@ -38,6 +44,21 @@ export default function SurahsScreen() {
                             <View style={styles.quickCardTextContainer}>
                                 <Text style={styles.journeyTitle}>{t('settings.journey_title')}</Text>
                                 <Text style={styles.journeyDesc}>{t('settings.journey_subtitle')}</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => router.push('/hadith')}
+                            style={[styles.quickCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                        >
+                            <View style={[styles.quickIconCircle, { backgroundColor: 'rgba(182, 154, 115, 0.15)' }]}>
+                                <ScrollText size={20} color={theme.primary} />
+                            </View>
+                            <View style={styles.quickCardTextContainer}>
+                                <Text style={[styles.quickCardTitle, { color: theme.text }]}>{hadithStrings.daily}</Text>
+                                <Text style={[styles.quickCardDesc, { color: theme.muted }]} numberOfLines={2}>{hadithPreview}</Text>
                             </View>
                         </TouchableOpacity>
 

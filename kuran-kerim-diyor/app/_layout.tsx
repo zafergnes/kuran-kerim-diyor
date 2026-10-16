@@ -85,7 +85,9 @@ export default function RootLayout() {
 
                 notificationListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
                     const data = response.notification.request.content.data;
-                    if (data?.showDaily === 'true') {
+                    if (data?.showHadith === 'true') {
+                        router.push({ pathname: '/hadith', params: data?.hadithId ? { id: String(data.hadithId) } : {} });
+                    } else if (data?.showDaily === 'true') {
                         if (data?.surah && data?.ayah) {
                             import('../store/userStore').then(({ useUserStore }) => {
                                 useUserStore.getState().setProgress(Number(data.surah), Number(data.ayah));
@@ -185,6 +187,7 @@ export default function RootLayout() {
                 <Stack.Screen name="journey" options={{ headerShown: false }} />
                 <Stack.Screen name="names99" options={{ headerShown: false }} />
                 <Stack.Screen name="ayetel-kursi" options={{ headerShown: false }} />
+                <Stack.Screen name="hadith" options={{ headerShown: false }} />
                 <Stack.Screen name="dua-generator" options={{ headerShown: false }} />
             </Stack>
             <CelebrationModal />

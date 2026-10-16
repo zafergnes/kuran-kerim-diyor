@@ -219,6 +219,7 @@ model PushDevice {
   token     String   @unique
   timezone  String
   language  String   @default("tr")
+  dailyHadith Boolean @default(true)
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
@@ -232,6 +233,7 @@ model WebPushSubscription {
   auth      String
   timezone  String
   language  String   @default("tr")
+  dailyHadith Boolean @default(true)
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())

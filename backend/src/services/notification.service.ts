@@ -3,6 +3,7 @@ import cron from 'node-cron';
 import webpush from 'web-push';
 import { prisma } from '../utils/prisma';
 import { DailyService } from './daily.service';
+import { HadithService, hadithExcerpt, hadithReference, normalizeHadithLanguage } from './hadith.service';
 const expo = new Expo();
 
 const NOTIFICATION_TITLES: Record<string, string> = {
@@ -13,6 +14,18 @@ const NOTIFICATION_TITLES: Record<string, string> = {
   es: 'Versículo del día',
   ar: 'آية اليوم'
 };
+
+const HADITH_TITLES: Record<string, string> = {
+  tr: 'Günün Hadisi',
+  en: 'Hadith of the Day',
+  de: 'Hadith des Tages',
+  fr: 'Hadith du jour',
+  es: 'Hadiz del día',
+  ar: 'حديث اليوم'
+};
+
+const VERSE_HOUR = 12;
+const HADITH_HOUR = 19;
 
 const vapidEmail = process.env.VAPID_EMAIL || 'https://kurannediyor.com.tr/support';
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
@@ -29,19 +42,21 @@ export class NotificationService {
   /**
    * Cihaz kaydı yapar veya günceller
    */
-  static async registerDevice(data: { token: string; timezone: string; language: string; userId?: string }) {
+  static async registerDevice(data: { token: string; timezone: string; language: string; dailyHadith?: boolean; userId?: string }) {
     // @ts-ignore - Prisma IDE sync issue, model exists in DB and runtime
     return prisma.pushDevice.upsert({
       where: { token: data.token },
       update: {
         timezone: data.timezone,
         language: data.language,
+        ...(data.dailyHadith !== undefined && { dailyHadith: data.dailyHadith }),
         userId: data.userId || null,
       },
       create: {
         token: data.token,
         timezone: data.timezone,
         language: data.language,
+        dailyHadith: data.dailyHadith ?? true,
         userId: data.userId || null,
       },
     });
@@ -50,7 +65,7 @@ export class NotificationService {
   /**
    * Web push aboneliği kaydeder veya günceller
    */
-  static async registerWebSubscription(data: { endpoint: string; p256dh: string; auth: string; timezone: string; language: string; userId?: string }) {
+  static async registerWebSubscription(data: { endpoint: string; p256dh: string; auth: string; timezone: string; language: string; dailyHadith?: boolean; userId?: string }) {
     if (!webPushConfigured) throw new Error('WEB_PUSH_NOT_CONFIGURED');
     // @ts-ignore - Prisma Client generator delay
     return prisma.webPushSubscription.upsert({
@@ -60,6 +75,7 @@ export class NotificationService {
         auth: data.auth,
         timezone: data.timezone,
         language: data.language,
+        ...(data.dailyHadith !== undefined && { dailyHadith: data.dailyHadith }),
         userId: data.userId || null,
       },
       create: {
@@ -68,6 +84,7 @@ export class NotificationService {
         auth: data.auth,
         timezone: data.timezone,
         language: data.language,
+        dailyHadith: data.dailyHadith ?? true,
         userId: data.userId || null,
       },
     });
@@ -211,6 +228,67 @@ export class NotificationService {
   }
 
   /**
+   * Günün hadisini, o saat diliminde tercihi açık olan cihazlara ve web abonelerine gönderir.
+   * Her saat diliminin kendi takvim günü kullanılır; böylece bildirimdeki hadis uygulamadaki ile aynıdır.
+   */
+  static async sendDailyHadithToTimezone(timezone: string) {
+    const hadith = HadithService.getDaily(timezone);
+    const message = (rawLang: string) => {
+      const lang = normalizeHadithLanguage(rawLang);
+      return {
+        title: HADITH_TITLES[lang],
+        body: `${hadithExcerpt(hadith.text[lang], 150)}\n— ${hadithReference(hadith, lang)}`,
+      };
+    };
+
+    try {
+      const devices = await prisma.pushDevice.findMany({ where: { timezone, dailyHadith: true } });
+      const messages: ExpoPushMessage[] = devices
+        .filter((device) => Expo.isExpoPushToken(device.token))
+        .map((device) => ({
+          to: device.token,
+          sound: 'default',
+          priority: 'high',
+          channelId: 'default',
+          ...message(device.language),
+          data: { showHadith: 'true', hadithId: hadith.id },
+        }));
+
+      for (const chunk of expo.chunkPushNotifications(messages)) {
+        const tickets = await expo.sendPushNotificationsAsync(chunk);
+        for (let i = 0; i < chunk.length; i++) {
+          const ticket = tickets[i];
+          if (ticket.status !== 'error') continue;
+          console.error('[Notification] Hadith push delivery failed:', ticket.details?.error || ticket.message);
+          if (ticket.details?.error === 'DeviceNotRegistered') {
+            const recipients = Array.isArray(chunk[i].to) ? chunk[i].to : [chunk[i].to];
+            await prisma.pushDevice.deleteMany({ where: { token: { in: recipients as string[] } } }).catch(() => {});
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Notification] Daily hadith mobile push failed:', error);
+    }
+
+    if (!webPushConfigured) return;
+    try {
+      const subscriptions = await prisma.webPushSubscription.findMany({ where: { timezone, dailyHadith: true } });
+      for (const sub of subscriptions) {
+        const payload = JSON.stringify({ ...message(sub.language), data: { url: `/hadis?id=${hadith.id}` } });
+        webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload)
+          .catch((err: any) => {
+            console.error('[WebPush] Hadith delivery failed:', err.statusCode || err.message);
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              prisma.webPushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+            }
+          });
+      }
+    } catch (error) {
+      console.error('[WebPush] Daily hadith web push failed:', error);
+    }
+  }
+
+  /**
    * Her saat başı çalışan Cron Job'ı başlatır
    */
   static initCron() {
@@ -251,8 +329,10 @@ export class NotificationService {
           
           if (hourVal) {
             const localHour = parseInt(hourVal, 10);
-            if (localHour === 12) {
+            if (localHour === VERSE_HOUR) {
               await this.sendDailyVerseToTimezone(tz.timezone);
+            } else if (localHour === HADITH_HOUR) {
+              await this.sendDailyHadithToTimezone(tz.timezone);
             }
           }
         } catch (error) {

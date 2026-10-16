@@ -3,8 +3,8 @@ import { NotificationService } from '../services/notification.service';
 import { z } from 'zod';
 
 const language = z.enum(['tr', 'en', 'ar', 'de', 'fr', 'es']).default('tr');
-const mobileRegistration = z.object({ token: z.string().trim().min(10).max(512), timezone: z.string().trim().min(1).max(100), language });
-const webRegistration = z.object({ endpoint: z.string().url().max(2048), p256dh: z.string().min(10).max(512), auth: z.string().min(5).max(512), timezone: z.string().trim().min(1).max(100), language });
+const mobileRegistration = z.object({ token: z.string().trim().min(10).max(512), timezone: z.string().trim().min(1).max(100), language, dailyHadith: z.boolean().optional() });
+const webRegistration = z.object({ endpoint: z.string().url().max(2048), p256dh: z.string().min(10).max(512), auth: z.string().min(5).max(512), timezone: z.string().trim().min(1).max(100), language, dailyHadith: z.boolean().optional() });
 
 export class NotificationController {
   static async register(req: Request, res: Response) {
