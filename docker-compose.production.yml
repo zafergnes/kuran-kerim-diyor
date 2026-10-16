@@ -46,6 +46,7 @@ services:
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_EMAIL=${VAPID_EMAIL:-https://kurannediyor.com.tr/support}
+      - DAILY_HADITH_PUSH_ENABLED=${DAILY_HADITH_PUSH_ENABLED:-false}
     volumes:
       - ./kuran-ne-diyor-web/data:/app/kuran-ne-diyor-web/data
     networks:

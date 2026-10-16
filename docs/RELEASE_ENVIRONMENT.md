@@ -11,6 +11,7 @@ The backend must receive these values from the deployment secret store, never fr
 - `GEMINI_CHAT_MODEL` (default: `gemini-3.6-flash`)
 - `GEMINI_MODERATION_MODEL` (default: `gemini-3.5-flash-lite`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_EMAIL` when web push is enabled. `VAPID_EMAIL` may be the HTTPS support URL; a mailbox is not required.
+- `DAILY_HADITH_PUSH_ENABLED=true` turns on the 19:00 local-time daily hadith push. Keep it `false` (default) until the mobile release containing the hadith screen and opt-out toggle is live in both stores.
 - `ADMIN_EMAIL` only when running the one-off admin promotion script
 
 Mobile production builds must provide the Firebase values and OAuth identifiers referenced by the Expo config. The backend and web public API URL must resolve to the same production API over HTTPS.

@@ -26,6 +26,8 @@ const HADITH_TITLES: Record<string, string> = {
 
 const VERSE_HOUR = 12;
 const HADITH_HOUR = 19;
+// Akşam hadis bildirimi, hadis ekranını içeren mobil sürüm mağazalara çıkana kadar kapalı tutulur.
+const dailyHadithPushEnabled = () => process.env.DAILY_HADITH_PUSH_ENABLED === 'true';
 
 const vapidEmail = process.env.VAPID_EMAIL || 'https://kurannediyor.com.tr/support';
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
@@ -331,7 +333,7 @@ export class NotificationService {
             const localHour = parseInt(hourVal, 10);
             if (localHour === VERSE_HOUR) {
               await this.sendDailyVerseToTimezone(tz.timezone);
-            } else if (localHour === HADITH_HOUR) {
+            } else if (localHour === HADITH_HOUR && dailyHadithPushEnabled()) {
               await this.sendDailyHadithToTimezone(tz.timezone);
             }
           }
