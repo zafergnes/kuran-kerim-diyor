@@ -49,6 +49,9 @@ export default function HadithScreen() {
     const translation = translationLang ? hadith.text[translationLang] : null;
     const reference = hadithReference(hadith, language);
 
+    // Widget veya bildirimden soğuk açılışta geri gidilecek ekran yoktur; ana sayfaya dön.
+    const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
+
     const step = (delta: number) => setIndex((current) => (current + delta + HADITHS.length) % HADITHS.length);
 
     const toggleNotify = (enabled: boolean) => {
@@ -66,7 +69,7 @@ export default function HadithScreen() {
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.iconButton} accessibilityRole="button" accessibilityLabel={t('common.back', 'Geri')}>
+                <TouchableOpacity onPress={goBack} style={styles.iconButton} accessibilityRole="button" accessibilityLabel={t('common.back', 'Geri')}>
                     <ChevronLeft size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: theme.text }]}>{strings.title}</Text>

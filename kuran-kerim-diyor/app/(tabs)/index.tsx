@@ -57,6 +57,8 @@ export default function MainFeedScreen() {
     const [highlightedAyahId, setHighlightedAyahId] = useState<string | null>(null);
     const [isAudioInteracting, setIsAudioInteracting] = useState(false);
     const [showFontModal, setShowFontModal] = useState(false);
+    const [autoPlayAyahNumber, setAutoPlayAyahNumber] = useState<number | null>(null);
+    const [autoPlayPageNumber, setAutoPlayPageNumber] = useState<number | null>(null);
 
     useEffect(() => {
         setHighlightedAyahId(`${currentSurah}_${currentAyah}`);
@@ -225,19 +227,61 @@ export default function MainFeedScreen() {
         }, 100);
     }, [surah, setProgress]);
 
-    const handleNextPage = useCallback((pageNum: number) => {
-        const targetPage = Math.min(604, pageNum + 1);
+    const handleNextPage = useCallback((pageNum?: number, autoPlay = false) => {
+        const curPage = pageNum !== undefined ? pageNum : (currentIndexRef.current + 1);
+        const targetPage = Math.min(604, curPage + 1);
+        const targetIndex = targetPage - 1;
+        if (autoPlay) {
+            setAutoPlayPageNumber(targetPage);
+        }
         try {
-            flatListRef.current?.scrollToIndex({ index: targetPage - 1, animated: true });
+            flatListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
         } catch (_) {}
     }, []);
 
-    const handlePrevPage = useCallback((pageNum: number) => {
-        const targetPage = Math.max(1, pageNum - 1);
+    const handlePrevPage = useCallback((pageNum?: number) => {
+        const curPage = pageNum !== undefined ? pageNum : (currentIndexRef.current + 1);
+        const targetPage = Math.max(1, curPage - 1);
+        const targetIndex = targetPage - 1;
         try {
-            flatListRef.current?.scrollToIndex({ index: targetPage - 1, animated: true });
+            flatListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
         } catch (_) {}
     }, []);
+
+    const handleNextAyah = useCallback((ayahNum: number) => {
+        const currentSurahObj = storeRef.current.surah;
+        if (!currentSurahObj) return;
+        const idx = currentSurahObj.ayahs.findIndex(a => a.number === ayahNum);
+        if (idx >= 0 && idx < currentSurahObj.ayahs.length - 1) {
+            const nextAyah = currentSurahObj.ayahs[idx + 1];
+            currentIndexRef.current = idx + 1;
+            setUiAyah(nextAyah.number);
+            setProgress(currentSurahObj.number, nextAyah.number);
+            setAutoPlayAyahNumber(nextAyah.number);
+            try {
+                flatListRef.current?.scrollToIndex({ index: idx + 1, animated: true });
+            } catch (_) {}
+        } else if (currentSurahObj.number < 114) {
+            goToNextSurah();
+            setAutoPlayAyahNumber(1);
+        }
+    }, [setProgress, goToNextSurah]);
+
+    const handlePrevAyah = useCallback((ayahNum: number) => {
+        const currentSurahObj = storeRef.current.surah;
+        if (!currentSurahObj) return;
+        const idx = currentSurahObj.ayahs.findIndex(a => a.number === ayahNum);
+        if (idx > 0) {
+            const prevAyah = currentSurahObj.ayahs[idx - 1];
+            currentIndexRef.current = idx - 1;
+            setUiAyah(prevAyah.number);
+            setProgress(currentSurahObj.number, prevAyah.number);
+            setAutoPlayAyahNumber(prevAyah.number);
+            try {
+                flatListRef.current?.scrollToIndex({ index: idx - 1, animated: true });
+            } catch (_) {}
+        }
+    }, [setProgress]);
 
     const handleAyahChange = useCallback((surahNum: number, ayahNum: number) => {
         setProgress(surahNum, ayahNum);
@@ -393,9 +437,10 @@ export default function MainFeedScreen() {
                                     activeMode={activePageMode}
                                     onToggleMode={setActivePageMode}
                                     onAudioInteractionChange={setIsAudioInteracting}
-                                    onNextPage={() => handleNextPage(pageNum)}
+                                    onNextPage={() => handleNextPage(pageNum, true)}
                                     onPrevPage={() => handlePrevPage(pageNum)}
                                     onAyahChange={handleAyahChange}
+                                    autoPlayFirstAyah={autoPlayPageNumber === pageNum}
                                 />
                             </View>
                         );
@@ -406,6 +451,7 @@ export default function MainFeedScreen() {
                         const nextSurahNameStr = nextSurah
                             ? (language === 'ar' ? nextSurah.name.ar : language === 'tr' ? nextSurah.name.tr : nextSurah.name.en)
                             : undefined;
+                        const ayahNumber = (item as any).number;
                         return (
                             <View style={{ height: containerHeight, width }}>
                                 <AyahCard
@@ -416,6 +462,9 @@ export default function MainFeedScreen() {
                                     isLastAyah={isLastAyah}
                                     nextSurahName={nextSurahNameStr}
                                     onNextSurah={goToNextSurah}
+                                    onNextAyah={() => handleNextAyah(ayahNumber)}
+                                    onPrevAyah={() => handlePrevAyah(ayahNumber)}
+                                    autoPlayOnMount={autoPlayAyahNumber === ayahNumber}
                                 />
                             </View>
                         );
@@ -423,10 +472,12 @@ export default function MainFeedScreen() {
                 }}
                 horizontal
                 scrollEnabled={!isAudioInteracting}
-                pagingEnabled
+                pagingEnabled={true}
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={width}
                 snapToAlignment="start"
+                disableIntervalMomentum={true}
+                directionalLockEnabled={true}
                 decelerationRate="fast"
                 onScroll={handleScroll}
                 scrollEventThrottle={16}

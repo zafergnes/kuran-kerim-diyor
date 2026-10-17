@@ -183,7 +183,12 @@
     "pause": "Pause",
     "page_ayahs": "Verses",
     "ayah_short": "Verse",
-    "scroll_to_top": "Scroll to Top"
+    "scroll_to_top": "Scroll to Top",
+    "prev_ayah": "Previous Verse",
+    "next_ayah": "Next Verse",
+    "continuous_play": "Full Surah",
+    "single_ayah_play": "Single Verse",
+    "continuous_play_desc": "Automatically advance to the next verse"
   },
   "font_modal": {
     "title": "Text Size & Font Style",
@@ -256,6 +261,7 @@
     "analytics_title": "Anonymous usage analytics",
     "analytics_desc": "Helps us improve without collecting message content or advertising identifiers.",
     "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service",
     "sources": "Sources and Attributions",
     "support": "Support"
   },

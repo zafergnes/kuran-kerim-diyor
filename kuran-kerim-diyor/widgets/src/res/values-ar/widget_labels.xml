@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verse_widget_label">آية اليوم</string>
+    <string name="hadith_widget_label">حديث اليوم</string>
+    <string name="streak_widget_label">سلسلة القراءة</string>
+    <string name="hadith_widget_description">يعرض حديثًا كل يوم من المصادر الصحيحة</string>
+</resources>

@@ -183,7 +183,12 @@
     "pause": "Durdur",
     "page_ayahs": "Ayetler",
     "ayah_short": "Ayet",
-    "scroll_to_top": "Yukarı Çık"
+    "scroll_to_top": "Yukarı Çık",
+    "prev_ayah": "Önceki Ayet",
+    "next_ayah": "Sonraki Ayet",
+    "continuous_play": "Tüm Sure",
+    "single_ayah_play": "Tek Ayet",
+    "continuous_play_desc": "Ayet bittiğinde otomatik sıradakine geç"
   },
   "font_modal": {
     "title": "Metin Boyutu ve Hat Stili",
@@ -256,6 +261,7 @@
     "analytics_title": "Anonim kullanım analitiği",
     "analytics_desc": "Mesaj içeriği ve reklam kimliği toplamadan uygulamayı geliştirmemize yardımcı olur.",
     "privacy_policy": "Gizlilik Politikası",
+    "terms_of_service": "Kullanım Koşulları",
     "sources": "Kaynaklar ve Atıflar",
     "support": "Destek"
   },

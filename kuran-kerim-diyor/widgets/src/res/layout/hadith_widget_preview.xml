@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="14dp"
+    android:background="@drawable/widget_background">
+    <!-- Üst: başlık ve sıhhat rozeti -->
+    <RelativeLayout
+        android:id="@+id/hadith_widget_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
+        <TextView
+            android:id="@+id/hadith_widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/hadith_widget_grade"
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="GÜNÜN HADİSİ"
+            android:textColor="#B69A73"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+        <TextView
+            android:id="@+id/hadith_widget_grade"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="Sahih"
+            android:textColor="#9E7D47"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:background="@drawable/streak_badge_bg" />
+    </RelativeLayout>
+    <!-- Orta: hadis metni -->
+    <TextView
+        android:id="@+id/hadith_widget_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/hadith_widget_header"
+        android:layout_above="@id/hadith_widget_reference"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
+        android:text="“Kolaylaştırın, zorlaştırmayın; müjdeleyin, nefret ettirmeyin.”"
+        android:textColor="#262626"
+        android:textSize="14sp"
+        android:fontFamily="serif"
+        android:lineSpacingMultiplier="1.15"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:gravity="center_vertical" />
+    <!-- Alt: kaynak -->
+    <TextView
+        android:id="@+id/hadith_widget_reference"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="Buhârî, 69"
+        android:textColor="#B69A73"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+</RelativeLayout>

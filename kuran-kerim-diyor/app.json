@@ -3,14 +3,14 @@
     "name": "Kur'an Ne Diyor?",
     "slug": "kuran-kerim-diyor",
     "scheme": "kuran-kerim-diyor",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon-v2.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kurankerimdiyor",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "appleTeamId": "CD5FK55DWW",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -19,7 +19,7 @@
       }
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 11,
       "package": "com.kurankerimdiyor",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
@@ -107,7 +107,18 @@
             "widgets": [
               {
                 "name": "VerseWidget",
-                "resourceName": "@xml/verse_widget_info"
+                "resourceName": "@xml/verse_widget_info",
+                "label": "@string/verse_widget_label"
+              },
+              {
+                "name": "HadithWidget",
+                "resourceName": "@xml/hadith_widget_info",
+                "label": "@string/hadith_widget_label"
+              },
+              {
+                "name": "StreakWidget",
+                "resourceName": "@xml/streak_widget_info",
+                "label": "@string/streak_widget_label"
               }
             ]
           }

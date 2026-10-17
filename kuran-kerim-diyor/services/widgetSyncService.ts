@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DailyVerseService } from './dailyVerseService';
+import { DailyVerseService, localDateKey } from './dailyVerseService';
+import { AppLanguage } from '../constants/languages';
+import { getDailyHadithIndex, HADITH_STRINGS, HADITHS, hadithExcerpt, hadithReference } from './hadithData';
 
 export interface WidgetPayload {
   cachedDate: string;
@@ -18,6 +20,37 @@ export interface WidgetPayload {
     title: string;
     streakBadge: string;
     todayStatus: string;
+  };
+  hadith: {
+    title: string;
+    gradeLabels: { sahih: string; hasan: string };
+    days: Array<{ date: string; id: string; text: string; reference: string; grade: string }>;
+  };
+}
+
+// Widget uygulama açılmadan da doğru hadisi gösterebilsin diye önümüzdeki günler önceden yazılır.
+const HADITH_LOOKAHEAD_DAYS = 14;
+
+function buildHadithWidgetData(lang: string): WidgetPayload['hadith'] {
+  const language = (lang in HADITH_STRINGS ? lang : 'tr') as AppLanguage;
+  const strings = HADITH_STRINGS[language];
+  const days: WidgetPayload['hadith']['days'] = [];
+  for (let offset = 0; offset < HADITH_LOOKAHEAD_DAYS; offset++) {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    const hadith = HADITHS[getDailyHadithIndex(date)];
+    days.push({
+      date: localDateKey(date),
+      id: hadith.id,
+      text: hadithExcerpt(hadith.text[language], 220),
+      reference: hadithReference(hadith, language),
+      grade: hadith.grade,
+    });
+  }
+  return {
+    title: strings.daily.toLocaleUpperCase(language),
+    gradeLabels: { sahih: strings.sahih, hasan: strings.hasan },
+    days,
   };
 }
 
@@ -66,6 +99,7 @@ export const WidgetSyncService = {
     todayCompleted: boolean;
     longestStreak?: number;
     language?: string;
+    lastActiveDate?: string | null;
   }): Promise<void> => {
     try {
       const lang = params.language || (await AsyncStorage.getItem('@app_language')) || 'tr';
@@ -80,21 +114,26 @@ export const WidgetSyncService = {
           dailyVerse = {
             text: 'Şüphesiz her zorlukla beraber bir kolaylık vardır.',
             reference: 'İnşirah 94:5',
+            cachedDate: localDateKey(),
+            surahNumber: 94,
+            startAyah: 5,
           };
         }
       }
 
-      const streakText = `🔥 ${params.streak} ${labelsConfig.streakSuffix}`;
+      const streakText = params.streak > 0 ? `🔥 ${params.streak} ${labelsConfig.streakSuffix}` : '';
       const statusText = params.todayCompleted ? labelsConfig.completed : labelsConfig.pending;
+      const todayDate = localDateKey();
+      const lastActiveDate = params.lastActiveDate || (await AsyncStorage.getItem('@app_last_active_date')) || (params.todayCompleted ? todayDate : '');
 
       const payload: WidgetPayload = {
-        cachedDate: dailyVerse.cachedDate || '',
-        lastActiveDate: (await AsyncStorage.getItem('@app_last_active_date')) || '',
+        cachedDate: dailyVerse.cachedDate || todayDate,
+        lastActiveDate: lastActiveDate,
         streak: params.streak,
         todayCompleted: params.todayCompleted,
         longestStreak: params.longestStreak || params.streak,
-        text: dailyVerse.text || '',
-        reference: dailyVerse.reference || '',
+        text: dailyVerse.text || 'Şüphesiz her zorlukla beraber bir kolaylık vardır.',
+        reference: dailyVerse.reference || 'İnşirah 94:5',
         surahNumber: (dailyVerse as any).surahNumber || 94,
         startAyah: (dailyVerse as any).startAyah || 5,
         language: lang,
@@ -103,6 +142,7 @@ export const WidgetSyncService = {
           streakBadge: streakText,
           todayStatus: statusText,
         },
+        hadith: buildHadithWidgetData(lang),
       };
 
       const jsonString = JSON.stringify(payload);

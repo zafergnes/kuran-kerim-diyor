@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verse_widget_label">Vers des Tages</string>
+    <string name="hadith_widget_label">Hadith des Tages</string>
+    <string name="streak_widget_label">Leseserie</string>
+    <string name="hadith_widget_description">Zeigt jeden Tag einen Hadith aus authentischen Quellen</string>
+</resources>

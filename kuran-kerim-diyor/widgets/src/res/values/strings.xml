@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_description">Günün ayetini ve okuma serinizi gösterir</string>
+    <string name="streak_widget_name">Okuma Serisi ve Günün Ayeti</string>
+    <string name="streak_widget_description">Okuma serinizi ve günün ayetini kompakt 2x2 formatta gösterir</string>
 </resources>

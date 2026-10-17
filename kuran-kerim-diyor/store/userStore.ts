@@ -23,6 +23,8 @@ interface UserState {
 
     // Okuyucu ayari
     selectedReciter: string;
+    audioContinuousPlay: boolean;
+    setAudioContinuousPlay: (continuous: boolean) => void;
 
     // Okuma düzeni ve font ayarları
     readingLayout: 'single' | 'page';
@@ -146,6 +148,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     showArabicTranslation: false,
     arabicTranslationLang: 'en',
     selectedReciter: 'ar.alafasy',
+    audioContinuousPlay: true,
+    setAudioContinuousPlay: (continuous: boolean) => {
+        set({ audioContinuousPlay: continuous });
+        saveLocal('@audio_continuous_play', continuous ? 'true' : 'false');
+    },
     readingLayout: 'page',
     arabicFontFamily: 'noto-naskh',
     selectedArabicScript: 'diyanet',
@@ -179,6 +186,7 @@ export const useUserStore = create<UserState>((set, get) => ({
                 todayCompleted: state.lastActiveDate === getTodayDateStr(),
                 longestStreak: state.longestStreak,
                 language: lang,
+                lastActiveDate: state.lastActiveDate,
             });
         });
         // i18n ve AsyncStorage'i de senkronize et
@@ -445,6 +453,13 @@ export const useUserStore = create<UserState>((set, get) => ({
             const storedReciter = await AsyncStorage.getItem('@app_selected_reciter');
             if (storedReciter) set({ selectedReciter: storedReciter });
 
+            const storedContinuous = await AsyncStorage.getItem('@audio_continuous_play');
+            if (storedContinuous !== null) {
+                set({ audioContinuousPlay: storedContinuous === 'true' });
+            } else {
+                set({ audioContinuousPlay: true });
+            }
+
             const storedLayout = await AsyncStorage.getItem('@app_reading_layout');
             if (storedLayout) {
                 set({ readingLayout: storedLayout as 'single' | 'page' });
@@ -509,6 +524,7 @@ export const useUserStore = create<UserState>((set, get) => ({
                     streak: initialStreak,
                     todayCompleted: isTodayCompleted,
                     longestStreak: initialLongest,
+                    lastActiveDate: initialLastActive,
                 });
             });
         } catch (e) {
@@ -618,6 +634,7 @@ export const useUserStore = create<UserState>((set, get) => ({
                 todayCompleted: true,
                 longestStreak: newLongest,
                 language: state.language,
+                lastActiveDate: todayStr,
             });
         });
 

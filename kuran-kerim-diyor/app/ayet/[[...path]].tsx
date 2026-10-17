@@ -21,23 +21,23 @@ export default function AyetRedirect() {
       let surah: string | null = null;
       let ayah: string | null = null;
 
-      // 1. Check query parameter ?id=1:1
-      if (params.id) {
-        const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
-        const parts = decodeVerseId(rawId).split(':');
-        if (parts.length === 2) {
-          surah = parts[0];
-          ayah = parts[1];
+      // 1. Extract verse reference from any param
+      const rawCandidate = params.id
+        ? (Array.isArray(params.id) ? params.id[0] : params.id)
+        : params.path
+        ? (Array.isArray(params.path) ? params.path[0] : params.path)
+        : null;
+
+      if (rawCandidate) {
+        const decoded = decodeVerseId(String(rawCandidate));
+        const match = decoded.match(/(\d{1,3}):(\d{1,3})/);
+        if (match) {
+          surah = match[1];
+          ayah = match[2];
         }
-      }
-      // 2. Check path parameter /ayet/1:1
-      else if (params.path) {
-        const rawId = Array.isArray(params.path) ? params.path[0] : params.path;
-        const parts = decodeVerseId(rawId).split(':');
-        if (parts.length === 2) {
-          surah = parts[0];
-          ayah = parts[1];
-        }
+      } else if (params.surah && params.ayah) {
+        surah = String(Array.isArray(params.surah) ? params.surah[0] : params.surah);
+        ayah = String(Array.isArray(params.ayah) ? params.ayah[0] : params.ayah);
       }
 
       if (surah && ayah) {

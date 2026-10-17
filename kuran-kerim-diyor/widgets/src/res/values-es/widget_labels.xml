@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verse_widget_label">Versículo del día</string>
+    <string name="hadith_widget_label">Hadiz del día</string>
+    <string name="streak_widget_label">Racha de lectura</string>
+    <string name="hadith_widget_description">Muestra cada día un hadiz de fuentes auténticas</string>
+</resources>

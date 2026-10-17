@@ -1,3 +1,37 @@
+diff --git a/node_modules/@bittingz/expo-widgets/android/src/main/java/expo/modules/expowidgets/ExpoWidgetsModule.kt b/node_modules/@bittingz/expo-widgets/android/src/main/java/expo/modules/expowidgets/ExpoWidgetsModule.kt
+index 8a014ea..ab3b346 100644
+--- a/node_modules/@bittingz/expo-widgets/android/src/main/java/expo/modules/expowidgets/ExpoWidgetsModule.kt
++++ b/node_modules/@bittingz/expo-widgets/android/src/main/java/expo/modules/expowidgets/ExpoWidgetsModule.kt
+@@ -17,21 +17,25 @@ class ExpoWidgetsModule : Module() {
+     Function("setWidgetData") { json: String, packageName: String -> 
+       getPreferences(packageName).edit().putString("widgetdata", json).commit()
+ 
+-      val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+       val widgetManager = AppWidgetManager.getInstance(context)
+       val widgetProviders = context.packageManager.queryBroadcastReceivers(
+-          Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE),
++          Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(context.packageName),
+           PackageManager.GET_META_DATA
+       )
+ 
+       for (provider in widgetProviders) {
+           if (provider.activityInfo.packageName == packageName) {
+               val providerComponent = ComponentName(
+-                  provider.activityInfo.packageName, 
++                  provider.activityInfo.packageName,
+                   provider.activityInfo.name
+               )
+               val widgetIds = widgetManager.getAppWidgetIds(providerComponent)
+-              intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
++              if (widgetIds.isEmpty()) continue
++              // Android 8+ manifest alıcılarına örtük yayın iletmez; her widget sınıfı açıkça hedeflenir.
++              val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
++                  component = providerComponent
++                  putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
++              }
+               context.sendBroadcast(intent)
+           }
+       }
 diff --git a/node_modules/@bittingz/expo-widgets/plugin/build/android/withModule.js b/node_modules/@bittingz/expo-widgets/plugin/build/android/withModule.js
 index ce45081..c0bcb8d 100644
 --- a/node_modules/@bittingz/expo-widgets/plugin/build/android/withModule.js
@@ -36,6 +70,18 @@ index ce45081..c0bcb8d 100644
 +    return config;
  };
  exports.withModule = withModule;
+diff --git a/node_modules/@bittingz/expo-widgets/plugin/build/android/withWidgetManifest.js b/node_modules/@bittingz/expo-widgets/plugin/build/android/withWidgetManifest.js
+index b82a887..19f4b03 100644
+--- a/node_modules/@bittingz/expo-widgets/plugin/build/android/withWidgetManifest.js
++++ b/node_modules/@bittingz/expo-widgets/plugin/build/android/withWidgetManifest.js
+@@ -16,6 +16,7 @@ function buildWidgetReceiver(op) {
+         $: {
+             "android:name": `.${op.name}`,
+             "android:exported": "false",
++            ...(op.label ? { "android:label": op.label } : {}),
+         },
+         "intent-filter": [
+             {
 diff --git a/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js b/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js
 index e39bf98..76d6634 100644
 --- a/node_modules/@bittingz/expo-widgets/plugin/build/ios/withPodfile.js

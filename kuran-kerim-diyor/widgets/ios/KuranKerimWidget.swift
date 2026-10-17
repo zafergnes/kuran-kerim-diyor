@@ -10,8 +10,15 @@ struct DailyVerseResponse: Codable {
 }
 
 // Helper translation functions
+func getAppUserDefaults() -> UserDefaults {
+    return UserDefaults(suiteName: "group.com.kurankerimdiyor.expowidgets") ?? UserDefaults.standard
+}
+
 func getSystemLanguage() -> String {
-    let cached = UserDefaults(suiteName: "group.com.kurankerimdiyor.expowidgets")?.string(forKey: "MyData")
+    let suite = getAppUserDefaults()
+    let cached = suite.string(forKey: "MyData") 
+        ?? UserDefaults.standard.string(forKey: "MyData") 
+        ?? suite.string(forKey: "widgetdata")
     let payload = cached.flatMap { $0.data(using: .utf8) }.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     let lang = payload?["language"] as? String ?? Locale.preferredLanguages.first.map { String($0.prefix(2)) } ?? "tr"
     let supported = ["tr", "en", "de", "fr", "es", "ar"]
@@ -65,46 +72,164 @@ struct SimpleEntry: TimelineEntry {
     let title: String
 }
 
-struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(
-            date: Date(),
-            text: getTranslation(for: "loading"),
-            reference: "",
-            surah: 1,
-            ayah: 1,
+struct UserWidgetData {
+    let streak: Int
+    let todayCompleted: Bool
+    let streakBadge: String
+    let title: String
+    let language: String
+    let text: String
+    let reference: String
+    let surah: Int
+    let ayah: Int
+    let cachedDate: String
+}
+
+func loadUserData() -> UserWidgetData {
+    let suite = getAppUserDefaults()
+    let jsonString = suite.string(forKey: "MyData") 
+        ?? UserDefaults.standard.string(forKey: "MyData") 
+        ?? suite.string(forKey: "widgetdata")
+        ?? UserDefaults.standard.string(forKey: "widgetdata")
+    
+    let defaultTitle = getTranslation(for: "title")
+    let defaultLang = getSystemLanguage()
+    
+    guard let str = jsonString,
+          let data = str.data(using: .utf8),
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        return UserWidgetData(
             streak: 0,
             todayCompleted: false,
             streakBadge: "",
-            title: getTranslation(for: "title")
+            title: defaultTitle,
+            language: defaultLang,
+            text: "",
+            reference: "",
+            surah: 94,
+            ayah: 5,
+            cachedDate: ""
+        )
+    }
+
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
+    let todayStr = formatter.string(from: Date())
+
+    let rawStreak = json["streak"] as? Int ?? 0
+    let lastActiveDate = json["lastActiveDate"] as? String ?? ""
+    let cachedDate = json["cachedDate"] as? String ?? ""
+    let text = json["text"] as? String ?? ""
+    let reference = json["reference"] as? String ?? ""
+    let surah = json["surahNumber"] as? Int ?? 94
+    let ayah = json["startAyah"] as? Int ?? 5
+    let labels = json["labels"] as? [String: Any]
+    let lang = json["language"] as? String ?? defaultLang
+    let title = labels?["title"] as? String ?? defaultTitle
+
+    var activeStreak = rawStreak
+    var todayDone = json["todayCompleted"] as? Bool ?? false
+    var streakBadge = labels?["streakBadge"] as? String ?? ""
+
+    // Calculate streak status: if read today or yesterday, streak is intact
+    if !lastActiveDate.isEmpty {
+        if lastActiveDate == todayStr {
+            todayDone = true
+        } else {
+            todayDone = false
+            let calendar = Calendar.current
+            if let lastDate = formatter.date(from: lastActiveDate) {
+                let lastStart = calendar.startOfDay(for: lastDate)
+                let todayStart = calendar.startOfDay(for: Date())
+                let diff = calendar.dateComponents([.day], from: lastStart, to: todayStart).day ?? 0
+                if diff <= 1 {
+                    activeStreak = rawStreak
+                } else {
+                    activeStreak = 0
+                }
+            }
+        }
+    }
+
+    if streakBadge.isEmpty && activeStreak > 0 {
+        streakBadge = "🔥 \(activeStreak) Gün"
+    } else if activeStreak == 0 {
+        streakBadge = ""
+    }
+
+    return UserWidgetData(
+        streak: activeStreak,
+        todayCompleted: todayDone,
+        streakBadge: streakBadge,
+        title: title,
+        language: lang,
+        text: text,
+        reference: reference,
+        surah: surah,
+        ayah: ayah,
+        cachedDate: cachedDate
+    )
+}
+
+struct Provider: TimelineProvider {
+    func placeholder(in context: Context) -> SimpleEntry {
+        let user = loadUserData()
+        return SimpleEntry(
+            date: Date(),
+            text: user.text.isEmpty ? "Şüphesiz her zorlukla beraber bir kolaylık vardır." : user.text,
+            reference: user.reference.isEmpty ? "İnşirah 94:5" : user.reference,
+            surah: user.surah,
+            ayah: user.ayah,
+            streak: max(user.streak, 1),
+            todayCompleted: user.todayCompleted,
+            streakBadge: user.streakBadge.isEmpty ? "🔥 1 Gün" : user.streakBadge,
+            title: user.title
         )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+        let user = loadUserData()
         completion(SimpleEntry(
             date: Date(),
-            text: "Şüphesiz her zorlukla beraber bir kolaylık vardır.",
-            reference: "İnşirah 94:5",
-            surah: 94,
-            ayah: 5,
-            streak: 3,
-            todayCompleted: true,
-            streakBadge: "🔥 3 Gün",
-            title: getTranslation(for: "title")
+            text: user.text.isEmpty ? "Şüphesiz her zorlukla beraber bir kolaylık vardır." : user.text,
+            reference: user.reference.isEmpty ? "İnşirah 94:5" : user.reference,
+            surah: user.surah,
+            ayah: user.ayah,
+            streak: max(user.streak, 3),
+            todayCompleted: user.todayCompleted,
+            streakBadge: user.streakBadge.isEmpty ? "🔥 3 Gün" : user.streakBadge,
+            title: user.title
         ))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        // 1. Önce UserDefaults ile senkronize edilmiş veriyi kontrol et
-        if let entryFromLocal = loadFromUserDefaults() {
+        let user = loadUserData()
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let todayStr = formatter.string(from: Date())
+
+        // 1. Önce yerel veride bugünün ayeti varsa anında göster
+        if user.cachedDate == todayStr && !user.text.isEmpty {
             let nextUpdate = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!
-            let timeline = Timeline(entries: [entryFromLocal], policy: .after(nextUpdate))
-            completion(timeline)
+            let entry = SimpleEntry(
+                date: Date(),
+                text: user.text,
+                reference: user.reference,
+                surah: user.surah,
+                ayah: user.ayah,
+                streak: user.streak,
+                todayCompleted: user.todayCompleted,
+                streakBadge: user.streakBadge,
+                title: user.title
+            )
+            completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
             return
         }
 
-        // 2. Yerel veri yoksa API'den çek
-        fetchDailyVerse { response in
+        // 2. Yeni gün ise API'den çek ama kullanıcının serisini ASLA SIFIRLAMA
+        fetchDailyVerse(language: user.language) { response in
             let entry: SimpleEntry
             if let res = response {
                 entry = SimpleEntry(
@@ -113,10 +238,22 @@ struct Provider: TimelineProvider {
                     reference: res.reference,
                     surah: res.surahNumber,
                     ayah: res.startAyah,
-                    streak: 0,
-                    todayCompleted: false,
-                    streakBadge: "",
-                    title: getTranslation(for: "title")
+                    streak: user.streak,
+                    todayCompleted: user.todayCompleted,
+                    streakBadge: user.streakBadge,
+                    title: user.title
+                )
+            } else if !user.text.isEmpty {
+                entry = SimpleEntry(
+                    date: Date(),
+                    text: user.text,
+                    reference: user.reference,
+                    surah: user.surah,
+                    ayah: user.ayah,
+                    streak: user.streak,
+                    todayCompleted: user.todayCompleted,
+                    streakBadge: user.streakBadge,
+                    title: user.title
                 )
             } else {
                 entry = SimpleEntry(
@@ -125,66 +262,20 @@ struct Provider: TimelineProvider {
                     reference: "",
                     surah: 1,
                     ayah: 1,
-                    streak: 0,
-                    todayCompleted: false,
-                    streakBadge: "",
-                    title: getTranslation(for: "title")
+                    streak: user.streak,
+                    todayCompleted: user.todayCompleted,
+                    streakBadge: user.streakBadge,
+                    title: user.title
                 )
             }
             
-            let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
-            let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-            completion(timeline)
+            let nextUpdate = Calendar.current.date(byAdding: .minute, value: 60, to: Date())!
+            completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
         }
-    }
-
-    private func loadFromUserDefaults() -> SimpleEntry? {
-        let suite = UserDefaults(suiteName: "group.com.kurankerimdiyor.expowidgets") ?? UserDefaults.standard
-        guard let jsonString = suite.string(forKey: "MyData") ?? suite.string(forKey: "widgetdata"),
-              let data = jsonString.data(using: .utf8) else {
-            return nil
-        }
-
-        do {
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.dateFormat = "yyyy-MM-dd"
-                guard json["cachedDate"] as? String == formatter.string(from: Date()) else { return nil }
-                let text = json["text"] as? String ?? ""
-                let reference = json["reference"] as? String ?? ""
-                let surah = json["surahNumber"] as? Int ?? 94
-                let ayah = json["startAyah"] as? Int ?? 5
-                let streak = json["streak"] as? Int ?? 1
-                let todayCompleted = json["todayCompleted"] as? Bool ?? false
-                let labels = json["labels"] as? [String: Any]
-                let title = labels?["title"] as? String ?? getTranslation(for: "title")
-                let streakBadge = labels?["streakBadge"] as? String ?? "🔥 \(streak) Gün"
-
-                if !text.isEmpty {
-                    return SimpleEntry(
-                        date: Date(),
-                        text: text,
-                        reference: reference,
-                        surah: surah,
-                        ayah: ayah,
-                        streak: streak,
-                        todayCompleted: todayCompleted,
-                        streakBadge: streakBadge,
-                        title: title
-                    )
-                }
-            }
-        } catch {
-            print("Widget local decode error: \(error)")
-        }
-        return nil
     }
     
-    private func fetchDailyVerse(completion: @escaping (DailyVerseResponse?) -> Void) {
-        let cached = UserDefaults(suiteName: "group.com.kurankerimdiyor.expowidgets")?.string(forKey: "MyData")
-        let payload = cached.flatMap { $0.data(using: .utf8) }.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-        let lang = payload?["language"] as? String ?? getSystemLanguage()
+    private func fetchDailyVerse(language: String, completion: @escaping (DailyVerseResponse?) -> Void) {
+        let lang = language.isEmpty ? getSystemLanguage() : language
         guard let url = URL(string: "https://api.kurannediyor.com.tr/api/daily-context?lang=\(lang)") else {
             completion(nil)
             return
@@ -252,13 +343,15 @@ struct KuranKerimWidgetEntryView : View {
                     .foregroundColor(Color(hex: "B69A73"))
                     .lineLimit(1)
                 Spacer()
-                Text(entry.streakBadge)
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(Color(hex: "9E7D47"))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(hex: "B69A73").opacity(0.18))
-                    .clipShape(Capsule())
+                if !entry.streakBadge.isEmpty {
+                    Text(entry.streakBadge)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(Color(hex: "9E7D47"))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color(hex: "B69A73").opacity(0.18))
+                        .clipShape(Capsule())
+                }
             }
 
             Spacer()
@@ -297,32 +390,33 @@ struct KuranKerimWidgetEntryView : View {
                     .foregroundColor(Color(hex: "9E7D47"))
                     .lineLimit(1)
                 Spacer()
-                Text(entry.streakBadge)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color(hex: "9E7D47"))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color(hex: "B69A73").opacity(0.18))
-                    .clipShape(Capsule())
-
-            }
-                Text("“\(entry.text)”")
-                    .font(.system(size: 16, weight: .medium, design: .serif))
-                    .lineLimit(4)
-                    .minimumScaleFactor(0.85)
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                HStack {
-                    Text(entry.reference)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Color(hex: "B69A73"))
-                        .lineLimit(1)
-                    Spacer()
-                    Image(systemName: entry.todayCompleted ? "checkmark.circle.fill" : "arrow.up.forward")
+                if !entry.streakBadge.isEmpty {
+                    Text(entry.streakBadge)
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(Color(hex: "9E7D47"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "B69A73").opacity(0.18))
+                        .clipShape(Capsule())
                 }
+            }
+            Text("“\(entry.text)”")
+                .font(.system(size: 16, weight: .medium, design: .serif))
+                .lineLimit(4)
+                .minimumScaleFactor(0.85)
+                .foregroundColor(.primary)
+
+            Spacer()
+
+            HStack {
+                Text(entry.reference)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(hex: "B69A73"))
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: entry.todayCompleted ? "checkmark.circle.fill" : "arrow.up.forward")
+                    .foregroundColor(Color(hex: "9E7D47"))
+            }
         }
         .padding(14)
         .widgetURL(URL(string: "kuran-kerim-diyor://ayet?id=\(entry.surah):\(entry.ayah)"))
@@ -337,9 +431,31 @@ struct KuranKerimWidget: Widget {
             KuranKerimWidgetEntryView(entry: entry)
                 .compatibleWidgetBackground()
         }
-        .configurationDisplayName("Kuran Kerim Diyor")
-        .description("Günün ayetini ve okuma serinizi ana ekranınızda görün.")
+        .configurationDisplayName(verseWidgetName(getSystemLanguage()))
+        .description(verseWidgetDescription(getSystemLanguage()))
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
+    }
+}
+
+func verseWidgetName(_ lang: String) -> String {
+    switch lang {
+    case "en": return "Verse of the Day"
+    case "de": return "Vers des Tages"
+    case "fr": return "Verset du jour"
+    case "es": return "Versículo del día"
+    case "ar": return "آية اليوم"
+    default: return "Günün Ayeti"
+    }
+}
+
+func verseWidgetDescription(_ lang: String) -> String {
+    switch lang {
+    case "en": return "Today's verse and your reading streak."
+    case "de": return "Der Vers des Tages und deine Leseserie."
+    case "fr": return "Le verset du jour et votre série de lecture."
+    case "es": return "El versículo del día y tu racha de lectura."
+    case "ar": return "آية اليوم وسلسلة قراءتك."
+    default: return "Günün ayeti ve okuma seriniz."
     }
 }
 

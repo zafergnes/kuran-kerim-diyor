@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text, PanResponder } from 'react-native';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, RotateCcw, RotateCw, X } from 'lucide-react-native';
+import { Play, Pause, RotateCcw, RotateCw, X, SkipBack, SkipForward, Repeat, Repeat1 } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useUserStore } from '../store/userStore';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +11,28 @@ import { OfflineAudioService } from '../services/offlineAudioService';
 
 interface AudioPlayerProps {
     globalAyahNumber: number;
+    surahNumber?: number;
+    ayahNumber?: number;
     onProgressChange?: (progress: number) => void;
     seekProgress?: number | null;
     onPlayingChange?: (isPlaying: boolean) => void;
     onScrubbingChange?: (isScrubbing: boolean) => void;
+    onNextAyah?: () => void;
+    onPrevAyah?: () => void;
+    autoPlayOnMount?: boolean;
 }
 
 export function AudioPlayer({
     globalAyahNumber,
+    surahNumber,
+    ayahNumber,
     onProgressChange,
     seekProgress,
     onPlayingChange,
     onScrubbingChange,
+    onNextAyah,
+    onPrevAyah,
+    autoPlayOnMount,
 }: AudioPlayerProps) {
     const [sound, setSound] = useState<AudioSound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -32,7 +42,7 @@ export function AudioPlayer({
     const [positionMillis, setPositionMillis] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [trackWidth, setTrackWidth] = useState(280);
-    const { selectedReciter } = useUserStore();
+    const { selectedReciter, audioContinuousPlay, setAudioContinuousPlay } = useUserStore();
     const { t } = useTranslation();
 
     const { theme } = useAppTheme();
@@ -86,6 +96,15 @@ export function AudioPlayer({
         onPlayingChange?.(isPlaying);
     }, [isPlaying, onPlayingChange]);
 
+    useEffect(() => {
+        if (autoPlayOnMount && !sound && !isLoading) {
+            const timer = setTimeout(() => {
+                void handlePlayPause();
+            }, 80);
+            return () => clearTimeout(timer);
+        }
+    }, [autoPlayOnMount]);
+
     const handleStop = async () => {
         await GlobalAudioController.stop(ownerId);
         setSound(null);
@@ -93,6 +112,20 @@ export function AudioPlayer({
         updateProgress(0);
         setPositionMillis(0);
         setDurationMillis(0);
+    };
+
+    const handleNextAyah = async () => {
+        if (sound) {
+            await handleStop();
+        }
+        onNextAyah?.();
+    };
+
+    const handlePrevAyah = async () => {
+        if (sound) {
+            await handleStop();
+        }
+        onPrevAyah?.();
     };
 
     const handlePlayPause = async () => {
@@ -151,6 +184,9 @@ export function AudioPlayer({
                         updateProgress(0);
                         setPositionMillis(0);
                         newSound.setPositionAsync(0).catch(() => {});
+                        if (audioContinuousPlay && onNextAyah) {
+                            onNextAyah();
+                        }
                     }
                 }
             });
@@ -276,6 +312,30 @@ export function AudioPlayer({
                         </Text>
                     </TouchableOpacity>
 
+                    {/* Sürekli / Tek Ayet Mod Seçici */}
+                    <TouchableOpacity
+                        onPress={() => setAudioContinuousPlay(!audioContinuousPlay)}
+                        style={[
+                            styles.modeBadge,
+                            {
+                                backgroundColor: audioContinuousPlay ? theme.primary + '18' : theme.background,
+                                borderColor: audioContinuousPlay ? theme.primary : theme.border,
+                            }
+                        ]}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        accessibilityLabel={audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                    >
+                        {audioContinuousPlay ? (
+                            <Repeat size={12} color={theme.primary} />
+                        ) : (
+                            <Repeat1 size={12} color={theme.muted} />
+                        )}
+                        <Text style={[styles.modeBadgeText, { color: audioContinuousPlay ? theme.primary : theme.muted }]}>
+                            {audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                        </Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                         onPress={() => void cyclePlaybackRate()}
                         style={[styles.rateBadge, { backgroundColor: theme.background, borderColor: theme.border }]}
@@ -302,7 +362,7 @@ export function AudioPlayer({
             ) : (
                 /* Aktif Oynatıcı Paneli (Ergonomik ve Tam Genişlikte) */
                 <View style={[styles.activeDeck, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                    {/* Üst Bilgi Satırı: Okuyucu, Hız, Kapat */}
+                    {/* Üst Bilgi Satırı: Okuyucu, Mod, Hız, Kapat */}
                     <View style={styles.deckTopRow}>
                         <View style={styles.reciterChip}>
                             <View style={[styles.activeDot, { backgroundColor: isPlaying ? '#4CAF50' : theme.muted }]} />
@@ -312,6 +372,30 @@ export function AudioPlayer({
                         </View>
 
                         <View style={styles.deckTopActions}>
+                            {/* Mod Butonu (Tüm Sure / Tek Ayet) */}
+                            <TouchableOpacity
+                                onPress={() => setAudioContinuousPlay(!audioContinuousPlay)}
+                                style={[
+                                    styles.modeBadge,
+                                    {
+                                        backgroundColor: audioContinuousPlay ? theme.primary + '18' : theme.background,
+                                        borderColor: audioContinuousPlay ? theme.primary : theme.border,
+                                    }
+                                ]}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                            >
+                                {audioContinuousPlay ? (
+                                    <Repeat size={12} color={theme.primary} />
+                                ) : (
+                                    <Repeat1 size={12} color={theme.muted} />
+                                )}
+                                <Text style={[styles.modeBadgeText, { color: audioContinuousPlay ? theme.primary : theme.muted }]}>
+                                    {audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                                </Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity
                                 onPress={() => void cyclePlaybackRate()}
                                 style={[styles.rateBadge, { backgroundColor: theme.background, borderColor: theme.border }]}
@@ -330,7 +414,7 @@ export function AudioPlayer({
                         </View>
                     </View>
 
-                    {/* Tam Genişlikte İlerleme Çubuğu — PanResponder ve Geniş HitSlop ile Sayfa Kaydırmayı Önler */}
+                    {/* Tam Genişlikte İlerleme Çubuğu */}
                     <View
                         style={styles.scrubberArea}
                         hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
@@ -343,7 +427,7 @@ export function AudioPlayer({
                         </View>
                     </View>
 
-                    {/* Alt Kontrol ve Süre Satırı */}
+                    {/* Alt Kontrol ve Süre Satırı: Akıllı Önceki / Sonraki Ayet Butonları */}
                     <View style={styles.deckBottomRow}>
                         <Text style={[styles.timeLabel, { color: theme.muted }]}>
                             {formatTime(positionMillis)}
@@ -351,13 +435,20 @@ export function AudioPlayer({
 
                         <View style={styles.transportControls}>
                             <TouchableOpacity
-                                onPress={() => void seekBy(-5)}
+                                onPress={onPrevAyah ? handlePrevAyah : () => void seekBy(-5)}
+                                onLongPress={() => void seekBy(-5)}
                                 style={[styles.seekButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                accessibilityLabel="5 saniye geri"
+                                accessibilityLabel={onPrevAyah ? t('common.prev_ayah', 'Önceki Ayet') : '5 saniye geri'}
                                 activeOpacity={0.7}
                             >
-                                <RotateCcw size={15} color={theme.primary} />
-                                <Text style={[styles.seekText, { color: theme.primary }]}>5</Text>
+                                {onPrevAyah ? (
+                                    <SkipBack size={16} color={theme.primary} />
+                                ) : (
+                                    <>
+                                        <RotateCcw size={14} color={theme.primary} />
+                                        <Text style={[styles.seekText, { color: theme.primary }]}>5</Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -376,13 +467,20 @@ export function AudioPlayer({
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                onPress={() => void seekBy(5)}
+                                onPress={onNextAyah ? handleNextAyah : () => void seekBy(5)}
+                                onLongPress={() => void seekBy(5)}
                                 style={[styles.seekButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                accessibilityLabel="5 saniye ileri"
+                                accessibilityLabel={onNextAyah ? t('common.next_ayah', 'Sonraki Ayet') : '5 saniye ileri'}
                                 activeOpacity={0.7}
                             >
-                                <RotateCw size={15} color={theme.primary} />
-                                <Text style={[styles.seekText, { color: theme.primary }]}>5</Text>
+                                {onNextAyah ? (
+                                    <SkipForward size={16} color={theme.primary} />
+                                ) : (
+                                    <>
+                                        <RotateCw size={14} color={theme.primary} />
+                                        <Text style={[styles.seekText, { color: theme.primary }]}>5</Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
 
@@ -442,6 +540,19 @@ const styles = StyleSheet.create({
     rateBadgeText: {
         fontSize: 11,
         fontWeight: '800',
+    },
+    modeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        height: 26,
+        borderRadius: 13,
+        borderWidth: 1,
+    },
+    modeBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
     },
     activeDeck: {
         width: '100%',

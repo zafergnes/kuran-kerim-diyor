@@ -105,187 +105,179 @@ export const getAyah = (surahNumber: number, ayahNumber: number): Ayah | undefin
     return surah.ayahs.find(a => a.number === ayahNumber);
 };
 
-const CHAR_MAP: Record<string, string> = {
-    'ş': 's', 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ü': 'u',
-    'â': 'a', 'î': 'i', 'û': 'u', 'é': 'e', 'è': 'e', 'ê': 'e',
-    'à': 'a', 'ñ': 'n', 'ä': 'a',
+export const foldSearchText = (str: string): string => {
+    if (!str) return '';
+    return str
+        .replace(/İ/g, 'i')
+        .replace(/I/g, 'ı')
+        .toLowerCase()
+        .replace(/[âàáäã]/g, 'a')
+        .replace(/[îìíï]/g, 'i')
+        .replace(/[ûùúü]/g, 'u')
+        .replace(/[ôòóöõ]/g, 'o')
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ş/g, 's')
+        .replace(/ü/g, 'u')
+        .replace(/ö/g, 'o')
+        .replace(/ı/g, 'i')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+        .replace(/['`’‘\-]/g, '');
 };
 
-const normalize = (s: string): string => {
-    let o = s.toLowerCase();
-    o = o.replace(/[^\x00-\x7F]/g, ch => CHAR_MAP[ch] || ch);
-    o = o.replace(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g, '');
-    o = o.replace(/^(adh|ash|al|an|ar|ad|at|az|aal)(?=[-'\s]|$)/i, '');
-    o = o.replace(/[-'\s]/g, '');
-    o = o.replace(/sh/g, 's');
-    o = o.replace(/kh/g, 'h');
-    o = o.replace(/gh/g, 'g');
-    o = o.replace(/th/g, 't');
-    o = o.replace(/dh/g, 'd');
-    o = o.replace(/(.)\1+/g, '$1');
-    return o;
+export const tokenizeWords = (str: string): Set<string> => {
+    const folded = foldSearchText(str);
+    const words = folded.split(/[^a-z0-9]+/i).filter((w) => w.length > 0);
+    return new Set(words);
 };
 
 const SURAH_ALIASES: Record<string, number> = {};
 
 const addAlias = (names: string[], surahNo: number) => {
     for (const n of names) {
-        SURAH_ALIASES[normalize(n)] = surahNo;
+        const key = foldSearchText(n).replace(/\s+/g, '');
+        SURAH_ALIASES[key] = surahNo;
     }
 };
 
 addAlias(['fatiha', 'el-fatiha'], 1);
-addAlias(['bakara', 'bekara'], 2);
-addAlias(['ali imran', 'al-i imran', 'imran'], 3);
-addAlias(['nisa', 'nissa'], 4);
-addAlias(['maide', 'ma\'ide'], 5);
-addAlias(['enam', 'en\'am'], 6);
-addAlias(['araf', 'a\'raf'], 7);
-addAlias(['enfal'], 8);
-addAlias(['tevbe', 'tövbe'], 9);
+addAlias(['bakara', 'bekara', 'el-bakara'], 2);
+addAlias(['ali imran', 'al-i imran', 'âl-i imrân', 'imran'], 3);
+addAlias(['nisa', 'nissa', 'en-nisa'], 4);
+addAlias(['maide', 'el-maide'], 5);
+addAlias(['enam', 'el-enam'], 6);
+addAlias(['araf', 'el-araf'], 7);
+addAlias(['enfal', 'el-enfal'], 8);
+addAlias(['tevbe', 'tövbe', 'et-tevbe', 'berae'], 9);
 addAlias(['yunus'], 10);
-addAlias(['hud', 'hûd'], 11);
+addAlias(['hud'], 11);
 addAlias(['yusuf'], 12);
-addAlias(['rad', 'ra\'d'], 13);
+addAlias(['rad', 'er-rad'], 13);
 addAlias(['ibrahim'], 14);
-addAlias(['hicr'], 15);
-addAlias(['nahl'], 16);
-addAlias(['isra', 'israa'], 17);
-addAlias(['kehf'], 18);
+addAlias(['hicr', 'el-hicr'], 15);
+addAlias(['nahl', 'en-nahl'], 16);
+addAlias(['isra', 'israa', 'el-isra', 'beni israil'], 17);
+addAlias(['kehf', 'el-kehf'], 18);
 addAlias(['meryem'], 19);
-addAlias(['taha', 'tâhâ'], 20);
-addAlias(['enbiya', 'enbiyâ'], 21);
-addAlias(['hac', 'hacc'], 22);
-addAlias(['muminun', 'müminun', 'mu\'minun'], 23);
-addAlias(['nur', 'nûr'], 24);
-addAlias(['furkan', 'furkân'], 25);
-addAlias(['şuara', 'suara', 'şu\'ara'], 26);
-addAlias(['neml'], 27);
-addAlias(['kasas'], 28);
-addAlias(['ankebut', 'ankebût'], 29);
-addAlias(['rum', 'rûm'], 30);
+addAlias(['taha'], 20);
+addAlias(['enbiya', 'el-enbiya'], 21);
+addAlias(['hac', 'hacc', 'el-hac'], 22);
+addAlias(['muminun', 'müminun', 'el-müminun'], 23);
+addAlias(['nur', 'en-nur'], 24);
+addAlias(['furkan', 'el-furkan'], 25);
+addAlias(['suara', 'şuara', 'es-suara'], 26);
+addAlias(['neml', 'en-neml'], 27);
+addAlias(['kasas', 'el-kasas'], 28);
+addAlias(['ankebut', 'el-ankebut'], 29);
+addAlias(['rum', 'er-rum'], 30);
 addAlias(['lokman', 'luqman'], 31);
-addAlias(['secde', 'sajda'], 32);
-addAlias(['ahzab', 'ahzâb', 'azhap', 'azhab'], 33);
-addAlias(['sebe', 'seba', 'sebe\'', 'saba'], 34);
-addAlias(['fatir', 'fâtır', 'fatır'], 35);
-addAlias(['yasin', 'yâsin', 'yâsîn'], 36);
-addAlias(['saffat', 'sâffât'], 37);
-addAlias(['sad', 'sâd'], 38);
-addAlias(['zümer', 'zumer', 'zumar'], 39);
-addAlias(['mümin', 'mumin', 'gafir', 'ghafir'], 40);
-addAlias(['fussilet', 'fussılet', 'ha mim secde'], 41);
-addAlias(['şura', 'sura', 'şûra', 'şûrâ'], 42);
-addAlias(['zuhruf', 'züHruf'], 43);
-addAlias(['duhan', 'duhân'], 44);
-addAlias(['casiye', 'câsiye'], 45);
-addAlias(['ahkaf', 'ahkâf'], 46);
+addAlias(['secde', 'es-secde'], 32);
+addAlias(['ahzab', 'el-ahzab'], 33);
+addAlias(['sebe', 'saba'], 34);
+addAlias(['fatir', 'el-fatir'], 35);
+addAlias(['yasin'], 36);
+addAlias(['saffat', 'es-saffat'], 37);
+addAlias(['sad'], 38);
+addAlias(['zumer', 'zümer', 'ez-zumer'], 39);
+addAlias(['mumin', 'mümin', 'gafir', 'ghafir'], 40);
+addAlias(['fussilet'], 41);
+addAlias(['sura', 'şura', 'es-sura'], 42);
+addAlias(['zuhruf', 'ez-zuhruf'], 43);
+addAlias(['duhan', 'ed-duhan'], 44);
+addAlias(['casiye', 'el-casiye'], 45);
+addAlias(['ahkaf', 'el-ahkaf'], 46);
 addAlias(['muhammed'], 47);
-addAlias(['fetih', 'feth'], 48);
-addAlias(['hucurat', 'hucurât'], 49);
+addAlias(['fetih', 'el-fetih'], 48);
+addAlias(['hucurat', 'el-hucurat'], 49);
 addAlias(['kaf', 'qaf'], 50);
-addAlias(['zariyat', 'zâriyât', 'zâriyat'], 51);
-addAlias(['tur', 'tûr'], 52);
-addAlias(['necm'], 53);
-addAlias(['kamer'], 54);
-addAlias(['rahman', 'rahmân'], 55);
-addAlias(['vakia', 'vâkıa', 'vakıa'], 56);
-addAlias(['hadid', 'hadîd'], 57);
-addAlias(['mücadele', 'mucadele', 'mücâdele'], 58);
-addAlias(['haşr', 'hasr', 'hashr'], 59);
-addAlias(['mümtehine', 'mumtehine', 'mümtahine'], 60);
-addAlias(['saf', 'saff'], 61);
-addAlias(['cuma', 'cum\'a'], 62);
-addAlias(['münafikun', 'munafikun', 'münâfıkûn'], 63);
-addAlias(['tegabun', 'teğâbun', 'tegâbün'], 64);
-addAlias(['talak', 'talâk'], 65);
-addAlias(['tahrim', 'tahrîm'], 66);
-addAlias(['mülk', 'mulk'], 67);
-addAlias(['kalem'], 68);
-addAlias(['hakka', 'hâkka'], 69);
-addAlias(['mearic', 'meâric', 'me\'aric'], 70);
-addAlias(['nuh', 'nûh'], 71);
-addAlias(['cin', 'cinn'], 72);
-addAlias(['müzzemmil', 'muzzemmil'], 73);
-addAlias(['müddessir', 'muddessir', 'müddesir'], 74);
-addAlias(['kıyamet', 'kiyamet', 'kıyâmet'], 75);
-addAlias(['insan', 'insân'], 76);
-addAlias(['mürselat', 'murselat', 'mürselât'], 77);
-addAlias(['nebe', 'nebe\'', 'amme'], 78);
-addAlias(['naziat', 'nâziât', 'naziât'], 79);
+addAlias(['zariyat', 'ez-zariyat'], 51);
+addAlias(['tur', 'et-tur'], 52);
+addAlias(['necm', 'en-necm'], 53);
+addAlias(['kamer', 'el-kamer'], 54);
+addAlias(['rahman', 'er-rahman'], 55);
+addAlias(['vakia', 'el-vakia'], 56);
+addAlias(['hadid', 'el-hadid'], 57);
+addAlias(['mucadele', 'mücadele'], 58);
+addAlias(['hasr', 'haşr', 'el-hasr'], 59);
+addAlias(['mumtehine', 'mümtehine'], 60);
+addAlias(['saf', 'es-saf'], 61);
+addAlias(['cuma', 'el-cuma'], 62);
+addAlias(['munafikun', 'münafikun'], 63);
+addAlias(['tegabun', 'et-tegabun'], 64);
+addAlias(['talak', 'et-talak'], 65);
+addAlias(['tahrim', 'et-tahrim'], 66);
+addAlias(['mulk', 'mülk', 'el-mulk', 'tebareke'], 67);
+addAlias(['kalem', 'el-kalem'], 68);
+addAlias(['hakka', 'el-hakka'], 69);
+addAlias(['mearic', 'el-mearic'], 70);
+addAlias(['nuh'], 71);
+addAlias(['cin', 'el-cin'], 72);
+addAlias(['muzzemmil', 'müzzemmil'], 73);
+addAlias(['muddessir', 'müddessir'], 74);
+addAlias(['kiyamet', 'kıyamet', 'el-kiyamet'], 75);
+addAlias(['insan', 'el-insan', 'dehr'], 76);
+addAlias(['murselat', 'mürselat'], 77);
+addAlias(['nebe', 'en-nebe', 'amme'], 78);
+addAlias(['naziat', 'en-naziat'], 79);
 addAlias(['abese'], 80);
-addAlias(['tekvir', 'tekvîr'], 81);
-addAlias(['infitar', 'infitâr'], 82);
-addAlias(['mutaffifin', 'mutaffifîn', 'tatfif'], 83);
-addAlias(['inşikak', 'insikak', 'inşikâk'], 84);
-addAlias(['büruc', 'buruc', 'bürûc'], 85);
-addAlias(['tarık', 'tarik', 'târık'], 86);
-addAlias(['ala', 'âlâ', 'a\'la'], 87);
-addAlias(['gaşiye', 'gasiye', 'gâşiye'], 88);
-addAlias(['fecr'], 89);
-addAlias(['beled'], 90);
-addAlias(['şems', 'sems'], 91);
-addAlias(['leyl', 'leyil'], 92);
-addAlias(['duha', 'duhâ'], 93);
-addAlias(['inşirah', 'insirah', 'şerh', 'serh'], 94);
-addAlias(['tin', 'tîn'], 95);
-addAlias(['alak', 'alâk'], 96);
-addAlias(['kadir', 'kadr'], 97);
-addAlias(['beyyine', 'beyyina'], 98);
-addAlias(['zilzal', 'zelzele', 'zilzâl'], 99);
-addAlias(['adiyat', 'âdiyât'], 100);
-addAlias(['karia', 'kâria', 'kâri\'a'], 101);
-addAlias(['tekasür', 'tekasur', 'tekâsür'], 102);
-addAlias(['asr'], 103);
-addAlias(['hümeze', 'humeze', 'hümaza'], 104);
-addAlias(['fil'], 105);
-addAlias(['kureyş', 'kureys', 'kureyis'], 106);
-addAlias(['maun', 'mâûn', 'mâ\'ûn'], 107);
-addAlias(['kevser', 'kevser'], 108);
-addAlias(['kafirun', 'kâfirûn', 'kâfirun'], 109);
-addAlias(['nasr'], 110);
+addAlias(['tekvir', 'et-tekvir'], 81);
+addAlias(['infitar', 'el-infitar'], 82);
+addAlias(['mutaffifin'], 83);
+addAlias(['insikak', 'inşikak'], 84);
+addAlias(['buruc', 'büruc', 'el-buruc'], 85);
+addAlias(['tarik', 'tarık', 'et-tarik'], 86);
+addAlias(['ala', 'el-ala'], 87);
+addAlias(['gasiye', 'gaşiye', 'el-gasiye'], 88);
+addAlias(['fecr', 'el-fecr'], 89);
+addAlias(['beled', 'el-beled'], 90);
+addAlias(['sems', 'şems', 'es-sems'], 91);
+addAlias(['leyl', 'el-leyl'], 92);
+addAlias(['duha', 'ed-duha'], 93);
+addAlias(['insirah', 'inşirah', 'serh', 'şerh'], 94);
+addAlias(['tin', 'et-tin'], 95);
+addAlias(['alak', 'el-alak'], 96);
+addAlias(['kadir', 'el-kadir', 'kadr'], 97);
+addAlias(['beyyine', 'el-beyyine'], 98);
+addAlias(['zilzal', 'zelzele', 'ez-zilzal'], 99);
+addAlias(['adiyat', 'el-adiyat'], 100);
+addAlias(['karia', 'el-karia'], 101);
+addAlias(['tekasur', 'tekasür'], 102);
+addAlias(['asr', 'el-asr'], 103);
+addAlias(['humeze', 'hümeze', 'el-humeze'], 104);
+addAlias(['fil', 'el-fil'], 105);
+addAlias(['kureys', 'kureyş', 'el-kureys'], 106);
+addAlias(['maun', 'el-maun'], 107);
+addAlias(['kevser', 'el-kevser'], 108);
+addAlias(['kafirun', 'el-kafirun'], 109);
+addAlias(['nasr', 'en-nasr'], 110);
 addAlias(['tebbet', 'mesed', 'leheb'], 111);
-addAlias(['ihlas', 'ihlâs'], 112);
-addAlias(['felak', 'felâk'], 113);
-addAlias(['nas', 'nâs'], 114);
+addAlias(['ihlas', 'el-ihlas'], 112);
+addAlias(['felak', 'el-felak'], 113);
+addAlias(['nas', 'en-nas'], 114);
 
-// Pre-computed normalized name table for fast O(1) or small-iteration lookup
-interface SurahLookupItem {
-    normalized: string;
-    surahNumber: number;
-}
-const SURAH_NAME_INDEX: SurahLookupItem[] = [];
+// Index all multilingual surah names into SURAH_ALIASES
 for (const surah of quranData) {
     const names = [surah.name.tr, surah.name.en, surah.name.de, surah.name.fr, surah.name.es];
     for (const n of names) {
         if (n) {
-            const norm = normalize(n);
-            SURAH_NAME_INDEX.push({ normalized: norm, surahNumber: surah.number });
-            if (SURAH_ALIASES[norm] === undefined) {
-                SURAH_ALIASES[norm] = surah.number;
+            const key = foldSearchText(n).replace(/\s+/g, '');
+            if (SURAH_ALIASES[key] === undefined) {
+                SURAH_ALIASES[key] = surah.number;
+            }
+            const withoutAl = key.replace(/^(al|el|an|ar|ad|at|az|as|ash|adh)/, '');
+            if (withoutAl.length >= 3 && SURAH_ALIASES[withoutAl] === undefined) {
+                SURAH_ALIASES[withoutAl] = surah.number;
             }
         }
     }
 }
 
-const findSurahByNameOrAlias = (name: string): number | null => {
-    const key = normalize(name);
+export const findSurahByNameOrAlias = (name: string): number | null => {
+    const key = foldSearchText(name).replace(/\s+/g, '');
     if (SURAH_ALIASES[key] !== undefined) return SURAH_ALIASES[key];
-
-    if (key.length >= 3) {
-        for (const [aliasKey, num] of Object.entries(SURAH_ALIASES)) {
-            if (aliasKey.startsWith(key) || key.startsWith(aliasKey)) {
-                return num;
-            }
-        }
-        for (let i = 0; i < SURAH_NAME_INDEX.length; i++) {
-            const item = SURAH_NAME_INDEX[i];
-            if (item.normalized.startsWith(key) || key.startsWith(item.normalized)) {
-                return item.surahNumber;
-            }
-        }
-    }
-
+    const keyWithoutSuffix = key.replace(/suresi$/, '').replace(/sure$/, '');
+    if (SURAH_ALIASES[keyWithoutSuffix] !== undefined) return SURAH_ALIASES[keyWithoutSuffix];
     return null;
 };
 
@@ -293,19 +285,65 @@ const getLocalizedSurahName = (surah: Surah, language: AppLanguage) => {
     return surah.name[language] || surah.name.tr;
 };
 
-export const searchAyahs = (query: string, language: AppLanguage = "tr", limit: number = 50) => {
+interface SearchIndexEntry {
+    surahNumber: number;
+    surahName: string;
+    ayah: Ayah;
+    foldedText: string;
+    wordSet: Set<string>;
+    arabicClean: string;
+}
+
+const SEARCH_INDEX_CACHE: Partial<Record<AppLanguage, SearchIndexEntry[]>> = {};
+
+const getSearchIndex = (language: AppLanguage): SearchIndexEntry[] => {
+    if (!SEARCH_INDEX_CACHE[language]) {
+        const list: SearchIndexEntry[] = [];
+        for (let sIdx = 0; sIdx < quranData.length; sIdx++) {
+            const surah = quranData[sIdx];
+            const surahName = getLocalizedSurahName(surah, language);
+            for (let aIdx = 0; aIdx < surah.ayahs.length; aIdx++) {
+                const ayah = surah.ayahs[aIdx];
+                const trans = ayah.translations[language] || ayah.translations.tr || '';
+                list.push({
+                    surahNumber: surah.number,
+                    surahName,
+                    ayah,
+                    foldedText: foldSearchText(trans),
+                    wordSet: tokenizeWords(trans),
+                    arabicClean: ayah.arabic.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, ''),
+                });
+            }
+        }
+        SEARCH_INDEX_CACHE[language] = list;
+    }
+    return SEARCH_INDEX_CACHE[language]!;
+};
+
+export interface SearchResultItemData {
+    surahName: string;
+    surahNumber: number;
+    ayah: Ayah;
+    matchType?: 'ref' | 'surah' | 'text';
+}
+
+export const searchAyahs = (query: string, language: AppLanguage = "tr", limit: number = 50): SearchResultItemData[] => {
     const cleaned = query.trim();
-    if (cleaned.length < 3) return [];
+    if (cleaned.length < 2 && !/^\d+$/.test(cleaned)) return [];
 
-    const results: { surahName: string; surahNumber: number; ayah: Ayah }[] = [];
-
-    const constructItem = (surah: Surah, ayah: Ayah) => ({
-        surahName: getLocalizedSurahName(surah, language),
-        surahNumber: surah.number,
+    const constructItem = (
+        surahNumber: number,
+        surahName: string,
+        ayah: Ayah,
+        matchType: 'ref' | 'surah' | 'text' = 'text'
+    ): SearchResultItemData => ({
+        surahName,
+        surahNumber,
         ayah,
+        matchType,
     });
 
-    // 1. Ayah reference search (ends with number, e.g. "nisa 26", "3:5")
+    // 1. Ayah reference search (ends with number, e.g. "nisa 26", "2:255", "36:1", "bakara 255")
     const tailDigits = cleaned.match(/(\d{1,3})$/);
     if (tailDigits) {
         const ayahNumber = parseInt(tailDigits[1], 10);
@@ -320,56 +358,123 @@ export const searchAyahs = (query: string, language: AppLanguage = "tr", limit: 
                 surahNumber = findSurahByNameOrAlias(surahPart);
             }
 
-            if (surahNumber) {
+            if (surahNumber && surahNumber >= 1 && surahNumber <= 114) {
                 const surah = getSurah(surahNumber);
                 if (surah) {
                     const ayah = getAyah(surahNumber, ayahNumber);
                     if (ayah) {
-                        results.push(constructItem(surah, ayah));
-                        return results; // Return single specific ayah
+                        return [constructItem(surahNumber, getLocalizedSurahName(surah, language), ayah, 'ref')];
                     }
                 }
             }
         }
     }
 
-    // 2. Surah name search (lists all verses of the matched Surah)
-    let singleSurahNumber: number | null = null;
+    // 2. Direct Surah number search (e.g. "36", "112", "1")
     if (/^\d{1,3}$/.test(cleaned)) {
-        singleSurahNumber = parseInt(cleaned, 10);
-    } else {
-        singleSurahNumber = findSurahByNameOrAlias(cleaned);
-    }
-
-    if (singleSurahNumber) {
-        const surah = getSurah(singleSurahNumber);
-        if (surah) {
-            const count = Math.min(surah.ayahs.length, limit);
-            for (let i = 0; i < count; i++) {
-                results.push(constructItem(surah, surah.ayahs[i]));
+        const surahNumber = parseInt(cleaned, 10);
+        if (surahNumber >= 1 && surahNumber <= 114) {
+            const surah = getSurah(surahNumber);
+            if (surah) {
+                const surahName = getLocalizedSurahName(surah, language);
+                const count = Math.min(surah.ayahs.length, limit);
+                const results: SearchResultItemData[] = [];
+                for (let i = 0; i < count; i++) {
+                    results.push(constructItem(surahNumber, surahName, surah.ayahs[i], 'surah'));
+                }
+                return results;
             }
-            return results;
         }
     }
 
-    // 3. Fallback: Full-text translation/arabic search with limit
-    const lowerQuery = cleaned.toLowerCase();
-    for (let sIdx = 0; sIdx < quranData.length; sIdx++) {
-        const surah = quranData[sIdx];
-        for (let aIdx = 0; aIdx < surah.ayahs.length; aIdx++) {
-            const ayah = surah.ayahs[aIdx];
-            const trans = ayah.translations[language];
-            if (
-                (trans && trans.toLowerCase().includes(lowerQuery)) ||
-                ayah.arabic.includes(cleaned)
-            ) {
-                results.push(constructItem(surah, ayah));
-                if (results.length >= limit) {
-                    return results;
+    // 3. Exact Surah name search (e.g. "bakara", "bakara suresi", "yasin", "fatiha", "ihlas suresi")
+    const isExplicitSurah = /suresi$/i.test(cleaned) || /sure$/i.test(cleaned);
+    const surahNo = findSurahByNameOrAlias(cleaned);
+    if (surahNo) {
+        const rawKey = foldSearchText(cleaned).replace(/\s+/g, '');
+        // Only return entire surah if exact alias match OR user explicitly typed "suresi" / "sure"
+        if (SURAH_ALIASES[rawKey] !== undefined || isExplicitSurah) {
+            const surah = getSurah(surahNo);
+            if (surah) {
+                const surahName = getLocalizedSurahName(surah, language);
+                const count = Math.min(surah.ayahs.length, limit);
+                const results: SearchResultItemData[] = [];
+                for (let i = 0; i < count; i++) {
+                    results.push(constructItem(surahNo, surahName, surah.ayahs[i], 'surah'));
+                }
+                return results;
+            }
+        }
+    }
+
+    // 4. Full-text search with relevance ranking across all verses
+    const index = getSearchIndex(language);
+    const foldedQuery = foldSearchText(cleaned);
+    if (foldedQuery.length < 2) return [];
+
+    const queryWords = foldedQuery.split(/\s+/).filter((w) => w.length > 0);
+    const cleanArabicQuery = cleaned.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '').trim();
+    const scoredResults: { item: SearchResultItemData; score: number }[] = [];
+
+    for (let i = 0; i < index.length; i++) {
+        const entry = index[i];
+        let score = 0;
+
+        // Arabic search
+        if (cleanArabicQuery && cleanArabicQuery.length >= 2 && entry.arabicClean.includes(cleanArabicQuery)) {
+            score += 200;
+        }
+
+        // Translation search
+        if (entry.foldedText.includes(foldedQuery)) {
+            // Whole-word match
+            if (entry.wordSet.has(foldedQuery)) {
+                score += 100;
+            } else {
+                let startsCount = 0;
+                for (const w of entry.wordSet) {
+                    if (w.startsWith(foldedQuery)) startsCount++;
+                }
+                if (startsCount > 0) {
+                    score += 50 + startsCount * 5;
+                } else {
+                    score += 25;
+                }
+            }
+
+            // Frequency bonus
+            const matchCount = entry.foldedText.split(foldedQuery).length - 1;
+            score += (matchCount - 1) * 10;
+
+            // Brevity bonus
+            if (entry.foldedText.length < 150) {
+                score += Math.max(0, 10 - Math.floor(entry.foldedText.length / 20));
+            }
+        } else if (queryWords.length > 1) {
+            // Multi-word search
+            const allPresent = queryWords.every((qw) => entry.foldedText.includes(qw));
+            if (allPresent) {
+                score += 45;
+                for (const qw of queryWords) {
+                    if (entry.wordSet.has(qw)) score += 20;
                 }
             }
         }
+
+        if (score > 0) {
+            scoredResults.push({
+                item: constructItem(entry.surahNumber, entry.surahName, entry.ayah, 'text'),
+                score,
+            });
+        }
     }
 
-    return results;
+    // Sort by relevance score descending, then by surah and ayah number
+    scoredResults.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (a.item.surahNumber !== b.item.surahNumber) return a.item.surahNumber - b.item.surahNumber;
+        return a.item.ayah.number - b.item.ayah.number;
+    });
+
+    return scoredResults.slice(0, limit).map((r) => r.item);
 };

@@ -188,7 +188,9 @@ export default function RootLayout() {
                 <Stack.Screen name="names99" options={{ headerShown: false }} />
                 <Stack.Screen name="ayetel-kursi" options={{ headerShown: false }} />
                 <Stack.Screen name="hadith" options={{ headerShown: false }} />
+                <Stack.Screen name="ayet" options={{ headerShown: false }} />
                 <Stack.Screen name="dua-generator" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" options={{ headerShown: false }} />
             </Stack>
             <CelebrationModal />
         </>

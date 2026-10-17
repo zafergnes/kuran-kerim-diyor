@@ -28,6 +28,8 @@ import {
     LifeBuoy,
     Palette,
     Compass,
+    Repeat,
+    Shield,
 } from 'lucide-react-native';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
 import { useUserStore } from '../store/userStore';
@@ -57,6 +59,8 @@ export default function SettingsScreen() {
         setArabicTranslationLang,
         selectedReciter,
         setSelectedReciter,
+        audioContinuousPlay,
+        setAudioContinuousPlay,
         readingLayout,
         setReadingLayout,
         arabicFontFamily,
@@ -360,7 +364,7 @@ export default function SettingsScreen() {
                     {t('settings.audio_section')}
                 </Text>
                 <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                    <TouchableOpacity style={styles.row} onPress={() => setShowReciterPicker(true)}>
+                    <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => setShowReciterPicker(true)}>
                         <View style={styles.rowLeft}>
                             <View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}>
                                 <Headphones size={20} color={theme.primary} />
@@ -376,6 +380,28 @@ export default function SettingsScreen() {
                         </View>
                         <ChevronRight size={18} color={theme.muted} />
                     </TouchableOpacity>
+
+                    <View style={styles.row}>
+                        <View style={styles.rowLeft}>
+                            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 149, 0, 0.12)' }]}>
+                                <Repeat size={20} color="#FF9500" />
+                            </View>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={[styles.rowTitle, { color: theme.text }]}>
+                                    {t('common.continuous_play', 'Tüm Sure')}
+                                </Text>
+                                <Text style={[styles.rowSub, { color: theme.muted }]}>
+                                    {t('common.continuous_play_desc', 'Ayet bittiğinde otomatik sıradakine geç')}
+                                </Text>
+                            </View>
+                        </View>
+                        <Switch
+                            value={audioContinuousPlay}
+                            onValueChange={setAudioContinuousPlay}
+                            trackColor={{ false: theme.border, true: theme.primary }}
+                            thumbColor="#fff"
+                        />
+                    </View>
                 </View>
 
                 {/* ── UYGULAMA DİLİ ── */}
@@ -450,6 +476,9 @@ export default function SettingsScreen() {
                 <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
                     <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/privacy?lang=${language}`)}>
                         <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(10, 132, 255, 0.12)' }]}><FileText size={20} color="#0A84FF" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.privacy_policy', 'Gizlilik Politikası')}</Text></View><ChevronRight size={18} color={theme.muted} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/terms?lang=${language}`)}>
+                        <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(52, 199, 89, 0.12)' }]}><Shield size={20} color="#34C759" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.terms_of_service', 'Kullanım Koşulları')}</Text></View><ChevronRight size={18} color={theme.muted} />
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]} onPress={() => void Linking.openURL(`https://kurannediyor.com.tr/sources?lang=${language}`)}>
                         <View style={styles.rowLeft}><View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 159, 10, 0.12)' }]}><BookOpen size={20} color="#FF9F0A" /></View><Text style={[styles.rowTitle, { color: theme.text }]}>{t('settings.sources', 'Kaynaklar ve Atıflar')}</Text></View><ChevronRight size={18} color={theme.muted} />

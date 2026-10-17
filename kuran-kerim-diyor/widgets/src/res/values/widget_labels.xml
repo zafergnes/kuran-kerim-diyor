@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verse_widget_label">Günün Ayeti</string>
+    <string name="hadith_widget_label">Günün Hadisi</string>
+    <string name="streak_widget_label">Okuma Serisi</string>
+    <string name="hadith_widget_description">Sahih kaynaklardan her gün bir hadis gösterir</string>
+</resources>

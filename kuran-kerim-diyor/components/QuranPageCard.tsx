@@ -15,7 +15,7 @@ import { AppLanguage } from '../constants/languages';
 import { useTranslation } from 'react-i18next';
 import { getPageAyahs, PageAyahItem } from '../utils/quranHelpers';
 import { Audio, CompatSound as AudioSound } from '../services/audioCompat';
-import { Play, Pause, Sparkles, RotateCcw, RotateCw, Repeat2, X, ChevronLeft, ChevronRight, ChevronUp, Compass } from 'lucide-react-native';
+import { Play, Pause, Sparkles, RotateCcw, RotateCw, Repeat2, X, ChevronLeft, ChevronRight, ChevronUp, Compass, SkipBack, SkipForward, Repeat, Repeat1 } from 'lucide-react-native';
 import { GlobalAudioController } from '../services/globalAudioController';
 import { getAyahAudioTrack, WordTiming } from '../services/quranAudioTimingService';
 import { VerseChatModal } from './VerseChatModal';
@@ -41,6 +41,7 @@ interface QuranPageCardProps {
     onNextPage?: () => void;
     onPrevPage?: () => void;
     onAyahChange?: (surahNumber: number, ayahNumber: number) => void;
+    autoPlayFirstAyah?: boolean;
 }
 
 export const QuranPageCard = React.memo<QuranPageCardProps>(({
@@ -53,6 +54,7 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
     onNextPage,
     onPrevPage,
     onAyahChange,
+    autoPlayFirstAyah,
 }) => {
     const { t } = useTranslation();
     const { theme, colorScheme } = useAppTheme();
@@ -70,6 +72,8 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
         selectedReciter,
         fontSizeScale,
         setFontSizeScale,
+        audioContinuousPlay,
+        setAudioContinuousPlay,
     } = useUserStore();
     const translationLanguage = language === 'ar' ? arabicTranslationLang : language;
 
@@ -189,6 +193,15 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
         }
     }, [selectedReciter]);
 
+    useEffect(() => {
+        if (autoPlayFirstAyah && !sound && !isLoading && pageAyahs.length > 0) {
+            const timer = setTimeout(() => {
+                void playAyahAtIndex(0);
+            }, 120);
+            return () => clearTimeout(timer);
+        }
+    }, [autoPlayFirstAyah, pageAyahs]);
+
     const playAyahAtIndex = async (
         index: number,
         startProgress = 0,
@@ -285,7 +298,19 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
                             void playAyahAtIndex(index, 0, true);
                         } else {
                             repeatRemainingRef.current = repeatCountRef.current;
-                            void playAyahAtIndex(index + 1, 0, true);
+                            if (index + 1 < pageAyahs.length) {
+                                void playAyahAtIndex(index + 1, 0, true);
+                            } else {
+                                if (audioContinuousPlay && onNextPage) {
+                                    void handleStopAudio();
+                                    onNextPage();
+                                } else {
+                                    setIsPlaying(false);
+                                    setCurrentPlayingIndex(null);
+                                    setPlayProgress(0);
+                                    setPositionMillis(0);
+                                }
+                            }
                         }
                     }
                 }
@@ -299,6 +324,28 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
             setCurrentPlayingIndex(null);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handlePrevAyah = () => {
+        if (currentPlayingIndex !== null && currentPlayingIndex > 0) {
+            void playAyahAtIndex(currentPlayingIndex - 1);
+        } else if (onPrevPage) {
+            void handleStopAudio();
+            onPrevPage();
+        } else {
+            void seekBy(-5);
+        }
+    };
+
+    const handleNextAyah = () => {
+        if (currentPlayingIndex !== null && currentPlayingIndex < pageAyahs.length - 1) {
+            void playAyahAtIndex(currentPlayingIndex + 1);
+        } else if (onNextPage) {
+            void handleStopAudio();
+            onNextPage();
+        } else {
+            void seekBy(5);
         }
     };
 
@@ -804,6 +851,27 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
 
                             <View style={styles.deckTopControls}>
                                 <TouchableOpacity
+                                    onPress={() => setAudioContinuousPlay(!audioContinuousPlay)}
+                                    style={[
+                                        styles.deckChip,
+                                        {
+                                            borderColor: audioContinuousPlay ? theme.primary : theme.border,
+                                            backgroundColor: audioContinuousPlay ? theme.primary + '18' : theme.card,
+                                        }
+                                    ]}
+                                    accessibilityLabel={audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                                >
+                                    {audioContinuousPlay ? (
+                                        <Repeat size={12} color={theme.primary} />
+                                    ) : (
+                                        <Repeat1 size={12} color={theme.muted} />
+                                    )}
+                                    <Text style={[styles.deckChipText, { color: audioContinuousPlay ? theme.primary : theme.muted }]}>
+                                        {audioContinuousPlay ? t('common.continuous_play', 'Tüm Sure') : t('common.single_ayah_play', 'Tek Ayet')}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
                                     onPress={cycleRepeatCount}
                                     style={[styles.deckChip, { borderColor: theme.border, backgroundColor: theme.card }]}
                                     accessibilityLabel="Ayet tekrarı"
@@ -843,7 +911,7 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
                             </View>
                         </View>
 
-                        {/* Alt Kontroller: Geri/İleri 5s, Oynat/Duraklat, Süreler */}
+                        {/* Alt Kontroller: Akıllı Önceki/Sonraki Ayet, Oynat/Duraklat, Süreler */}
                         <View style={styles.deckTransportRow}>
                             <Text style={[styles.deckTimeText, { color: theme.muted }]}>
                                 {formatTime(positionMillis)}
@@ -851,13 +919,13 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
 
                             <View style={styles.deckTransportCluster}>
                                 <TouchableOpacity
-                                    onPress={() => void seekBy(-5)}
+                                    onPress={handlePrevAyah}
+                                    onLongPress={() => void seekBy(-5)}
                                     style={[styles.deckSeekBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
-                                    accessibilityLabel="5 saniye geri"
+                                    accessibilityLabel={t('common.prev_ayah', 'Önceki Ayet')}
                                     activeOpacity={0.7}
                                 >
-                                    <RotateCcw size={15} color={theme.primary} />
-                                    <Text style={[styles.deckSeekNum, { color: theme.primary }]}>5</Text>
+                                    <SkipBack size={16} color={theme.primary} />
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
@@ -876,13 +944,13 @@ export const QuranPageCard = React.memo<QuranPageCardProps>(({
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    onPress={() => void seekBy(5)}
+                                    onPress={handleNextAyah}
+                                    onLongPress={() => void seekBy(5)}
                                     style={[styles.deckSeekBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
-                                    accessibilityLabel="5 saniye ileri"
+                                    accessibilityLabel={t('common.next_ayah', 'Sonraki Ayet')}
                                     activeOpacity={0.7}
                                 >
-                                    <RotateCw size={15} color={theme.primary} />
-                                    <Text style={[styles.deckSeekNum, { color: theme.primary }]}>5</Text>
+                                    <SkipForward size={16} color={theme.primary} />
                                 </TouchableOpacity>
                             </View>
 

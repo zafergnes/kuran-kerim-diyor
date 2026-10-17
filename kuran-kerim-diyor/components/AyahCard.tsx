@@ -17,9 +17,23 @@ interface AyahCardProps {
     isLastAyah?: boolean;
     nextSurahName?: string;
     onNextSurah?: () => void;
+    onNextAyah?: () => void;
+    onPrevAyah?: () => void;
+    autoPlayOnMount?: boolean;
 }
 
-export const AyahCard = React.memo(function AyahCard({ ayah, surahName, surahNumber, onAudioInteractionChange, isLastAyah, nextSurahName, onNextSurah }: AyahCardProps) {
+export const AyahCard = React.memo(function AyahCard({
+    ayah,
+    surahName,
+    surahNumber,
+    onAudioInteractionChange,
+    isLastAyah,
+    nextSurahName,
+    onNextSurah,
+    onNextAyah,
+    onPrevAyah,
+    autoPlayOnMount,
+}: AyahCardProps) {
     const { language, showArabicTranslation, arabicTranslationLang, selectedArabicScript, fontSizeScale } = useUserStore();
     const { theme } = useAppTheme();
     const [audioProgress, setAudioProgress] = useState(0);
@@ -153,10 +167,15 @@ export const AyahCard = React.memo(function AyahCard({ ayah, surahName, surahNum
 
                 <AudioPlayer
                     globalAyahNumber={ayah.globalNumber}
+                    surahNumber={surahNumber}
+                    ayahNumber={ayah.number}
                     onProgressChange={setAudioProgress}
                     seekProgress={seekProgress}
                     onPlayingChange={setIsAudioPlaying}
                     onScrubbingChange={onAudioInteractionChange}
+                    onNextAyah={onNextAyah}
+                    onPrevAyah={onPrevAyah}
+                    autoPlayOnMount={autoPlayOnMount}
                 />
 
                 <AyahActionBar

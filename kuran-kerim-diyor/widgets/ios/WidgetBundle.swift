@@ -5,5 +5,6 @@ import SwiftUI
 struct KuranKerimWidgetBundle: WidgetBundle {
     var body: some Widget {
         KuranKerimWidget()
+        HadithWidget()
     }
 }
